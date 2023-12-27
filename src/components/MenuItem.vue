@@ -18,11 +18,9 @@ const props = defineProps({
 
 <template>
   <RouterLink
-    class="uppercase py-[40px] text-[14px]"
+    class="flex uppercase lg:py-[20px] items-center lg:py-[40px] text-[14px] border-r-[4px] lg:border-b-[4px] lg:border-r-0 h-[20px]"
     :class="
-      props.isSelected
-        ? 'text-accent-3  border-b-[4px] border-accent-3 font-extrabold'
-        : 'border-b-[4px] border-transparent'
+      props.isSelected ? 'text-accent-3  border-accent-3 font-extrabold' : ' border-transparent'
     "
     :to="props.destination"
     >{{ props.title }}</RouterLink
