@@ -7,7 +7,7 @@ import WalletButton from '@/components/WalletButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import MenuButton from '@/components/MenuButton.vue'
 
-const selectedMenuItem = ref('Home')
+const selectedMenuItem = ref('Trade')
 const showSideBar = ref(false)
 
 const menuItems = [
@@ -40,7 +40,7 @@ const menuItems = [
 
 <template>
   <div>
-    <div class="sm:mx-auto flex items-center justify-between p-4 md:invisible">
+    <div class="flex items-center justify-between p-4 lg:invisible">
       <div @click="showSideBar = !showSideBar">
         <MenuButton />
       </div>
@@ -48,13 +48,13 @@ const menuItems = [
       <div></div>
     </div>
     <nav
-      class="sidebar fixed md:relative md:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] lg:space-x-[40px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
+      class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] lg:space-x-[40px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
       :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
     >
-      <LinxHubLogo class="invisible md:visible" />
+      <LinxHubLogo class="invisible lg:visible" />
       <div
         @click="showSideBar = !showSideBar"
-        class="visible md:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
+        class="visible lg:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
       >
         <font-awesome-icon :icon="['fal', 'times']" class="text-lg text-white text-[28px]" />
 
