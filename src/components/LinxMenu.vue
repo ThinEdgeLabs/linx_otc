@@ -39,40 +39,43 @@ const menuItems = [
 </script>
 
 <template>
-  <div class="sm:mx-auto flex items-center justify-between p-4 md:invisible">
-    <div @click="showSideBar = !showSideBar">
-      <MenuButton />
+  <div>
+    <div class="sm:mx-auto flex items-center justify-between p-4 md:invisible">
+      <div @click="showSideBar = !showSideBar">
+        <MenuButton />
+      </div>
+      <LinxHubLogo />
+      <div></div>
     </div>
-    <LinxHubLogo />
-    <div></div>
+    <nav
+      class="sidebar fixed md:relative md:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] lg:space-x-[40px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
+      :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
+    >
+      <LinxHubLogo class="invisible md:visible" />
+      <div
+        @click="showSideBar = !showSideBar"
+        class="visible md:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
+      >
+        <font-awesome-icon :icon="['fal', 'times']" class="text-lg text-white text-[28px]" />
+
+        <div class="text-white font-extrabold text-[22px]">Menu</div>
+      </div>
+
+      <div
+        class="flex flex-col lg:flex-row justify-center pl-[40px] lg:pl-0 lg:space-x-[40px] space-y-[20px] lg:space-y-0 -mb-[3px]"
+      >
+        <MenuItem
+          @click="(selectedMenuItem = item.title), (showSideBar = false)"
+          v-for="item in menuItems"
+          v-bind:key="menuItems.indexOf(item)"
+          :title="item.title"
+          :destination="item.destination"
+          :is-selected="selectedMenuItem === item.title"
+        ></MenuItem>
+      </div>
+
+      <WalletButton />
+    </nav>
+    <HorizontalDivider :class="'invisible lg:visible'" />
   </div>
-  <nav
-    class="sidebar fixed md:relative md:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] lg:space-x-[40px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0"
-    :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
-  >
-    <LinxHubLogo class="invisible md:visible" />
-    <div
-      @click="showSideBar = !showSideBar"
-      class="visible md:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
-    >
-      <font-awesome-icon :icon="['fal', 'times']" class="text-lg text-white text-[28px]" />
-
-      <div class="text-white font-extrabold text-[22px]">Menu</div>
-    </div>
-    <div
-      class="flex flex-col lg:flex-row justify-center space-x-[40px] space-y-[20px] lg:space-y-0"
-    >
-      <MenuItem
-        @click="selectedMenuItem = item.title"
-        v-for="item in menuItems"
-        v-bind:key="menuItems.indexOf(item)"
-        :title="item.title"
-        :destination="item.destination"
-        :is-selected="selectedMenuItem === item.title"
-      ></MenuItem>
-    </div>
-
-    <WalletButton />
-  </nav>
-  <HorizontalDivider class="-mt-[3px]" />
 </template>
