@@ -15,7 +15,7 @@ module.exports = {
               'accent-2': '#5188CF',
               'accent-3': '#6660D2',
               'core-darkest': '#121421',
-              'core-darker': '#1E212D',
+              'core-darker': '#191B28',
               'menu': '#1F212D',
               'core': '#707179',
               'core-light': '#B8B9BD',

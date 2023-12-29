@@ -48,7 +48,7 @@ const menuItems = [
       <div></div>
     </div>
     <nav
-      class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] lg:space-x-[40px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
+      class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
       :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
     >
       <LinxHubLogo class="invisible lg:visible" />

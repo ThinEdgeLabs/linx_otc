@@ -37,7 +37,8 @@ import {
     faPlus,
     faTrashAlt,
     faTimes,
-    faBoxCircleCheck
+    faBoxCircleCheck,
+    faClipboard
   } from '@fortawesome/pro-light-svg-icons'
   library.add(
     faBell,
@@ -65,7 +66,8 @@ import {
     faPlus,
     faTrashAlt,
     faTimes,
-    faBoxCircleCheck
+    faBoxCircleCheck,
+    faClipboard
   )
   import {
     faBell as fasBell,
@@ -91,7 +93,8 @@ import {
     faArrowUpRightFromSquare as fasArrowUpRightFromSquare,
     faPlus as fasPlus,
     faTrashAlt as fasTrashAlt,
-    faTimes as fasTimes
+    faTimes as fasTimes,
+    
   } from '@fortawesome/pro-solid-svg-icons'
   import { faXmark } from '@fortawesome/pro-regular-svg-icons'
   import {
@@ -116,7 +119,7 @@ import {
     faArrowUpRightFromSquare as fatArrowUpRightFromSquare,
     faPlus as fatPlus,
     faTrashAlt as fatTrashAlt,
-    faTimes as fatTimes
+    faTimes as fatTimes,
   } from '@fortawesome/pro-thin-svg-icons'
   
   library.add(
