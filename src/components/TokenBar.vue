@@ -11,25 +11,6 @@ const props = defineProps({
 const selectedToken = ref('NONE')
 const dropdownOpen = ref(false)
 
-const balance = {
-  ALPH: 0,
-  OGAlf: 0,
-  ALPHpaca: 0,
-  BERRY: 0,
-  TAIL: 0,
-  XAYIN: 0,
-  VLAD: 0,
-  JKL: 0,
-  WETH: 0,
-  USDT: 0,
-  USDC: 0,
-  DAI: 0,
-  NGU: 0,
-  VIRL: 0,
-  BUBBLE: 0,
-  CYXE: 0
-}
-
 function toggleDropDown() {
   dropdownOpen.value = !dropdownOpen.value
 }

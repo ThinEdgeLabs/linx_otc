@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 
 interface Order {
   from: string,
+  groupFrom: number,
   to: string,
+  groupTo: number | undefined,
   tokenFrom: string,
   amountFrom: number,
   tokenTo: string,
@@ -29,9 +31,23 @@ export const useOrderStore = defineStore('order', () => {
         order.value!.amountTo = amount
     }
 
-    function setReceiver(receiver: string) {
+    function setReceiver(receiver: string, group: number) {
         order.value!.to = receiver
+        order.value!.groupTo = group
+    }
+
+    function startNewOrder(receiver: string, group: number) {
+            order.value = {
+                from: receiver,
+                groupFrom: group,
+                to: "",
+                groupTo: undefined,
+                tokenFrom: "Alephium",
+                amountFrom: 0,
+                tokenTo: "",
+                amountTo: 0
+            }
     }
     
-  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver }
+  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder}
 })

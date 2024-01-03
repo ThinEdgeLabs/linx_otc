@@ -21,7 +21,7 @@ const dashboardData = [
 </script>
 
 <template>
-  <div class="hidden lg:flex flex-row w-full items-center justify-between pt-[40px]">
+  <div class="hidden lg:flex flex-row w-full items-center justify-between pt-[40px] p-[30px]">
     <div
       v-for="data in dashboardData"
       v-bind:key="dashboardData.indexOf(data)"
