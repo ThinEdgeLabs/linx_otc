@@ -2,14 +2,14 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 interface Order {
-  from: string,
-  groupFrom: number,
-  to: string,
-  groupTo: number | undefined,
-  tokenFrom: string,
-  amountFrom: number,
-  tokenTo: string,
-  amountTo: number,
+  from: string
+  groupFrom: number
+  to: string
+  groupTo: number | undefined
+  tokenFrom: string
+  amountFrom: number
+  tokenTo: string
+  amountTo: number
 }
 
 export const useOrderStore = defineStore('order', () => {
