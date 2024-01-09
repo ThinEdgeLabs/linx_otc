@@ -6,7 +6,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div>
+  <div class="w-full overflow-x-auto">
     <input
       class="remove-arrow outline-none w-full"
       :value="modelValue"

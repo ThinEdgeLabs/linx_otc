@@ -35,7 +35,7 @@ function handleAddress(address: string) {
       class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core"
     >
       <div class="flex flex-row space-x-[10px] items-center w-full">
-        <img src="@/assets/alph.png" class="w-[20px] h-[20px] rounded-full" />
+        <img src="@/assets/alph.png" class="w-[32px] h-[32px] rounded-full" />
 
         <div v-if="isSender" class="flex flex-row justify-between w-full">
           <p>

@@ -42,7 +42,11 @@ function toggleDropDown() {
       <div
         @click="toggleDropDown()"
         class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core"
-        :class="dropdownOpen ? 'rounded-t-lg border-b-[1px] border-core-darkest' : 'rounded-lg'"
+        :class="
+          dropdownOpen
+            ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white z-10'
+            : 'rounded-lg z-0'
+        "
       >
         <div class="flex flex-row space-x-[10px] items-center">
           <img :src="`./images/${selectedToken}.png`" class="w-[32px] h-[32px] rounded-full" />
@@ -59,7 +63,10 @@ function toggleDropDown() {
           class="text-[18px] text-accent-3"
         />
       </div>
-      <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg">
+      <div
+        v-if="dropdownOpen"
+        class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10"
+      >
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
             v-for="token in tokens"
