@@ -85,4 +85,5 @@ export const tokens : Array<Token> = [
         name: "Ayin",
         contract: "0x000000"
     }
+
 ]

@@ -32,6 +32,7 @@ export const useOrderStore = defineStore('order', () => {
     }
 
     function setReceiver(receiver: string, group: number) {
+        // Grab balance
         order.value!.to = receiver
         order.value!.groupTo = group
     }

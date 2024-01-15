@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { shortenString } from '@/functions/stringUtils'
 import { useAccountStore } from '@/stores/account'
+import { useLoginStore } from '@/stores/login'
 
 const account = useAccountStore()
+const loginStore = useLoginStore()
 
 function toggleModal() {
-  console.log('toggle modal')
-  account.setAccount('0x1234567890123456789012345678901234567890', 0)
+  loginStore.toggleModal()
 }
 </script>
 

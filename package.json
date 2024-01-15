@@ -14,12 +14,16 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@alephium/get-extension-wallet": "^0.28.1",
+    "@alephium/walletconnect-provider": "^0.28.1",
+    "@alephium/web3": "^0.28.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/pro-light-svg-icons": "^6.5.1",
     "@fortawesome/pro-regular-svg-icons": "^6.5.1",
     "@fortawesome/pro-solid-svg-icons": "^6.5.1",
     "@fortawesome/pro-thin-svg-icons": "^6.5.1",
     "@fortawesome/vue-fontawesome": "^3.0.3",
+    "@walletconnect/modal": "^2.6.2",
     "pinia": "^2.1.7",
     "vue": "^3.3.11",
     "vue-router": "^4.2.5"
