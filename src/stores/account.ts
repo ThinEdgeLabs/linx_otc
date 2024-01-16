@@ -19,7 +19,7 @@ export const useAccountStore = defineStore('account', () => {
     const account = ref<Account | undefined>()
     const nodeProvider = useNodeStore();
 
-    function setAccount(acc: string, grp: number, wallet: Wallet, publicKey: string ) {
+    async function setAccount(acc: string, grp: number, wallet: Wallet, publicKey: string ) {
       account.value = {
         group: grp,
         publicKey: publicKey,
@@ -27,15 +27,11 @@ export const useAccountStore = defineStore('account', () => {
         isConnected: true,
         wallet: wallet
       }
+
+      await nodeProvider.getBalance(acc, true);
+
       const orderStore = useOrderStore()
       orderStore.startNewOrder(acc, grp)
-
-      getBalance(acc)
-    }
-
-    async function getBalance(address : string) {
-      const balance = await nodeProvider.getBalance(address);
-      console.log(balance)
     }
 
     function disconnect() {
@@ -47,8 +43,10 @@ export const useAccountStore = defineStore('account', () => {
         const wcStore = useWalletConnectStore();
         wcStore.disconnectWalletConnect();
       }
+      const orderStore = useOrderStore()
+      orderStore.resetOrder()
       account.value = undefined
     }
     
-  return { account, setAccount, disconnect, getBalance }
+  return { account, setAccount, disconnect }
 })

@@ -23,3 +23,8 @@ export async function copyToClipboard(text: string) {
   alert('Copied to clipboard: ' + text)
   
 }
+
+export function parseBalance(balance : number, decimals : number) {
+  const actualTokenBalance = balance / Math.pow(10, decimals)
+  return actualTokenBalance;
+}

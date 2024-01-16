@@ -3,10 +3,6 @@ import { useLoginStore } from '@/stores/login'
 import LoginModalVue from './LoginModal.vue'
 
 const loginStore = useLoginStore()
-
-function dp(e) {
-  console.log('running e:', e)
-}
 </script>
 
 <template>

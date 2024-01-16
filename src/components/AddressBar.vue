@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { shortenString } from '@/functions/stringUtils'
 import { useOrderStore } from '@/stores/order'
+import { useNodeStore } from '@/stores/node'
 import TextInput from '@/components/TextInput.vue'
 
 const orderStore = useOrderStore()
@@ -19,10 +20,12 @@ function pasteAddress() {
   })
 }
 
-function handleAddress(address: string) {
+async function handleAddress(address: string) {
   // TODO: fetch group for address
-  const group = 0
-  orderStore.setReceiver(address, group)
+  const nodeStore = useNodeStore()
+  const group = await nodeStore.getGroupForAddress(address)
+  nodeStore.getBalance(address, props.isSender)
+  orderStore.setReceiver(address, group.group)
 }
 </script>
 
@@ -38,7 +41,7 @@ function handleAddress(address: string) {
         <img src="@/assets/alph.png" class="w-[32px] h-[32px] rounded-full" />
 
         <div v-if="isSender" class="flex flex-row justify-between w-full">
-          <p>
+          <p class="font-extrabold text-core-darkest text-[14px]">
             {{
               orderStore.order?.from ? shortenString(orderStore.order?.from, 16) : 'Connect wallet'
             }}
@@ -49,10 +52,12 @@ function handleAddress(address: string) {
         </div>
         <div v-else class="flex flex-row items-center justify-between w-full">
           <TextInput
-            :modelValue="orderStore.order?.to"
+            :modelValue="
+              orderStore.order?.to != undefined ? shortenString(orderStore.order!.to, 16) : ''
+            "
             @update:modelValue="handleAddress($event)"
           />
-          <p v-if="orderStore.order?.groupTo != undefined" class="pr-[10px]">
+          <p v-if="orderStore.order?.groupTo != undefined" class="w-full text-end pr-2">
             {{ `Group ${orderStore.order.groupTo}` }}
           </p>
         </div>

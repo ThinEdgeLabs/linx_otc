@@ -44,11 +44,15 @@ export const useOrderStore = defineStore('order', () => {
                 to: "",
                 groupTo: undefined,
                 tokenFrom: "Alephium",
-                amountFrom: 0,
+                amountFrom: 0.0,
                 tokenTo: "",
-                amountTo: 0
+                amountTo: 0.0
             }
     }
+
+    function resetOrder() {
+        order.value = undefined
+    }
     
-  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder}
+  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder, resetOrder}
 })

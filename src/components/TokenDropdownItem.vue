@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { parseBalance } from '@/functions/utils'
+
 const props = defineProps({
   token: {
     type: Object,
@@ -28,7 +30,7 @@ const props = defineProps({
       v-if="props.isOffer"
       class="flex flex-row text-end items-center space-x-[10px] text-[14px] font-semibold text-menu"
     >
-      <p>28.115 {{ props.token.symbol }}</p>
+      <p>{{ parseBalance(props.token.balance, props.token.decimals) }} {{ props.token.symbol }}</p>
       <font-awesome-icon
         :icon="['fal', 'circle-check']"
         :class="props.isSelected ? 'flex text-green-500' : 'invisible'"
