@@ -16,12 +16,16 @@ const menuItems = [
     destination: '/'
   },
   {
-    title: 'Trade',
-    destination: '/trade'
+    title: 'P2P Trade',
+    destination: '/trading'
   },
   {
-    title: 'Transactions',
-    destination: '/transactions'
+    title: 'P2P Lending',
+    destination: '/lending'
+  },
+  {
+    title: 'My Activity',
+    destination: '/activity'
   },
   {
     title: 'FAQ',

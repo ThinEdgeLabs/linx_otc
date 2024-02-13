@@ -3,7 +3,7 @@ module.exports = {
   darkMode: 'class',
   content: [
     "./index.html",
-    "./src/**/**/**/*.{vue,js,ts,jsx,tsx}"
+    "./src/**/**/**/**/*.{vue,js,ts,jsx,tsx}"
   ],
   theme: {
       extend: {
@@ -25,6 +25,7 @@ module.exports = {
               'warning': '#FFA244',
               'danger': '#FF4444',
               'orange-border' : '#F46F2D',
+              'divider' : '#2A2C38'
           },
           flexBasis: {
               '1/8': '12.5%',
