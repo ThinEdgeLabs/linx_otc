@@ -25,15 +25,15 @@ function changeView(newView: string) {
         <LoanListCard :loan="loan" />
       </div>
     </div>
-    <div v-else class="w-full grid grid-cols-4 gap-[30px] pt-[60px]">
+    <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
       <div
         v-for="loan in loanStore.filteredLoans"
         v-bind:key="loan.loanId"
-        class="relative -z-10 group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darkest"
+        class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darkest"
       >
-        <div>
+        <div class="">
           <LoanGridCard :loan="loan" />
-          <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible'">
+          <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
             <CustomButton :title="'View'" />
           </div>
         </div>
