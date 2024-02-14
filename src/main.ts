@@ -38,7 +38,9 @@ import {
   faTrashAlt,
   faTimes,
   faBoxCircleCheck,
-  faClipboard
+  faClipboard,
+  faList,
+  faGrid2
 } from '@fortawesome/pro-light-svg-icons'
 library.add(
   faBell,
@@ -67,7 +69,9 @@ library.add(
   faTrashAlt,
   faTimes,
   faBoxCircleCheck,
-  faClipboard
+  faClipboard,
+  faList,
+  faGrid2
 )
 import {
   faBell as fasBell,

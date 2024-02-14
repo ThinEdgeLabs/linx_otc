@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type Token } from '@/config'
 import { ref } from 'vue'
+import HorizontalDivider from './HorizontalDivider.vue'
 
 const props = defineProps({
   tokenValue: { type: Object, required: true },
@@ -39,11 +40,14 @@ const openSelector = ref(false)
         v-for="token in props.tokenList"
         v-bind:key="token.name"
         @click="setToken(token), (openSelector = !openSelector)"
-        class="w-full font-normal flex flex-row items-center space-x-[10px]"
+        class="w-full font-normal space-y-4"
       >
-        <img :src="`./images/${token.symbol}.png`" class="w-[32px] h-[32px] rounded-full" />
-        <div>{{ token.name }}</div>
-        <div v-if="token.symbol != 'NONE'">({{ token.symbol }})</div>
+        <HorizontalDivider :class="'bg-menu'" />
+        <div class="flex flex-row items-center space-x-[10px]">
+          <img :src="`./images/${token.symbol}.png`" class="w-[32px] h-[32px] rounded-full" />
+          <div>{{ token.name }}</div>
+          <div v-if="token.symbol != 'NONE'">({{ token.symbol }})</div>
+        </div>
       </div>
     </div>
   </section>

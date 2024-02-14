@@ -40,7 +40,12 @@ export const useLoanStore = defineStore('loans', () => {
     }
 
     if (durationDays != undefined) {
-      filteredLoans.value = filteredLoans.value.filter((e) => e.duration > durationDays)
+      console.log(durationDays)
+      if (durationDays === 1) {
+        filteredLoans.value = filteredLoans.value.filter((e) => e.duration <= 7)
+      } else {
+        filteredLoans.value = filteredLoans.value.filter((e) => e.duration > durationDays)
+      }
     }
   }
 

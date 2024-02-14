@@ -7,6 +7,17 @@ import { tokens, type Token } from '@/config'
 
 const loanStore = useLoanStore()
 
+const props = defineProps({
+  view: {
+    type: String,
+    required: true
+  },
+  changeView: {
+    type: Function,
+    required: true
+  }
+})
+
 const tokenList = Array.from(tokens)
 const anyToken: Token = {
   name: 'Any token',
@@ -30,7 +41,14 @@ function setSelectedCollateralToken(token: Token) {
   updateFilteredList()
 }
 
-function setSelectedDuration(duration: number) {}
+function setSelectedDuration(duration: number) {
+  if (duration === 0) {
+    selectedDuration.value = undefined
+  } else {
+    selectedDuration.value = duration
+  }
+  updateFilteredList()
+}
 
 function updateFilteredList() {
   const loanToken =
@@ -45,7 +63,7 @@ function updateFilteredList() {
 
 <template>
   <div
-    class="flex flex-row items-center w-full space-x-[30px] text-[14px] font-bold text-core-lightest"
+    class="flex flex-row items-end w-full space-x-[30px] text-[14px] font-bold text-core-lightest"
   >
     <div class="flex flex-col w-full space-y-[10px]">
       <p>Token you want to loan</p>
@@ -65,9 +83,29 @@ function updateFilteredList() {
     </div>
     <div class="flex flex-col w-full space-y-[10px]">
       <p>Loan duration</p>
-      <DurationSelector />
+      <DurationSelector :duration-value="selectedDuration" :set-duration="setSelectedDuration" />
     </div>
-    <div class="max-w-[50px]">list</div>
-    <div class="max-w-[50px]">grid</div>
+
+    <div
+      @click="props.changeView('list')"
+      class="flex flex-row items-center bg-divider p-[14px] rounded-lg"
+    >
+      <font-awesome-icon
+        :icon="['fal', 'list']"
+        class="text-[20px]"
+        :class="props.view === 'list' ? 'text-accent-3' : 'text-core-lightest'"
+      />
+    </div>
+
+    <div
+      @click="props.changeView('grid')"
+      class="flex flex-row items-center bg-divider p-[14px] rounded-lg"
+    >
+      <font-awesome-icon
+        :icon="['fal', 'grid-2']"
+        class="text-[20px]"
+        :class="props.view === 'grid' ? 'text-accent-3' : 'text-core-lightest'"
+      />
+    </div>
   </div>
 </template>

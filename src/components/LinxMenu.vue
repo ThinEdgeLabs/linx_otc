@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import LinxHubLogo from '@/components/LinxHubLogo.vue'
+import LinxOTCLogo from '@/components/LinxOTCLogo.vue'
 import MenuItem from '@/components/MenuItem.vue'
 import WalletButton from '@/components/WalletButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
@@ -55,7 +55,7 @@ const menuItems = [
       class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
       :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
     >
-      <LinxHubLogo class="invisible lg:visible" />
+      <LinxOTCLogo class="invisible lg:visible" />
       <div
         @click="showSideBar = !showSideBar"
         class="visible lg:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
