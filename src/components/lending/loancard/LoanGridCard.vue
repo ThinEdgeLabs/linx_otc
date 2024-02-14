@@ -44,7 +44,7 @@ function calculateInterest(interest: number, duration: number, loan: number) {
       </div>
     </div>
   </div>
-  <div class="flex flex-row justify-center w-full space-x-[30%]">
+  <div class="flex flex-row justify-center w-full space-x-[30%] pt-[30px]">
     <div class="flex flex-col">
       <div class="flex flex-row space-x-[4px] text-[14px]">
         <div class="font-extrabold text-white">{{ loan.duration }}</div>
