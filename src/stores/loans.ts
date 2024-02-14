@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { TokenData } from './node'
 import { dummyLoans } from '@/dummyData'
 import type { Token } from '@/config'
 
@@ -21,30 +20,29 @@ export interface Loan {
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan> | undefined>()
+  const filteredLoans = ref<Array<Loan>>([])
 
   function initLoans() {
     // Init dummy loans
     loans.value = dummyLoans
+    filteredLoans.value = dummyLoans
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
     initLoans()
-    const filteredLoans = Array.from(loans.value ?? [])
 
     if (loanToken != undefined) {
-      filteredLoans.filter((e) => e.loanToken === loanToken)
+      filteredLoans.value = filteredLoans.value.filter((e) => e.loanToken === loanToken)
     }
 
     if (collateralToken != undefined) {
-      filteredLoans.filter((e) => e.collateralToken === collateralToken)
+      filteredLoans.value = filteredLoans.value.filter((e) => e.collateralToken === collateralToken)
     }
 
     if (durationDays != undefined) {
-      filteredLoans.filter((e) => e.duration > durationDays)
+      filteredLoans.value = filteredLoans.value.filter((e) => e.duration > durationDays)
     }
-
-    return filteredLoans
   }
 
-  return { filterLoans, initLoans }
+  return { filterLoans, filteredLoans }
 })

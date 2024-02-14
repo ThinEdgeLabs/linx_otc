@@ -12,12 +12,12 @@ const loans = loanStore.filterLoans()
     <div>
       <div class="flex flex-row justify-between w-full">
         <p class="text-[32px] font-extrabold text-white">
-          {{ loanStore.filterLoans().length }} P2P Loans
+          P2P Loans ({{ loanStore.filteredLoans.length }})
         </p>
         <CustomButton :title="'Create New Loan'" />
       </div>
       <p>Choose a loan that suits you, filter for collateral type, duration etc.</p>
     </div>
-    <LoansList :loans="loans" />
+    <LoansList />
   </section>
 </template>
