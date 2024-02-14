@@ -21,6 +21,8 @@ export interface Loan {
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan> | undefined>()
   const filteredLoans = ref<Array<Loan>>([])
+  const sortCategory = ref('loanId')
+  const sortUpDown = ref('up')
 
   function initLoans() {
     // Init dummy loans
@@ -49,5 +51,41 @@ export const useLoanStore = defineStore('loans', () => {
     }
   }
 
-  return { filterLoans, filteredLoans }
+  function sortLoans(category: string) {
+    if (category === sortCategory.value) {
+      sortUpDown.value = sortUpDown.value === 'up' ? 'down' : 'up'
+    } else {
+      sortCategory.value = category
+      sortUpDown.value = 'up'
+    }
+    filteredLoans.value.sort((a, b) => {
+      if (sortCategory.value === 'loanId') {
+        if (sortUpDown.value === 'up') {
+          return a.loanId - b.loanId
+        } else {
+          return b.loanId - a.loanId
+        }
+      } else if (sortCategory.value === 'loanAmount') {
+        if (sortUpDown.value === 'up') {
+          return a.loanAmount - b.loanAmount
+        } else {
+          return b.loanAmount - a.loanAmount
+        }
+      } else if (sortCategory.value === 'collateralAmount') {
+        if (sortUpDown.value === 'up') {
+          return a.collateralAmount - b.collateralAmount
+        } else {
+          return b.collateralAmount - a.collateralAmount
+        }
+      } else {
+        if (sortUpDown.value === 'up') {
+          return a.duration - b.duration
+        } else {
+          return b.duration - a.duration
+        }
+      }
+    })
+  }
+
+  return { filterLoans, filteredLoans, sortLoans, sortCategory }
 })

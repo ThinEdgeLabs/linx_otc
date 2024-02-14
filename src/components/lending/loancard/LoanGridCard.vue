@@ -18,7 +18,7 @@ function calculateInterest(interest: number, duration: number, loan: number) {
       Created on {{ new Date(props.loan.created).toDateString() }}
     </p>
   </div>
-  <div>
+  <div class="pt-[30px]">
     <div class="flex flex-row w-full items-center space-x-[15px]">
       <img :src="`./images/${props.loan.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col space-y-0">

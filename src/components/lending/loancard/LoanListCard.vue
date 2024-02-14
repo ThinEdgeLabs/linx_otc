@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import CustomButton from '@/components/CustomButton.vue'
+import HorizontalDivider from '@/components/HorizontalDivider.vue'
 
 const props = defineProps({
   loan: {
@@ -58,8 +58,8 @@ function calculateInterest() {
           {{ props.loan.interest }} {{ props.loan.loanToken }}
         </div>
       </div>
-      <div class="w-[20%] invisible group-hover:visible">
-        <CustomButton :title="'View'" />
+      <div class="w-[20%]">
+        <CustomButton :title="'view'" :class="'invisible group-hover:visible px-0 w-full'" />
       </div>
     </section>
     <HorizontalDivider />
