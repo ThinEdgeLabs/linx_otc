@@ -123,7 +123,9 @@ import {
   faArrowUpRightFromSquare as fatArrowUpRightFromSquare,
   faPlus as fatPlus,
   faTrashAlt as fatTrashAlt,
-  faTimes as fatTimes
+  faTimes as fatTimes,
+  faList as fatList,
+  faCommentQuestion
 } from '@fortawesome/pro-thin-svg-icons'
 
 library.add(
@@ -174,7 +176,9 @@ library.add(
   fatPlus,
   fatTrashAlt,
   fatTimes,
-  faSort
+  fatList,
+  faSort,
+  faCommentQuestion
 )
 
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)

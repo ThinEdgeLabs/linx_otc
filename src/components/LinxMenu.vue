@@ -7,12 +7,12 @@ import WalletButton from '@/components/WalletButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import MenuButton from '@/components/MenuButton.vue'
 
-const selectedMenuItem = ref('Trade')
+const selectedMenuItem = ref('Dashboard')
 const showSideBar = ref(false)
 
 const menuItems = [
   {
-    title: 'Home',
+    title: 'Dashboard',
     destination: '/'
   },
   {

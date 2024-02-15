@@ -4,6 +4,20 @@ export interface Token {
   contract: string
 }
 
+export interface Activity {
+  type: string
+  id: number
+  offerToken: Token['symbol']
+  offerAmount: number
+  requestToken: Token['symbol']
+  requestAmount: number
+  status: string
+  counterParty: string | undefined
+  txId: string | undefined
+  duration: number | undefined
+  created: number
+}
+
 export const tokens: Array<Token> = [
   {
     symbol: 'ALPH',
