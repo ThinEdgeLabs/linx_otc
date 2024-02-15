@@ -37,7 +37,7 @@ const loanStore = useLoanStore()
         <div>Collateral</div>
         <font-awesome-icon
           :icon="['fas', 'sort']"
-          class="text-[18px] text-divider max-w-[20px] pr-[30px] group-hover:text-accent-3"
+          class="text-[18px] max-w-[20px] pr-[30px] group-hover:text-accent-3"
           :class="loanStore.sortCategory === 'collateralAmount' ? 'text-accent-3' : 'text-divider '"
         />
       </button>
@@ -48,11 +48,21 @@ const loanStore = useLoanStore()
         <div>Duration</div>
         <font-awesome-icon
           :icon="['fas', 'sort']"
-          class="text-[18px] text-divider max-w-[20px] pr-[30px] group-hover:text-accent-3"
+          class="text-[18px] max-w-[20px] pr-[30px] group-hover:text-accent-3"
           :class="loanStore.sortCategory === 'duration' ? 'text-accent-3' : 'text-divider '"
         />
       </button>
-      <div class="w-full">Interest</div>
+      <button
+        class="group w-full flex flex-row justify-between items-center hover:text-accent-3"
+        @click="loanStore.sortLoans('interest')"
+      >
+        <div>Interest</div>
+        <font-awesome-icon
+          :icon="['fas', 'sort']"
+          class="text-[18px] max-w-[20px] pr-[30px] group-hover:text-accent-3"
+          :class="loanStore.sortCategory === 'interest' ? 'text-accent-3' : 'text-divider '"
+        />
+      </button>
       <div class="w-[20%]"></div>
     </div>
     <HorizontalDivider />

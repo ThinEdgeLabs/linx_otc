@@ -56,7 +56,7 @@ export const useLoanStore = defineStore('loans', () => {
       sortUpDown.value = sortUpDown.value === 'up' ? 'down' : 'up'
     } else {
       sortCategory.value = category
-      sortUpDown.value = 'up'
+      sortUpDown.value = category === 'interest' ? 'down' : 'up'
     }
     filteredLoans.value.sort((a, b) => {
       if (sortCategory.value === 'loanId') {
@@ -76,6 +76,12 @@ export const useLoanStore = defineStore('loans', () => {
           return a.collateralAmount - b.collateralAmount
         } else {
           return b.collateralAmount - a.collateralAmount
+        }
+      } else if (sortCategory.value === 'interest') {
+        if (sortUpDown.value === 'up') {
+          return a.interest / a.loanAmount / a.duration - b.interest / b.loanAmount / b.duration
+        } else {
+          return b.interest / b.loanAmount / b.duration - a.interest / a.loanAmount / a.duration
         }
       } else {
         if (sortUpDown.value === 'up') {
