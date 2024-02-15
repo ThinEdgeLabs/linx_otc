@@ -6,7 +6,6 @@ import ActivityFromToVue from './ActivityFromTo.vue'
 import { shortenString } from '@/functions/stringUtils'
 import CustomButton from '../CustomButton.vue'
 import type { Activity } from '@/config'
-import ActivityID from './ActivityID.vue'
 
 const activities = dummyActivity
 
