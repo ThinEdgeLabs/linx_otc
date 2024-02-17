@@ -1,26 +1,24 @@
 import {
   web3,
   Project,
-  TestContractParams,
-  addressFromContractId,
-  AssetOutput,
-  DUST_AMOUNT,
   ONE_ALPH,
-  subContractId,
   ContractState
 } from '@alephium/web3'
-import { expectAssertionError, getSigners, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
-import { deployToDevnet } from '@alephium/cli'
-import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
+import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, contractBalanceOf, createLendingOffer } from './fixtures'
-import { create } from 'domain'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('LendingOffer', () => {
-  let testContractId: string
-  let testContractAddress: string
-  let sender: string
   let fixture: ContractFixture<LendingOfferTypes.Fields>
+  let lender: PrivateKeyWallet
+  let borrower: PrivateKeyWallet
+  let lendingTokenId: string
+  let collateralTokenId: string
+  let lendingAmount: bigint
+  let collateralAmount: bigint
+  let interestRate: bigint
+  let duration: bigint
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
@@ -28,11 +26,17 @@ describe('LendingOffer', () => {
   })
 
   beforeEach(async () => {
-    sender = testAddress
-    fixture = createLendingOffer()
+    [lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
+    lendingTokenId = randomContractId()
+    collateralTokenId = randomContractId()
+    lendingAmount = 1000n ** 18n
+    collateralAmount = 2000n ** 18n
+    interestRate = 2000n
+    duration = 30n
   })
 
   it('getters', async () => {
+    fixture = createLendingOffer()
     const lenderResult = await LendingOffer.tests.getLender({
       initialFields: fixture.selfState.fields,
       initialAsset: fixture.selfState.asset,
@@ -51,25 +55,6 @@ describe('LendingOffer', () => {
   })
 
   describe('take', () => {
-    let lender: PrivateKeyWallet
-    let borrower: PrivateKeyWallet
-    let lendingTokenId: string
-    let collateralTokenId: string
-    let lendingAmount: bigint
-    let collateralAmount: bigint
-    let interestRate: bigint
-    let duration: bigint
-
-    beforeAll(async () => {
-      [lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
-      lendingTokenId = randomContractId()
-      collateralTokenId = randomContractId()
-      lendingAmount = 1000n ** 18n
-      collateralAmount = 2000n ** 18n
-      interestRate = 2000n
-      duration = 30n
-    })
-
     it('borrower provides collateral and receives the token', async () => {
       fixture = createLendingOffer(
         lender.address,
@@ -190,7 +175,37 @@ describe('LendingOffer', () => {
         existingContracts: fixture.dependencies
       })
 
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.NotTakenOfferOnly))
+      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.OfferAlreadyTaken))
+    })
+  })
+
+  describe('cancel', () => {
+    it('cancels the offer', async () => {
+      // const borrowerAddress = lender.address
+      // fixture = createLendingOffer(
+      //   lender.address,
+      //   lendingTokenId,
+      //   collateralTokenId,
+      //   lendingAmount,
+      //   collateralAmount,
+      //   interestRate,
+      //   duration,
+      //   borrowerAddress
+      // )
+      // console.log(fixture.address)
+      // console.log(fixture.selfState.fields)
+      // const testResult = await LendingOffer.tests.cancel({
+      //   initialFields: fixture.selfState.fields,
+      //   initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
+      //   inputAssets: [
+      //     {
+      //       address: lender.address,
+      //       asset: { alphAmount: 10n ** 18n }
+      //     }
+      //   ],
+      //   address: fixture.address,
+      //   existingContracts: fixture.dependencies
+      // })
     })
   })
 

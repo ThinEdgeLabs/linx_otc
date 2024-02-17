@@ -2,7 +2,6 @@ Contract LendingOffer(
   lender: Address,
   lendingTokenId: ByteVec,
   collateralTokenId: ByteVec,
-  marketContractId: ByteVec,
   lendingAmount: U256,
   collateralAmount: U256,
   interestRate: U256,
@@ -12,14 +11,15 @@ Contract LendingOffer(
 
   event OfferTaken(borrower: Address, offerId: ByteVec)
   event OfferCancelled(offerId: ByteVec)
-  event LoanLiquidated(offerId: ByteVec, collateralAmount: U256, collateralTokenId: ByteVec, lender: Address)
-  event LoanPaidBack(offerId: ByteVec, lender: Address)
+  event LoanLiquidated(offerId: ByteVec)
+  event LoanPaidBack(offerId: ByteVec)
 
   enum ErrorCodes {
-    MarketplaceAllowedOnly = 0
-    NotTakenOfferOnly = 1
+    OfferAlreadyTaken = 1
     BorrowerAllowedOnly = 2
     IncorrectCollateralAmount = 3
+    LenderAllowedOnly = 4
+    OfferNotTaken = 5
   }
 
   pub fn getLender() -> Address {
@@ -56,7 +56,7 @@ Contract LendingOffer(
 
   @using(assetsInContract = true, preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
   pub fn take(collateral: U256) -> () {
-    assert!(lender == borrower, ErrorCodes.NotTakenOfferOnly)
+    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
     assert!(collateral == collateralAmount, ErrorCodes.IncorrectCollateralAmount)
 
     borrower = callerAddress!()
@@ -67,21 +67,37 @@ Contract LendingOffer(
     emit OfferTaken(borrower, selfContractId!())
   }
 
+  @using(assetsInContract = true)
   pub fn cancel() -> () {
-    checkCaller!(callerAddress!() == borrower, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.NotTakenOfferOnly)
+    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
+    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
+
+    emit OfferCancelled(selfContractId!())
+
     destroySelf!(lender)
   }
 
-  @using(preapprovedAssets = true)
+  @using(assetsInContract = true, preapprovedAssets = true)
   pub fn payback() -> () {
     checkCaller!(callerAddress!() == borrower, ErrorCodes.BorrowerAllowedOnly)
     transferToken!(borrower, lender, lendingTokenId, lendingAmount)
     transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
+
+    // TODO: Pay the interest to the lender
+
+    emit LoanPaidBack(selfContractId!())
+
     destroySelf!(lender)
   }
 
+  @using(assetsInContract = true)
   pub fn liquidate() -> () {
-    checkCaller!(callerContractId!() == marketContractId, ErrorCodes.MarketplaceAllowedOnly)
+    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
+    assert!(borrower != lender, ErrorCodes.OfferNotTaken)
+    // TODO: Check if the loan is overdue
+
+    emit LoanLiquidated(selfContractId!())
+
+    destroySelf!(lender)
   }
 }
