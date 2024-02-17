@@ -1,6 +1,6 @@
-import { Contract, ContractState, Fields, addressFromContractId, number256ToBigint } from '@alephium/web3'
-import { LendingMarketplaceTypes, LendingOffer } from '../../artifacts/ts'
-import { randomContractAddress, randomContractId, testAddress } from '@alephium/web3-test'
+import { ContractState, Fields, addressFromContractId, number256ToBigint } from '@alephium/web3'
+import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer } from '../../artifacts/ts'
+import { randomContractAddress, testAddress } from '@alephium/web3-test'
 
 export class ContractFixture<F extends Fields> {
   selfState: ContractState<F>
@@ -38,7 +38,6 @@ export function createLendingOffer(
       lender: lender ?? testAddress,
       lendingTokenId: lendingTokenId ?? '',
       collateralTokenId: collateralTokenId ?? '',
-      marketContractId: marketContractFixture?.contractId ?? '',
       lendingAmount: lendingAmount ?? 1000n,
       collateralAmount: collateralAmount ?? 2000n,
       interestRate: interestRate ?? 2000n,
@@ -49,6 +48,25 @@ export function createLendingOffer(
     address
   )
   return new ContractFixture(contractState, marketContractFixture?.states() ?? [], address)
+}
+
+export function createLendingMarketplace(
+  admin: string,
+  contractId?: string
+) {
+  const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
+  const lendingOfferTemplate = createLendingOffer()
+  const contractState = LendingMarketplace.stateForTest(
+    {
+      lendingOfferTemplateId: lendingOfferTemplate.contractId,
+      admin,
+      totalLendingOffers: 0n,
+      fee: 100n
+    },
+    undefined,
+    address
+  )
+  return new ContractFixture(contractState, lendingOfferTemplate.states(), address)
 }
 
 export function contractBalanceOf(state: ContractState, tokenId: string): bigint {

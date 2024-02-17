@@ -1,0 +1,76 @@
+Contract LendingMarketplace(
+  lendingOfferTemplateId: ByteVec,
+  mut admin: Address,
+  mut totalLendingOffers: U256,
+  mut fee: U256
+) {
+
+  event AdminUpdated(
+    previous: Address,
+    new: Address
+  )
+
+  event OfferCreated(
+    lendingTokenId: ByteVec,
+    collateralTokenId: ByteVec,
+    lendingAmount: U256,
+    collateralAmount: U256,
+    interestRate: U256,
+    duration: U256,
+    lender: Address,
+    lendingOfferContractId: ByteVec
+  )
+
+  enum ErrorCodes {
+    AdminAllowedOnly = 0
+  }
+
+  pub fn getAdmin() -> Address {
+    return admin
+  }
+
+  pub fn getTotalLendingOffers() -> U256 {
+    return totalLendingOffers
+  }
+
+  pub fn getFee() -> U256 {
+    return fee
+  }
+
+  @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
+  pub fn createLendingOffer(
+    lendingTokenId: ByteVec,
+    collateralTokenId: ByteVec,
+    lendingAmount: U256,
+    collateralAmount: U256,
+    interestRate: U256,
+    duration: U256
+  ) -> (Address) {
+    let lender = callerAddress!()
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender)
+    let key = toByteVec!(totalLendingOffers)
+    let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
+      key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
+    )
+    totalLendingOffers = totalLendingOffers + 1
+
+    emit OfferCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, lendingOfferContractId)
+
+    return contractIdToAddress!(lendingOfferContractId)
+  }
+
+  @using(updateFields = true)
+  pub fn updateAdmin(newAdmin: Address) -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+
+    emit AdminUpdated(admin, newAdmin)
+    admin = newAdmin
+  }
+
+  @using(updateFields = true)
+  pub fn updateFee(newFee: U256) -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+
+    fee = newFee
+  }
+}
