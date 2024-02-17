@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { useOrderStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/tradeOrder'
 import { useExtensionStore } from '@/stores/extension'
 import { useWalletConnectStore } from '@/stores/walletconnect'
 import { useNodeStore } from '@/stores/node'

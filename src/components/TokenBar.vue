@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useOrderStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/tradeOrder'
 import { useRequesterBalanceStore } from '@/stores/requesterBalance'
 import { useReceiverBalanceStore } from '@/stores/receiverBalance'
 import TokenDropdownItem from '@/components/TokenDropdownItem.vue'
@@ -8,10 +8,16 @@ import NumberInput from '@/components/NumberInput.vue'
 import MaxButton from '@/components/MaxButton.vue'
 import type { TokenData } from '@/stores/node'
 import { parseBalance } from '@/functions/utils'
+import { tokens, type Token } from '@/config'
+import { useLoanOrderStore } from '@/stores/loanOrder'
 
 const props = defineProps({
   isSender: {
     type: Boolean,
+    required: true
+  },
+  offerType: {
+    type: String,
     required: true
   }
 })
@@ -19,18 +25,29 @@ const props = defineProps({
 const tokenStore = props.isSender ? useRequesterBalanceStore() : useReceiverBalanceStore()
 
 const orderStore = useOrderStore()
+const loanStore = useLoanOrderStore()
 
-const selectedToken = ref<TokenData | undefined>()
+const selectedToken = ref<TokenData | undefined | Token>()
 const dropdownOpen = ref(false)
 
-function selectToken(token: TokenData) {
+function selectToken(token: TokenData | Token) {
   dropdownOpen.value = false
   selectedToken.value = token
-  if (orderStore.order) {
-    if (props.isSender) {
-      orderStore.setFromToken(selectedToken.value.symbol)
-    } else {
-      orderStore.setToToken(selectedToken.value.symbol)
+  if (props.offerType === 'trade') {
+    if (orderStore.order) {
+      if (props.isSender) {
+        orderStore.setFromToken(selectedToken.value.symbol)
+      } else {
+        orderStore.setToToken(selectedToken.value.symbol)
+      }
+    }
+  } else {
+    if (loanStore.order) {
+      if (props.isSender) {
+        loanStore.setLoanToken(selectedToken.value.symbol)
+      } else {
+        loanStore.setCollateralToken(selectedToken.value.symbol)
+      }
     }
   }
 }
@@ -40,15 +57,33 @@ function toggleDropDown() {
 }
 
 function onAmountChange(amount: number) {
-  console.log('onAmountChange', amount)
-  if (amount > parseBalance(selectedToken.value!.balance, selectedToken.value!.decimals)) {
-    // amountError.value = 'Insufficient Balance'
-    // bridgeStore.data.isFormValid = false
+  if (props.offerType === 'trade') {
+    if (amount > parseBalance(selectedToken.value!.balance, selectedToken.value!.decimals)) {
+      // amountError.value = 'Insufficient Balance'
+      // bridgeStore.data.isFormValid = false
+    } else {
+      const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
+      orderStore.setFromAmount(
+        selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
+      )
+    }
   } else {
-    const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-    orderStore.setFromAmount(
-      selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
-    )
+    if (props.isSender) {
+      if (amount > parseBalance(selectedToken.value!.balance, selectedToken.value!.decimals)) {
+        // amountError.value = 'Insufficient Balance'
+        // bridgeStore.data.isFormValid = false
+      } else {
+        const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
+        loanStore.setLoanAmount(
+          selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
+        )
+      }
+    } else {
+      const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
+      loanStore.setCollateralAmount(
+        selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
+      )
+    }
   }
 }
 </script>
@@ -56,7 +91,15 @@ function onAmountChange(amount: number) {
 <template>
   <section class="flex flex-col space-y-[10px] text-[14px]">
     <div class="font-extrabold text-core-light">
-      {{ props.isSender ? 'You offer' : 'You request' }}
+      {{
+        props.isSender
+          ? props.offerType === 'loan'
+            ? 'Offered Loan'
+            : 'You offer'
+          : props.offerType === 'loan'
+            ? 'Requested Collateral'
+            : 'You request'
+      }}
     </div>
     <div class="relative w-full">
       <div
@@ -81,14 +124,27 @@ function onAmountChange(amount: number) {
               <div class="inline-block w-[0.5px] self-stretch bg-core-light opacity-100"></div>
             </div>
             <NumberInput
-              :model-value="orderStore.order?.amountFrom"
+              :model-value="
+                props.offerType === 'trade'
+                  ? props.isSender
+                    ? orderStore.order?.amountFrom
+                    : orderStore.order?.amountTo
+                  : props.isSender
+                    ? loanStore.order?.loanAmount
+                    : loanStore.order?.collateralAmount
+              "
               @update:model-value="onAmountChange"
             />
             <MaxButton
+              v-if="props.offerType === 'trade' || props.isSender"
               @click="
-                orderStore.setFromAmount(
-                  parseBalance(selectedToken.balance, selectedToken.decimals)
-                )
+                props.offerType === 'trade'
+                  ? orderStore.setFromAmount(
+                      parseBalance(selectedToken.balance, selectedToken.decimals)
+                    )
+                  : loanStore.setLoanAmount(
+                      parseBalance(selectedToken.balance, selectedToken.decimals)
+                    )
               "
             />
           </div>
@@ -106,8 +162,10 @@ function onAmountChange(amount: number) {
       >
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
-            v-for="token in tokenStore.balance"
-            v-bind:key="tokenStore.balance.indexOf(token)"
+            v-for="token in props.offerType === 'loan' && !props.isSender
+              ? tokens
+              : tokenStore.balance"
+            v-bind:key="token.name"
             :token="token"
             :is-offer="props.isSender"
             :is-selected="token === selectedToken"

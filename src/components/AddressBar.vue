@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shortenString } from '@/functions/stringUtils'
-import { useOrderStore } from '@/stores/order'
+import { useOrderStore } from '@/stores/tradeOrder'
 import { useNodeStore } from '@/stores/node'
 import TextInput from '@/components/TextInput.vue'
 
@@ -71,3 +71,4 @@ async function handleAddress(address: string) {
     </div>
   </section>
 </template>
+@/stores/tradeOrder
