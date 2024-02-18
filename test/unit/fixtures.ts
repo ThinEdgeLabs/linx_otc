@@ -68,8 +68,3 @@ export function createLendingMarketplace(
   )
   return new ContractFixture(contractState, lendingOfferTemplate.states(), address)
 }
-
-export function contractBalanceOf(state: ContractState, tokenId: string): bigint {
-  const token = state.asset.tokens?.find((t) => t.id === tokenId)
-  return token === undefined ? 0n : number256ToBigint(token.amount)
-}

@@ -10,8 +10,9 @@ import {
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
-import { ContractFixture, contractBalanceOf, createLendingMarketplace } from './fixtures'
+import { ContractFixture, createLendingMarketplace } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { contractBalanceOf } from '../../shared/utils'
 
 describe('LendingMarketplace', () => {
   let testContractId: string

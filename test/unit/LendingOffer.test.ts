@@ -6,8 +6,9 @@ import {
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
-import { ContractFixture, contractBalanceOf, createLendingOffer } from './fixtures'
+import { ContractFixture, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { contractBalanceOf } from '../../shared/utils'
 
 describe('LendingOffer', () => {
   let fixture: ContractFixture<LendingOfferTypes.Fields>
