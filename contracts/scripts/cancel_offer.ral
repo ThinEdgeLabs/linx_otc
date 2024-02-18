@@ -1,0 +1,3 @@
+TxScript CancelOffer(offer: LendingOffer) {
+  offer.cancel()
+}

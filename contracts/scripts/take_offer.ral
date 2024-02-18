@@ -1,0 +1,5 @@
+TxScript TakeOffer(offer: LendingOffer) {
+  let collateralTokenId = offer.getCollateralTokenId()
+  let collateralAmount = offer.getCollateralAmount()
+  offer.take{ callerAddress!() -> collateralTokenId: collateralAmount }(collateralAmount)
+}
