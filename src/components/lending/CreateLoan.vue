@@ -8,12 +8,17 @@ import { useAccountStore } from '@/stores/account'
 import WalletButton from '../WalletButton.vue'
 import DurationSelect from './DurationSelect.vue'
 import RatingSelect from './RatingSelect.vue'
+import HorizontalDivider from '../HorizontalDivider.vue'
+import ApproveWallet from '../ApproveWallet.vue'
+import { ref } from 'vue'
+import LoanPreview from './LoanPreview.vue'
 
 const loanOfferStore = useLoanOrderStore()
 const account = useAccountStore()
+const step = ref(0)
 </script>
 <template>
-  <div class="w-full rounded-lg bg-menu p-[30px] space-y-[30px]">
+  <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[30px] space-y-[30px]">
     <SectionTitle
       :title="'Create new Loan Offer'"
       :description="'Some text about creating a new loan offer'"
@@ -29,10 +34,53 @@ const account = useAccountStore()
         <RatingSelect />
       </div>
     </div>
+
+    <div
+      class="flex flex-col space-y-[10px] text-[14px]"
+      v-if="loanOfferStore.order?.duration && loanOfferStore.order.interest"
+    >
+      <HorizontalDivider />
+      <div class="flex flex-row justify-between">
+        <p class="font-semibold text-core-light">Interest % over Loan</p>
+        <p class="font-extrabold text-core-lightest">
+          {{
+            (
+              ((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) *
+              100
+            ).toFixed(2)
+          }}
+          %
+        </p>
+      </div>
+      <HorizontalDivider />
+      <div
+        class="flex flex-row justify-between"
+        v-if="loanOfferStore.order?.duration && loanOfferStore.order.interest"
+      >
+        <p class="font-semibold text-core-light">Interest % Annualised</p>
+        <p class="font-extrabold text-core-lightest">
+          {{
+            (
+              ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) *
+                100) /
+                (loanOfferStore.order?.duration ?? 0)) *
+              365
+            ).toFixed(2)
+          }}
+          %
+        </p>
+      </div>
+      <HorizontalDivider />
+    </div>
+
     <div class="flex flex-row space-x-[30px]">
       <WalletButton v-if="!account.account" />
-      <CustomButton v-else :title="'Continue'" @click="console.log(loanOfferStore.order)" />
+      <CustomButton v-else :title="'Continue'" @click="step++" />
       <CustomButton :title="'Cancel'" :open="true" @click="loanOfferStore.resetOrder()" />
     </div>
+  </div>
+  <div v-else class="w-full flex flex-row space-x-[30px]">
+    <ApproveWallet />
+    <LoanPreview />
   </div>
 </template>
