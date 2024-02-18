@@ -3,25 +3,27 @@ import { Number256 } from '@alephium/web3'
 
 // Settings are usually for configuring
 export type Settings = {
-  issueTokenAmount: Number256
-  openaiAPIKey?: string
-  ipfs?: {
-    infura?: {
-      projectId: string
-      projectSecret: string
-    }
-  }
+  // issueTokenAmount: Number256
+  // openaiAPIKey?: string
+  // ipfs?: {
+  //   infura?: {
+  //     projectId: string
+  //     projectSecret: string
+  //   }
+  // }
+  fee: Number256
 }
 
 const defaultSettings: Settings = {
-  issueTokenAmount: 100n,
-  openaiAPIKey: process.env.OPENAI_API_KEY || '',
-  ipfs: {
-    infura: {
-      projectId: process.env.IPFS_INFURA_PROJECT_ID || '',
-      projectSecret: process.env.IPFS_INFURA_PROJECT_SECRET || ''
-    }
-  }
+  // issueTokenAmount: 100n,
+  // openaiAPIKey: process.env.OPENAI_API_KEY || '',
+  // ipfs: {
+  //   infura: {
+  //     projectId: process.env.IPFS_INFURA_PROJECT_ID || '',
+  //     projectSecret: process.env.IPFS_INFURA_PROJECT_SECRET || ''
+  //   }
+  // }
+  fee: 100n
 }
 
 const configuration: Configuration<Settings> = {
