@@ -2,10 +2,11 @@ import {
   web3,
   Project,
   ONE_ALPH,
-  ContractState
+  ContractState,
+  addressFromContractId
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingOffer, LendingOfferInstance, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf } from '../../shared/utils'
@@ -182,31 +183,37 @@ describe('LendingOffer', () => {
 
   describe('cancel', () => {
     it('cancels the offer', async () => {
-      // const borrowerAddress = lender.address
-      // fixture = createLendingOffer(
-      //   lender.address,
-      //   lendingTokenId,
-      //   collateralTokenId,
-      //   lendingAmount,
-      //   collateralAmount,
-      //   interestRate,
-      //   duration,
-      //   borrowerAddress
-      // )
-      // console.log(fixture.address)
-      // console.log(fixture.selfState.fields)
-      // const testResult = await LendingOffer.tests.cancel({
-      //   initialFields: fixture.selfState.fields,
-      //   initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
-      //   inputAssets: [
-      //     {
-      //       address: lender.address,
-      //       asset: { alphAmount: 10n ** 18n }
-      //     }
-      //   ],
-      //   address: fixture.address,
-      //   existingContracts: fixture.dependencies
-      // })
+      const borrowerAddress = lender.address
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrowerAddress
+      )
+
+      const testResult = await LendingOffer.tests.cancel({
+        initialFields: fixture.selfState.fields,
+        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: 10n ** 18n }
+          }
+        ],
+        address: fixture.address,
+        existingContracts: fixture.dependencies
+      })
+
+      expect(testResult.events.length).toEqual(2)
+      expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
+      const offerCancelled = testResult.events.find((e) => e.name === 'OfferCancelled') as LendingOfferTypes.OfferCancelledEvent
+      expect(offerCancelled.fields).toEqual({
+        offerId: fixture.contractId
+      })
     })
   })
 

@@ -38,7 +38,7 @@ describe('LendingOffer', () => {
       await getToken(lender, lendingTokenId, expandTo18Decimals(1000n))
     })
 
-    it('should cancel a lending offer', async () => {
+    it('destroys the contract', async () => {
       expect(marketplace.contractId).toBeDefined()
       console.log('LendingMarketplace contractId:', marketplace.contractId)
 
@@ -56,14 +56,14 @@ describe('LendingOffer', () => {
       await expect(new LendingOfferInstance(lendingOfferAddress).fetchState()).rejects.toThrow(Error)
     })
 
-    it('should not cancel a lending offer if not the lender', async () => {
+    it('only the lender can cancel it', async () => {
       const { txId } = await marketplace.createOffer(lender, lendingTokenId, ALPH_TOKEN_ID, lendingAmount, collateralAmount, interestRate, duration)
       await waitTxConfirmed(provider, txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const lendingOfferAddress = txDetails.generatedOutputs[0].address
       await expect(marketplace.cancelOffer(borrower, lendingOfferAddress)).rejects.toThrow(Error)
     })
-    it('should not cancel a lending offer if it\'s already taken', async () => {
+    it('an already taken offer cannot be cancelled', async () => {
       const { txId } = await marketplace.createOffer(lender, lendingTokenId, ALPH_TOKEN_ID, lendingAmount, collateralAmount, interestRate, duration)
       await waitTxConfirmed(provider, txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
@@ -71,5 +71,11 @@ describe('LendingOffer', () => {
       await marketplace.takeOffer(borrower, lendingOfferAddress, ALPH_TOKEN_ID, collateralAmount)
       await expect(marketplace.cancelOffer(lender, lendingOfferAddress)).rejects.toThrow(Error)
     })
+  })
+
+  describe('pay back', () => {
+  })
+
+  describe('liquidate', () => {
   })
 })
