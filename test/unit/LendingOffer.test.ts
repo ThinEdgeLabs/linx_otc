@@ -9,7 +9,8 @@ import { expectAssertionError, getSigners, randomContractId, testAddress } from 
 import { LendingOffer, LendingOfferInstance, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { contractBalanceOf } from '../../shared/utils'
+import { balanceOf, contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
+import exp from 'constants'
 
 describe('LendingOffer', () => {
   let fixture: ContractFixture<LendingOfferTypes.Fields>
@@ -31,8 +32,8 @@ describe('LendingOffer', () => {
     [lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
-    lendingAmount = 1000n ** 18n
-    collateralAmount = 2000n ** 18n
+    lendingAmount = expandTo18Decimals(1000n)
+    collateralAmount = expandTo18Decimals(2000n)
     interestRate = 2000n
     duration = 30n
   })
@@ -93,6 +94,7 @@ describe('LendingOffer', () => {
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
+      expect(state.fields.loanTimeStamp).toBeGreaterThan(0n)
     })
 
     it('fails if borrower provides less collateral', async () => {
@@ -217,19 +219,97 @@ describe('LendingOffer', () => {
     })
   })
 
-  // it('cancel', async () => {
-  //   const marketContractId = randomContractId()
-  //   console.log(fixture.selfState.fields)
-  //   console.log(fixture.selfState.asset)
-  //   const testResult = await LendingOffer.tests.cancel({
-  //     initialFields: fixture.selfState.fields,
-  //     initialAsset: fixture.selfState.asset,
-  //     address: fixture.address,
-  //     existingContracts: fixture.dependencies,
-  //   })
+  describe('liquidate', () => {
+    const day = 86400
+    const unixTime = Math.floor(Date.now() / 1000)
 
-  //   console.log(testResult)
+    it('lender receives collateral and loan is terminated', async () => {
+        fixture = createLendingOffer(
+          lender.address,
+          lendingTokenId,
+          collateralTokenId,
+          lendingAmount,
+          collateralAmount,
+          interestRate,
+          duration,
+          borrower.address
+        )
+        const unixTimeInPast = unixTime - (day * Number(duration) + 1)
+        const testResult = await LendingOffer.tests.liquidate({
+          initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) },
+          initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+          inputAssets: [
+            {
+              address: lender.address,
+              asset: { alphAmount: 10n ** 18n }
+            }
+          ],
+          address: fixture.address,
+          existingContracts: fixture.dependencies
+        })
 
-  //   //expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.MarketplaceAllowedOnly))
-  // })
+        expect(testResult.events.length).toEqual(2)
+        expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
+        const offerCancelled = testResult.events.find((e) => e.name === 'LoanLiquidated') as LendingOfferTypes.LoanLiquidatedEvent
+        expect(offerCancelled.fields).toEqual({
+          offerId: fixture.contractId
+        })
+        const receivedCollateral = testResult.txOutputs[0].tokens?.find((t) => t.id === collateralTokenId)
+        expect(receivedCollateral?.amount).toEqual(collateralAmount)
+    })
+
+    it('fails if the loan is not overdue', async () => {
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address
+      )
+      const loanTimeStamp = unixTime - day // 1 day old, duration is 30 days, so it's not overdue
+      const testResult = LendingOffer.tests.liquidate({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: 10n ** 18n }
+          }
+        ],
+        address: fixture.address,
+        existingContracts: fixture.dependencies
+      })
+      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanNotOverdue))
+    })
+
+    it('fails if not lender', async () => {
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address
+      )
+      const loanTimeStamp = unixTime - day * Number(duration) - 1 // loan is overdue
+      const testResult = LendingOffer.tests.liquidate({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        inputAssets: [
+          {
+            address: borrower.address, // borrower tries to liquidate
+            asset: { alphAmount: 10n ** 18n }
+          }
+        ],
+        address: fixture.address,
+        existingContracts: fixture.dependencies
+      })
+      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LenderAllowedOnly))
+    })
+  })
 })

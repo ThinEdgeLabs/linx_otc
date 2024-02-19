@@ -47,7 +47,7 @@ Contract LendingMarketplace(
     duration: U256
   ) -> (Address) {
     let lender = callerAddress!()
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender)
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, 0)
     let key = toByteVec!(totalLendingOffers)
     let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields

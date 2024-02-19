@@ -42,7 +42,8 @@ export function createLendingOffer(
       collateralAmount: collateralAmount ?? 2000n,
       interestRate: interestRate ?? 2000n,
       duration: duration ?? 30n,
-      borrower: borrower ?? testAddress
+      borrower: borrower ?? testAddress,
+      loanTimeStamp: 0n,
     },
     undefined,
     address

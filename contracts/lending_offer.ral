@@ -4,9 +4,10 @@ Contract LendingOffer(
   collateralTokenId: ByteVec,
   lendingAmount: U256,
   collateralAmount: U256,
-  interestRate: U256,
-  duration: U256,
-  mut borrower: Address
+  interestRate: U256, // in basis points
+  duration: U256, // in days
+  mut borrower: Address,
+  mut loanTimeStamp: U256 // in seconds
 ) {
 
   event OfferTaken(borrower: Address, offerId: ByteVec)
@@ -14,12 +15,15 @@ Contract LendingOffer(
   event LoanLiquidated(offerId: ByteVec)
   event LoanPaidBack(offerId: ByteVec)
 
+  const Day = 86400
+
   enum ErrorCodes {
     OfferAlreadyTaken = 1
     BorrowerAllowedOnly = 2
     IncorrectCollateralAmount = 3
     LenderAllowedOnly = 4
     OfferNotTaken = 5
+    LoanNotOverdue = 6
   }
 
   pub fn getLender() -> Address {
@@ -54,12 +58,17 @@ Contract LendingOffer(
     return borrower
   }
 
+  pub fn getLoanTimeStamp() -> U256 {
+    return loanTimeStamp
+  }
+
   @using(assetsInContract = true, preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
   pub fn take(collateral: U256) -> () {
     assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
     assert!(collateral == collateralAmount, ErrorCodes.IncorrectCollateralAmount)
 
     borrower = callerAddress!()
+    loanTimeStamp = (blockTimeStamp!() / 1000) % (1 <  < 32)
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, lendingAmount)
@@ -94,7 +103,9 @@ Contract LendingOffer(
   pub fn liquidate() -> () {
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     assert!(borrower != lender, ErrorCodes.OfferNotTaken)
-    // TODO: Check if the loan is overdue
+
+    let currentBlockTimeStamp = (blockTimeStamp!() / 1000) % (1 <  < 32)
+    assert!(currentBlockTimeStamp > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
 
     emit LoanLiquidated(selfContractId!())
 
