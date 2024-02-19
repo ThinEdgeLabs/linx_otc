@@ -183,7 +183,7 @@ function calculateInterest() {
         <HorizontalDivider />
         <LoanPreviewLabel
           :title="'You receive'"
-          :amount="(0.93 * props.loan.loanAmount).toString()"
+          :amount="(0.993 * props.loan.loanAmount).toString()"
           :amount_description="props.loan.loanToken"
         />
         <HorizontalDivider />
