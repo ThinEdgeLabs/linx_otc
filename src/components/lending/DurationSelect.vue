@@ -13,7 +13,6 @@ function toggleDropDown() {
 const durationOptions = [7, 14, 30, 90]
 
 function setDropDown(duration: number) {
-  console.log(duration)
   loanOrderStore.setDuration(duration)
   toggleDropDown()
 }

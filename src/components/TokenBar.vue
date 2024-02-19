@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import { useRequesterBalanceStore } from '@/stores/requesterBalance'
 import { useReceiverBalanceStore } from '@/stores/receiverBalance'
@@ -10,6 +10,9 @@ import type { TokenData } from '@/stores/node'
 import { parseBalance } from '@/functions/utils'
 import { tokens, type Token } from '@/config'
 import { useLoanOrderStore } from '@/stores/loanOrder'
+import { onMounted } from 'vue'
+
+onMounted(() => checkSelectedLoanTokens())
 
 const props = defineProps({
   isSender: {
@@ -86,10 +89,20 @@ function onAmountChange(amount: number) {
     }
   }
 }
+
+function checkSelectedLoanTokens() {
+  if (props.offerType === 'loan' && loanStore.order) {
+    if (props.isSender && loanStore.order!.loanToken && !selectedToken.value) {
+      selectedToken.value = tokens.find((e) => e.symbol === loanStore.order!.loanToken)
+    } else if (loanStore.order!.collateralToken && !selectedToken.value) {
+      selectedToken.value = tokens.find((e) => e.symbol === loanStore.order!.collateralToken)
+    }
+  }
+}
 </script>
 
 <template>
-  <section class="flex flex-col space-y-[10px] text-[14px]">
+  <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px]">
     <div class="font-extrabold text-core-light">
       {{
         props.isSender

@@ -16,6 +16,14 @@ import LoanPreview from './LoanPreview.vue'
 const loanOfferStore = useLoanOrderStore()
 const account = useAccountStore()
 const step = ref(0)
+
+function updateStep(stepChange: number) {
+  step.value = stepChange
+}
+
+function resetOrder() {
+  loanOfferStore.resetOrder()
+}
 </script>
 <template>
   <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[30px] space-y-[30px]">
@@ -80,7 +88,7 @@ const step = ref(0)
     </div>
   </div>
   <div v-else class="w-full flex flex-row space-x-[30px]">
-    <ApproveWallet />
+    <ApproveWallet @update:cancel="updateStep($event)" @update:finished="resetOrder()" />
     <LoanPreview />
   </div>
 </template>
