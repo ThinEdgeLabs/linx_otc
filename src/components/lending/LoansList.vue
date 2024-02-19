@@ -4,8 +4,12 @@ import LoanFilters from './LoanFilters.vue'
 import LoanHeaders from './LoanHeaders.vue'
 import LoanGridCard from './loancard/LoanGridCard.vue'
 import LoanListCard from './loancard/LoanListCard.vue'
-import { useLoanStore } from '@/stores/loans'
+import { useLoanStore, type Loan } from '@/stores/loans'
 import { ref } from 'vue'
+
+defineEmits<{
+  (e: 'update:selectedLoan', value: Loan): void
+}>()
 
 const loanStore = useLoanStore()
 
@@ -22,7 +26,7 @@ function changeView(newView: string) {
     <LoanHeaders v-if="view === 'list'" />
     <div v-if="view === 'list'">
       <div class="space-y-4" v-for="loan in loanStore.filteredLoans" v-bind:key="loan.loanId">
-        <LoanListCard :loan="loan" />
+        <LoanListCard :loan="loan" @click="$emit('update:selectedLoan', loan)" />
       </div>
     </div>
     <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
@@ -34,7 +38,7 @@ function changeView(newView: string) {
         <div class="">
           <LoanGridCard :loan="loan" />
           <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
-            <CustomButton :title="'View'" />
+            <CustomButton :title="'View'" @click="$emit('update:selectedLoan', loan)" />
           </div>
         </div>
       </div>
