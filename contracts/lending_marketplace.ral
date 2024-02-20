@@ -3,7 +3,7 @@ Contract LendingMarketplace(
   mut admin: Address,
   mut totalLendingOffers: U256,
   mut fee: U256
-) {
+) extends LendingMarketplaceUtils() {
 
   event AdminUpdated(
     previous: Address,
@@ -47,6 +47,10 @@ Contract LendingMarketplace(
     duration: U256
   ) -> (Address) {
     let lender = callerAddress!()
+
+    // Checking for overflow
+    calculateTotalInterestPayment(lendingAmount, interestRate, duration)
+
     let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, 0)
     let key = toByteVec!(totalLendingOffers)
     let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
