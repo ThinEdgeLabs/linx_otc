@@ -57,6 +57,36 @@ describe('LendingOffer', () => {
     expect(lendingTokenIdResult.returns).toEqual(fixture.selfState.fields.lendingTokenId)
   })
 
+  describe('calculateInterestPayment', () => {
+    it('returns the interest payment', async () => {
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address
+      )
+      const loanTimeStamp = Math.floor(Date.now() / 1000) - 86400 * 10 // 10 days old
+      const testResult = await LendingOffer.tests.calculateInterestPayment({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialAsset: fixture.selfState.asset,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        testArgs: {
+          currentBlockTimeStamp: BigInt(Math.floor(Date.now() / 1000)),
+          loanTimestamp: BigInt(loanTimeStamp),
+          amount: fixture.selfState.fields.lendingAmount,
+          interest: fixture.selfState.fields.interestRate,
+          days: fixture.selfState.fields.duration
+        }
+      })
+      expect(testResult.returns).toEqual(66666666666666666666n)
+    })
+  })
+
   describe('take', () => {
     it('borrower provides collateral and receives the token', async () => {
       fixture = createLendingOffer(
