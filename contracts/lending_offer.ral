@@ -8,14 +8,12 @@ Contract LendingOffer(
   duration: U256, // in days
   mut borrower: Address,
   mut loanTimeStamp: U256 // in seconds
-) {
+) extends LendingMarketplaceUtils() {
 
   event OfferTaken(borrower: Address, offerId: ByteVec)
   event OfferCancelled(offerId: ByteVec)
   event LoanLiquidated(offerId: ByteVec)
   event LoanPaidBack(offerId: ByteVec)
-
-  const Day = 86400
 
   enum ErrorCodes {
     OfferAlreadyTaken = 1
@@ -67,8 +65,10 @@ Contract LendingOffer(
     assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
     assert!(collateral == collateralAmount, ErrorCodes.IncorrectCollateralAmount)
 
+    // TODO: Pay the fee to the marketplace
+
     borrower = callerAddress!()
-    loanTimeStamp = (blockTimeStamp!() / 1000) % (1 <  < 32)
+    loanTimeStamp = blockTimeStampInSeconds()
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, lendingAmount)
@@ -89,10 +89,10 @@ Contract LendingOffer(
   @using(assetsInContract = true, preapprovedAssets = true)
   pub fn payback() -> () {
     checkCaller!(callerAddress!() == borrower, ErrorCodes.BorrowerAllowedOnly)
-    transferToken!(borrower, lender, lendingTokenId, lendingAmount)
-    transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
 
-    // TODO: Pay the interest to the lender
+    let interest = calculateInterestPayment(blockTimeStampInSeconds(), loanTimeStamp, lendingAmount, interestRate, duration)
+    transferToken!(borrower, lender, lendingTokenId, lendingAmount + interest)
+    transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
 
     emit LoanPaidBack(selfContractId!())
 
@@ -104,7 +104,7 @@ Contract LendingOffer(
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     assert!(borrower != lender, ErrorCodes.OfferNotTaken)
 
-    let currentBlockTimeStamp = (blockTimeStamp!() / 1000) % (1 <  < 32)
+    let currentBlockTimeStamp = blockTimeStampInSeconds()
     assert!(currentBlockTimeStamp > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
 
     emit LoanLiquidated(selfContractId!())

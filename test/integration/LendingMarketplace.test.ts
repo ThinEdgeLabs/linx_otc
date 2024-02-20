@@ -1,4 +1,4 @@
-import { ALPH_TOKEN_ID, Project, addressFromContractId, web3 } from "@alephium/web3"
+import { ALPH_TOKEN_ID, addressFromContractId, web3 } from "@alephium/web3"
 import { testNodeWallet } from "@alephium/web3-test"
 import { LendingMarketplaceHelper } from "../../shared/lending-marketplace"
 import { balanceOf, deployTestToken } from "../../shared/utils"
@@ -63,7 +63,8 @@ describe('LendingMarketplace', () => {
       collateralAmount,
       interestRate,
       duration,
-      borrower: lender
+      borrower: lender,
+      loanTimeStamp: 0n
     })
     expect(lendingOfferState.asset.tokens).toEqual([
       { id: lendingTokenId, amount: lendingAmount },

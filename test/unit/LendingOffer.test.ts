@@ -3,6 +3,7 @@ import {
   Project,
   ONE_ALPH,
   ContractState,
+  DUST_AMOUNT,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
@@ -248,8 +249,8 @@ describe('LendingOffer', () => {
   })
 
   describe('liquidate', () => {
-    const day = 86400
-    const unixTime = Math.floor(Date.now() / 1000)
+    const ONE_DAY = 86400
+    const NOW = Math.floor(Date.now() / 1000)
 
     it('lender receives collateral and loan is terminated', async () => {
         fixture = createLendingOffer(
@@ -262,7 +263,7 @@ describe('LendingOffer', () => {
           duration,
           borrower.address
         )
-        const unixTimeInPast = unixTime - (day * Number(duration) + 1)
+        const unixTimeInPast = NOW - (ONE_DAY * Number(duration) + 1)
         const testResult = await LendingOffer.tests.liquidate({
           initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) },
           initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
@@ -297,7 +298,7 @@ describe('LendingOffer', () => {
         duration,
         borrower.address
       )
-      const loanTimeStamp = unixTime - day // 1 day old, duration is 30 days, so it's not overdue
+      const loanTimeStamp = NOW - ONE_DAY // 1 day old, duration is 30 days, so it's not overdue
       const testResult = LendingOffer.tests.liquidate({
         initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
@@ -324,7 +325,7 @@ describe('LendingOffer', () => {
         duration,
         borrower.address
       )
-      const loanTimeStamp = unixTime - day * Number(duration) - 1 // loan is overdue
+      const loanTimeStamp = NOW - ONE_DAY * Number(duration) - 1 // loan is overdue
       const testResult = LendingOffer.tests.liquidate({
         initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
@@ -338,6 +339,65 @@ describe('LendingOffer', () => {
         existingContracts: fixture.dependencies
       })
       expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LenderAllowedOnly))
+    })
+  })
+
+  describe('payback', () => {
+    const ONE_DAY = 86400
+    const NOW = Math.floor(Date.now() / 1000)
+
+    it('lender receives the token + interest, borrower gets the collateral and loan is terminated', async () => {
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address
+      )
+      const loanTimeStamp = NOW - ONE_DAY
+      const testResult = await LendingOffer.tests.calculateInterestPayment({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialAsset: fixture.selfState.asset,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        testArgs: {
+          currentBlockTimeStamp: BigInt(NOW),
+          loanTimestamp: BigInt(loanTimeStamp),
+          amount: fixture.selfState.fields.lendingAmount,
+          interest: fixture.selfState.fields.interestRate,
+          days: fixture.selfState.fields.duration
+        }
+      })
+
+      const interestPayment = testResult.returns
+      expect(interestPayment).toEqual(6666666666666666666n)
+
+      const paybackResult = await LendingOffer.tests.payback({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        inputAssets: [
+          {
+            address: borrower.address,
+            asset: { alphAmount: 10n ** 18n, tokens: [{ id: lendingTokenId, amount: lendingAmount + interestPayment + DUST_AMOUNT }] }
+          }
+        ],
+        address: fixture.address,
+        existingContracts: fixture.dependencies
+      })
+      expect(paybackResult.events.length).toEqual(2)
+      expect(paybackResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
+      expect(paybackResult.events.find((e) => e.name === 'LoanPaidBack')).toBeDefined()
+
+      const lenderReceives = paybackResult.txOutputs.filter((o) => o.address === lender.address)
+      expect(lenderReceives.map((o) => BigInt(o.alphAmount)).reduce((a, b) => a + b, 0n)).toEqual(ONE_ALPH)
+      const lenderReceivesTokens = lenderReceives[0].tokens?.find((t) => t.id === lendingTokenId)
+      console.log(lenderReceivesTokens?.amount)
+      expect(lenderReceivesTokens?.amount).toBeGreaterThanOrEqual(lendingAmount + interestPayment)
+      const borrowerReceives = paybackResult.txOutputs.filter((o) => o.address === borrower.address)
+      //TODO: check borrower receives collateral
     })
   })
 })
