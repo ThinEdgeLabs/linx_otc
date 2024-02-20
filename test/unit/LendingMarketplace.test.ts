@@ -176,7 +176,8 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower: lender.address
+        borrower: lender.address,
+        loanTimeStamp: 0n
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
@@ -205,6 +206,31 @@ describe('LendingMarketplace', () => {
       })
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
       expect(marketplaceState.fields.totalLendingOffers).toEqual(2n)
+    })
+
+    it('fails if the interest calculation overflows', async () => {
+      const testResult = LendingMarketplace.tests.createLendingOffer({
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: 1n << 255n }] }
+          }
+        ],
+        testArgs: {
+          lendingTokenId,
+          collateralTokenId,
+          lendingAmount: 1n << 255n,
+          collateralAmount,
+          interestRate,
+          duration: 365n
+        }
+      })
+      await expect(
+        testResult,
+      ).rejects.toThrow(Error)
     })
   })
 })

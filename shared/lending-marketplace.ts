@@ -17,7 +17,8 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         collateralAmount: 0n,
         interestRate: 0n,
         duration: 0n,
-        borrower: ZERO_ADDRESS
+        borrower: ZERO_ADDRESS,
+        loanTimeStamp: 0n,
       }
     })
 
