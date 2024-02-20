@@ -1,8 +1,8 @@
-import { ALPH_TOKEN_ID, NodeProvider, ONE_ALPH, Project, SignerProvider, addressFromContractId, contractIdFromAddress, contractIdFromTx, web3 } from "@alephium/web3"
-import { getSigners, testNodeWallet } from "@alephium/web3-test"
+import { ALPH_TOKEN_ID, NodeProvider, ONE_ALPH, Project, web3 } from "@alephium/web3"
+import { getSigners } from "@alephium/web3-test"
 import { LendingMarketplaceHelper } from "../../shared/lending-marketplace"
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from "../../shared/utils"
-import { GetToken, LendingMarketplaceInstance, LendingOffer, LendingOfferInstance } from "../../artifacts/ts"
+import { LendingOfferInstance } from "../../artifacts/ts"
 import { waitTxConfirmed } from "@alephium/cli"
 import { PrivateKeyWallet } from "@alephium/web3-wallet"
 

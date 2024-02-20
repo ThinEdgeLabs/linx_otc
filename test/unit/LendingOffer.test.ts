@@ -3,14 +3,12 @@ import {
   Project,
   ONE_ALPH,
   ContractState,
-  addressFromContractId
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingOffer, LendingOfferInstance, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { balanceOf, contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
-import exp from 'constants'
+import { contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
 
 describe('LendingOffer', () => {
   let fixture: ContractFixture<LendingOfferTypes.Fields>
