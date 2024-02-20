@@ -3,10 +3,15 @@ import { shortenString } from '@/functions/stringUtils'
 import HorizontalDivider from '../HorizontalDivider.vue'
 import LoanPreviewLabel from './LoanPreviewLabel.vue'
 import CustomButton from '../CustomButton.vue'
+import ComponentTitle from '../ComponentTitle.vue'
+import { ref } from 'vue'
+import ApproveWallet from '../ApproveWallet.vue'
 
 defineEmits<{
   (e: 'update:closeOffer'): void
 }>()
+
+const step = ref(0)
 
 const props = defineProps({
   loan: {
@@ -22,35 +27,15 @@ function calculateInterest() {
 
 <template>
   <section class="w-full h-full flex flex-row space-x-[30px]">
-    <div class="flex flex-col bg-menu w-[60%] p-[30px] space-y-[30px] rounded-lg">
+    <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[30px] space-y-[30px] rounded-lg">
       <div class="flex flex-col h-full justify-between">
         <div class="flex flex-col space-y-[30px]">
-          <div class="flex flex-row items-center justify-between">
-            <div class="flex flex-row items-center space-x-[20px]">
-              <button
-                class="flex w-[40px] h-[40px] rounded-full bg-core-darkest items-center justify-center"
-              >
-                <font-awesome-icon
-                  @click="$emit('update:closeOffer')"
-                  :icon="['fal', 'arrow-left-long']"
-                  class="text-core-light text-[20px]"
-                />
-              </button>
-              <div class="flex flex-col items-start">
-                <p class="text-[22px] font-extrabold text-core-lightest">
-                  Loan order #{{ props.loan.loanId }}
-                </p>
-                <p class="text-[14px] text-core-light">
-                  Created on {{ new Date(props.loan.created).toDateString() }}
-                </p>
-              </div>
-            </div>
-            <div
-              class="border-2 border-ok rounded-[20px] text-ok text-[12px] min-w-[70px] text-center"
-            >
-              Open
-            </div>
-          </div>
+          <ComponentTitle
+            :title="`Loan order #${props.loan.loanId}`"
+            :description="`Created on ${new Date(props.loan.created).toDateString()}`"
+            :status="!props.loan.borrower ? 'Open' : 'Active'"
+            @update:go-back="$emit('update:closeOffer')"
+          />
           <div class="flex flex-col">
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
@@ -145,6 +130,7 @@ function calculateInterest() {
         </div>
       </div>
     </div>
+    <ApproveWallet v-else @update:cancel="step--" @update:finished="$emit('update:closeOffer')" />
     <div class="flex flex-col bg-menu w-[40%] p-[30px] rounded-lg space-y-[30px]">
       <div class="flex flex-col">
         <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
@@ -193,7 +179,7 @@ function calculateInterest() {
           :amount_description="'seconds'"
         />
       </div>
-      <CustomButton :title="'Accept & Borrow now'" :class="'w-full'" />
+      <CustomButton :title="'Accept & Borrow now'" :class="'w-full'" @click="step++" />
       <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
         <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
         <button class="text-accent-3">Terms of Use</button>

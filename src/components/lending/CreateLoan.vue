@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import SectionTitle from '@/components/SectionTitle.vue'
 import TokenBar from '@/components/TokenBar.vue'
 import InterestField from '@/components/lending/InterestField.vue'
-import CustomButton from '../CustomButton.vue'
+import CustomButton from '@/components/CustomButton.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import { useAccountStore } from '@/stores/account'
-import WalletButton from '../WalletButton.vue'
+import WalletButton from '@/components/WalletButton.vue'
 import DurationSelect from './DurationSelect.vue'
 import RatingSelect from './RatingSelect.vue'
-import HorizontalDivider from '../HorizontalDivider.vue'
-import ApproveWallet from '../ApproveWallet.vue'
+import HorizontalDivider from '@/components/HorizontalDivider.vue'
+import ApproveWallet from '@/components/ApproveWallet.vue'
 import { ref } from 'vue'
 import LoanPreview from './LoanPreview.vue'
+import ComponentTitle from '@/components/ComponentTitle.vue'
+import AgreeToTerms from '@/components/AgreeToTerms.vue'
 
 const loanOfferStore = useLoanOrderStore()
 const account = useAccountStore()
@@ -27,9 +28,10 @@ function resetOrder() {
 </script>
 <template>
   <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[30px] space-y-[30px]">
-    <SectionTitle
+    <ComponentTitle
       :title="'Create new Loan Offer'"
       :description="'Some text about creating a new loan offer'"
+      @update:go-back="resetOrder()"
     />
     <div class="w-full flex flex-row items-center space-x-[30px]">
       <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" />
@@ -81,10 +83,13 @@ function resetOrder() {
       <HorizontalDivider />
     </div>
 
-    <div class="flex flex-row space-x-[30px]">
-      <WalletButton v-if="!account.account" />
-      <CustomButton v-else :title="'Continue'" @click="step++" />
-      <CustomButton :title="'Cancel'" :open="true" @click="loanOfferStore.resetOrder()" />
+    <div class="flex flex-row items-center justify-between">
+      <div class="flex flex-row space-x-[30px]">
+        <WalletButton v-if="!account.account" />
+        <CustomButton v-else :title="'Continue'" @click="step++" />
+        <CustomButton :title="'Cancel'" :open="true" @click="loanOfferStore.resetOrder()" />
+      </div>
+      <AgreeToTerms />
     </div>
   </div>
   <div v-else class="w-full flex flex-row space-x-[30px]">
