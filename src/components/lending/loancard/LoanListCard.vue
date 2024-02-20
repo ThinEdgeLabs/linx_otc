@@ -11,8 +11,9 @@ const props = defineProps({
 
 function calculateInterest() {
   return (
-    Math.round((props.loan.interest / props.loan.loanAmount / props.loan.duration) * 365 * 100) /
-    100
+    Math.round(
+      (((props.loan.interest / props.loan.loanAmount) * 100) / props.loan.duration) * 365 * 100
+    ) / 100
   )
 }
 </script>

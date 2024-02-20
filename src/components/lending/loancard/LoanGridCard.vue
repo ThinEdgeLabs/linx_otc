@@ -7,7 +7,7 @@ const props = defineProps({
 })
 
 function calculateInterest(interest: number, duration: number, loan: number) {
-  return Math.round((interest / loan / duration) * 365 * 100) / 100
+  return Math.round((((interest / loan) * 100) / duration) * 365 * 100) / 100
 }
 </script>
 

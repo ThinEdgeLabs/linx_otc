@@ -22,7 +22,8 @@ const tokenList = Array.from(tokens)
 const anyToken: Token = {
   name: 'Any token',
   symbol: 'NONE',
-  contract: ''
+  contract: '',
+  decimals: 18
 }
 
 tokenList.unshift(anyToken)

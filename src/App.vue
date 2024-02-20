@@ -5,6 +5,7 @@ import { useWalletConnectStore } from '@/stores/walletconnect'
 
 import LinxMenu from '@/components/LinxMenu.vue'
 import SelectWalletModal from '@/components/WalletSelect.vue'
+import FooterComponent from './components/FooterComponent.vue'
 
 onMounted(() => {
   const wcStore = useWalletConnectStore()
@@ -20,6 +21,7 @@ onMounted(() => {
       <LinxMenu />
     </header>
     <RouterView />
+    <FooterComponent />
     <SelectWalletModal />
   </main>
 </template>

@@ -63,7 +63,7 @@ const loanStore = useLoanStore()
           :class="loanStore.sortCategory === 'interest' ? 'text-accent-3' : 'text-divider '"
         />
       </button>
-      <div class="w-[20%]"></div>
+      <div class="w-[50%]"></div>
     </div>
     <HorizontalDivider />
   </div>

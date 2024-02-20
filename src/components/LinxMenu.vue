@@ -7,13 +7,13 @@ import WalletButton from '@/components/WalletButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import MenuButton from '@/components/MenuButton.vue'
 
-const selectedMenuItem = ref('Dashboard')
+const selectedMenuItem = ref('Home')
 const showSideBar = ref(false)
 
 const menuItems = [
   {
     title: 'Dashboard',
-    destination: '/'
+    destination: '/dashboard'
   },
   {
     title: 'P2P Trade',
@@ -55,7 +55,9 @@ const menuItems = [
       class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between w-56 lg:w-full bg-core-darkest space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px]"
       :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
     >
-      <LinxOTCLogo class="invisible lg:visible" />
+      <RouterLink :to="'/'">
+        <LinxOTCLogo class="invisible lg:visible" @click="selectedMenuItem = 'Home'" />
+      </RouterLink>
       <div
         @click="showSideBar = !showSideBar"
         class="visible lg:invisible sm:h-0 flex items-center space-x-[17px] px-4 pb-[6px]"
