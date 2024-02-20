@@ -1,0 +1,22 @@
+Abstract Contract LendingMarketplaceUtils() {
+
+  const Day = 86400
+
+  pub fn blockTimeStampInSeconds() -> U256 {
+    return (blockTimeStamp!() / 1000) % (1 << 32)
+  }
+
+  pub fn calculateInterestPayment(currentBlockTimeStamp: U256, loanTimestamp: U256, amount: U256, interest: U256, days: U256) -> U256 {
+    let timeElapsed = currentBlockTimeStamp - loanTimestamp
+    let totalInterest = amount * interest / 10000
+    return totalInterest * timeElapsed / (Day * days)
+  }
+
+  pub fn calculateTotalInterestPayment(amount: U256, interest: U256, days: U256) -> U256 {
+    return calculateInterestPayment(days * Day, 0, amount, interest, days)
+  }
+
+  pub fn calculateMarketplaceFee(amount: U256, feeRate: U256) -> U256 {
+    return amount * feeRate / 10000
+  }
+}
