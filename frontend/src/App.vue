@@ -14,9 +14,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main
-    class="relative font-sans antialiased text-base text-core bg-core-darkest w-full min-h-screen px-[10%]"
-  >
+  <main class="relative font-sans antialiased text-base text-core bg-core-darkest w-full min-h-screen px-[10%]">
     <header>
       <LinxMenu />
     </header>

@@ -28,20 +28,11 @@ const loans = loanStore.filterLoans()
           @click="loanOfferStore.startNewLoanOrder()"
         />
       </div>
-      <p v-if="!loanOfferStore.order">
-        Choose a loan that suits you, filter for collateral type, duration etc.
-      </p>
+      <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
       <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
     </div>
-    <LoansList
-      v-if="!loanOfferStore.order && !selectedLoan"
-      @update:selected-loan="selectedLoan = $event"
-    />
-    <AcceptLoanOffer
-      v-if="selectedLoan"
-      :loan="selectedLoan"
-      @update:close-offer="selectedLoan = undefined"
-    />
+    <LoansList v-if="!loanOfferStore.order && !selectedLoan" @update:selected-loan="selectedLoan = $event" />
+    <AcceptLoanOffer v-if="selectedLoan" :loan="selectedLoan" @update:close-offer="selectedLoan = undefined" />
     <CreateLoan v-if="loanOfferStore.order" />
   </section>
 </template>

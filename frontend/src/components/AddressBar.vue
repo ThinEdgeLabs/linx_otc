@@ -34,17 +34,13 @@ async function handleAddress(address: string) {
     <div class="font-extrabold text-core-light">
       {{ props.isSender ? 'Your address' : 'Receiver address' }}
     </div>
-    <div
-      class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core"
-    >
+    <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core">
       <div class="flex flex-row space-x-[10px] items-center w-full">
         <img src="@/assets/alph.png" class="w-[32px] h-[32px] rounded-full" />
 
         <div v-if="isSender" class="flex flex-row justify-between w-full">
           <p class="font-extrabold text-core-darkest text-[14px]">
-            {{
-              orderStore.order?.from ? shortenString(orderStore.order?.from, 16) : 'Connect wallet'
-            }}
+            {{ orderStore.order?.from ? shortenString(orderStore.order?.from, 16) : 'Connect wallet' }}
           </p>
           <p v-if="orderStore.order?.groupFrom != undefined">
             {{ `Group ${orderStore.order.groupFrom}` }}
@@ -52,9 +48,7 @@ async function handleAddress(address: string) {
         </div>
         <div v-else class="flex flex-row items-center justify-between w-full">
           <TextInput
-            :modelValue="
-              orderStore.order?.to != undefined ? shortenString(orderStore.order!.to, 16) : ''
-            "
+            :modelValue="orderStore.order?.to != undefined ? shortenString(orderStore.order!.to, 16) : ''"
             @update:modelValue="handleAddress($event)"
           />
           <p v-if="orderStore.order?.groupTo != undefined" class="w-full text-end pr-2">

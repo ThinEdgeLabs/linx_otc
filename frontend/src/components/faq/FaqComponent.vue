@@ -15,8 +15,8 @@ const props = defineProps({
       <p v-if="props.isHomeView" class="text-[14px] text-accent-1">LOREM</p>
       <p class="text-[40px] font-extrabold text-core-lightest">Frequently Asked Questions</p>
       <p class="text-[18px] text-core-light" :class="props.isHomeView ? 'w-[35%]' : 'w-full'">
-        Got a question? Your answer might be here. If you can't find what you're looking for, join
-        our Discord and ask us directly.
+        Got a question? Your answer might be here. If you can't find what you're looking for, join our Discord and ask
+        us directly.
       </p>
     </div>
     <div class="flex flex-col w-full space-y-[20px]">

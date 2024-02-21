@@ -48,20 +48,13 @@ function getButtonTitle(activity: Activity): string {
         <div v-if="activity.type === 'Loan'" class="w-full flex flex-col">
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
-            <div
-              class="font-extrabold"
-              :class="activity.duration === 0 ? 'text-danger' : 'text-core-lightest'"
-            >
+            <div class="font-extrabold" :class="activity.duration === 0 ? 'text-danger' : 'text-core-lightest'">
               {{ activity.duration }}
             </div>
             <div class="text-core-light">DAYS</div>
           </div>
         </div>
-        <div
-          v-else
-          class="w-full flex flex-col"
-          :class="activity.counterParty ? 'visible' : 'invisible'"
-        >
+        <div v-else class="w-full flex flex-col" :class="activity.counterParty ? 'visible' : 'invisible'">
           <div class="text-[10px] text-core-light">TO</div>
           <div class="text-[14px] font-extrabold text-core-lightest">
             {{ shortenString(activity.counterParty || '', 12) }}

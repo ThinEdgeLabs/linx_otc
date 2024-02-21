@@ -13,46 +13,46 @@ interface Order {
 }
 
 export const useOrderStore = defineStore('order', () => {
-    const order = ref<Order | undefined>()
+  const order = ref<Order | undefined>()
 
-    function setFromToken(token: string) {
-        order.value!.tokenFrom = token
-    }
+  function setFromToken(token: string) {
+    order.value!.tokenFrom = token
+  }
 
-    function setToToken(token: string) {
-        order.value!.tokenTo = token
-    }
+  function setToToken(token: string) {
+    order.value!.tokenTo = token
+  }
 
-    function setFromAmount(amount: number) {
-        order.value!.amountFrom = amount
-    }
-    
-    function setAmountTo(amount: number) {
-        order.value!.amountTo = amount
-    }
+  function setFromAmount(amount: number) {
+    order.value!.amountFrom = amount
+  }
 
-    function setReceiver(receiver: string, group: number) {
-        // Grab balance
-        order.value!.to = receiver
-        order.value!.groupTo = group
-    }
+  function setAmountTo(amount: number) {
+    order.value!.amountTo = amount
+  }
 
-    function startNewOrder(receiver: string, group: number) {
-            order.value = {
-                from: receiver,
-                groupFrom: group,
-                to: "",
-                groupTo: undefined,
-                tokenFrom: "Alephium",
-                amountFrom: 0.0,
-                tokenTo: "",
-                amountTo: 0.0
-            }
-    }
+  function setReceiver(receiver: string, group: number) {
+    // Grab balance
+    order.value!.to = receiver
+    order.value!.groupTo = group
+  }
 
-    function resetOrder() {
-        order.value = undefined
+  function startNewOrder(receiver: string, group: number) {
+    order.value = {
+      from: receiver,
+      groupFrom: group,
+      to: '',
+      groupTo: undefined,
+      tokenFrom: 'Alephium',
+      amountFrom: 0.0,
+      tokenTo: '',
+      amountTo: 0.0
     }
-    
-  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder, resetOrder}
+  }
+
+  function resetOrder() {
+    order.value = undefined
+  }
+
+  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder, resetOrder }
 })

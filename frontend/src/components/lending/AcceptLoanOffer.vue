@@ -39,10 +39,7 @@ function calculateInterest() {
           <div class="flex flex-col">
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
-                <img
-                  :src="`./images/${props.loan.loanToken}.png`"
-                  class="w-[60px] h-[60px] rounded-full"
-                />
+                <img :src="`./images/${props.loan.loanToken}.png`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[12px] text-core-light">LENDING</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[18px]">
@@ -52,13 +49,8 @@ function calculateInterest() {
                 </div>
               </div>
               <div class="flex flex-row space-x-[10px] item-center">
-                <div
-                  class="flex w-[60px] h-[60px] rounded-full bg-core-darkest items-center justify-center"
-                >
-                  <font-awesome-icon
-                    :icon="['fal', 'receipt']"
-                    class="text-core-light text-[20px]"
-                  />
+                <div class="flex w-[60px] h-[60px] rounded-full bg-core-darkest items-center justify-center">
+                  <font-awesome-icon :icon="['fal', 'receipt']" class="text-core-light text-[20px]" />
                 </div>
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[12px] text-core-light">
@@ -76,10 +68,7 @@ function calculateInterest() {
             <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
-                <img
-                  :src="`./images/${props.loan.collateralToken}.png`"
-                  class="w-[60px] h-[60px] rounded-full"
-                />
+                <img :src="`./images/${props.loan.collateralToken}.png`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[12px] text-core-light">COLLATERAL</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[18px]">
@@ -91,13 +80,8 @@ function calculateInterest() {
                 </div>
               </div>
               <div class="flex flex-row space-x-[10px] item-center">
-                <div
-                  class="flex w-[60px] h-[60px] rounded-full bg-core-darkest items-center justify-center"
-                >
-                  <font-awesome-icon
-                    :icon="['fal', 'calendar-days']"
-                    class="text-core-light text-[20px]"
-                  />
+                <div class="flex w-[60px] h-[60px] rounded-full bg-core-darkest items-center justify-center">
+                  <font-awesome-icon :icon="['fal', 'calendar-days']" class="text-core-light text-[20px]" />
                 </div>
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[12px] text-core-light">DURATION</p>
@@ -113,19 +97,14 @@ function calculateInterest() {
           </div>
         </div>
 
-        <div
-          class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg"
-        >
+        <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
           <div class="flex flex-row space-x-[10px] items-center">
-            <font-awesome-icon
-              :icon="['fal', 'info-circle']"
-              class="text-core-lightest text-[16px]"
-            />
+            <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
             <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>
           </div>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a
-            efficitur purus fringilla sed viverra pretium nisl.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a efficitur purus
+            fringilla sed viverra pretium nisl.
           </p>
         </div>
       </div>
@@ -134,18 +113,11 @@ function calculateInterest() {
     <div class="flex flex-col bg-menu w-[40%] p-[30px] rounded-lg space-y-[30px]">
       <div class="flex flex-col">
         <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
-        <p class="text-[14px] text-core-light">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
+        <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
       </div>
-      <div
-        class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg"
-      >
+      <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg">
         <div class="flex flex-row space-x-[10px] items-center">
-          <img
-            :src="`./images/${props.loan.loanToken}.png`"
-            class="w-[40px] h-[40px] rounded-full"
-          />
+          <img :src="`./images/${props.loan.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">LENDING</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">
@@ -173,11 +145,7 @@ function calculateInterest() {
           :amount_description="props.loan.loanToken"
         />
         <HorizontalDivider />
-        <LoanPreviewLabel
-          :title="'Estimated time to create order'"
-          :amount="'60'"
-          :amount_description="'seconds'"
-        />
+        <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
       </div>
       <CustomButton :title="'Accept & Borrow now'" :class="'w-full'" @click="step++" />
       <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">

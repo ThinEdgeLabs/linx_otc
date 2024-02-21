@@ -19,10 +19,7 @@ function addInterest() {
 </script>
 
 <template>
-  <button
-    @click="addInterest"
-    class="p-[8px] bg-core-lighter rounded-lg text-core-darkest text-[12px] font-semibold"
-  >
+  <button @click="addInterest" class="p-[8px] bg-core-lighter rounded-lg text-core-darkest text-[12px] font-semibold">
     + {{ props.interest }} %
   </button>
 </template>

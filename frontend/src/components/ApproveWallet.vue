@@ -62,17 +62,13 @@ function retryTransaction() {
     <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     <div v-if="status === 'approve'">
       <div class="space-y-[10px] text-center">
-        <div class="text-[22px] font-extrabold text-core-lightest">
-          Confirm the order creation in your wallet
-        </div>
+        <div class="text-[22px] font-extrabold text-core-lightest">Confirm the order creation in your wallet</div>
         <div class="text-[16px]">Waiting for transaction confirmation</div>
       </div>
     </div>
     <div v-if="status === 'signed'">
       <div class="space-y-[10px] text-center">
-        <div class="text-[22px] font-extrabold text-core-lightest">
-          Received and sent signed transaction
-        </div>
+        <div class="text-[22px] font-extrabold text-core-lightest">Received and sent signed transaction</div>
         <div class="text-[16px]">Waiting for network confirmation</div>
       </div>
     </div>

@@ -12,9 +12,7 @@ const account = useAccountStore()
 </script>
 
 <template>
-  <section
-    class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]"
-  >
+  <section class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]">
     <PageTitle
       :title="account.account?.isConnected ? 'Create P2P Order' : 'P2P Trade'"
       :description="'Make use of the atomic swap feature on Alephium to trade directly with someone.'"

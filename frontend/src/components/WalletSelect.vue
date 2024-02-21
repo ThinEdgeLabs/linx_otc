@@ -12,9 +12,7 @@ const loginStore = useLoginStore()
   >
     <section class="pt-4 pb-12 px-8 space-y-[20px] rounded-lg bg-core-darkest">
       <div>
-        <h3
-          class="flex justify-between items-baseline text-2xl font-extrabold leading-10 text-white"
-        >
+        <h3 class="flex justify-between items-baseline text-2xl font-extrabold leading-10 text-white">
           Connect Wallet
           <font-awesome-icon
             :icon="['far', 'xmark']"

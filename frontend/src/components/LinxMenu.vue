@@ -58,18 +58,13 @@ const menuItems = [
       <RouterLink :to="'/'">
         <LinxOTCLogo class="invisible lg:visible" @click="selectedMenuItem = 'Home'" />
       </RouterLink>
-      <div
-        @click="showSideBar = !showSideBar"
-        class="visible lg:invisible sm:h-0 flex items-center pb-[6px]"
-      >
+      <div @click="showSideBar = !showSideBar" class="visible lg:invisible sm:h-0 flex items-center pb-[6px]">
         <font-awesome-icon :icon="['fal', 'times']" class="text-lg text-white text-[28px]" />
 
         <div class="text-white font-extrabold text-[22px]">Menu</div>
       </div>
 
-      <div
-        class="flex flex-col lg:flex-row justify-center pl-[40px] lg:pl-0 lg:space-x-[40px] lg:space-y-0 -mb-[3px]"
-      >
+      <div class="flex flex-col lg:flex-row justify-center pl-[40px] lg:pl-0 lg:space-x-[40px] lg:space-y-0 -mb-[3px]">
         <MenuItem
           @click="(selectedMenuItem = item.title), (showSideBar = false)"
           v-for="item in menuItems"

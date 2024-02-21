@@ -66,9 +66,7 @@ function onAmountChange(amount: number) {
       // bridgeStore.data.isFormValid = false
     } else {
       const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-      orderStore.setFromAmount(
-        selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
-      )
+      orderStore.setFromAmount(selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount))
     }
   } else {
     if (props.isSender) {
@@ -77,9 +75,7 @@ function onAmountChange(amount: number) {
         // bridgeStore.data.isFormValid = false
       } else {
         const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-        loanStore.setLoanAmount(
-          selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
-        )
+        loanStore.setLoanAmount(selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount))
       }
     } else {
       const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
@@ -118,11 +114,7 @@ function checkSelectedLoanTokens() {
       <div
         @click="!selectedToken ? toggleDropDown() : null"
         class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core"
-        :class="
-          dropdownOpen
-            ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white z-10'
-            : 'rounded-lg z-0'
-        "
+        :class="dropdownOpen ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white z-10' : 'rounded-lg z-0'"
       >
         <div class="flex flex-row space-x-[10px] items-center w-full">
           <img
@@ -152,32 +144,19 @@ function checkSelectedLoanTokens() {
               v-if="props.offerType === 'trade' || props.isSender"
               @click="
                 props.offerType === 'trade'
-                  ? orderStore.setFromAmount(
-                      parseBalance(selectedToken.balance, selectedToken.decimals)
-                    )
-                  : loanStore.setLoanAmount(
-                      parseBalance(selectedToken.balance, selectedToken.decimals)
-                    )
+                  ? orderStore.setFromAmount(parseBalance(selectedToken.balance, selectedToken.decimals))
+                  : loanStore.setLoanAmount(parseBalance(selectedToken.balance, selectedToken.decimals))
               "
             />
           </div>
           <p v-else>{{ 'Select a token' }}</p>
         </div>
-        <font-awesome-icon
-          v-if="!selectedToken"
-          :icon="['fal', 'angle-down']"
-          class="text-[18px] text-accent-3"
-        />
+        <font-awesome-icon v-if="!selectedToken" :icon="['fal', 'angle-down']" class="text-[18px] text-accent-3" />
       </div>
-      <div
-        v-if="dropdownOpen"
-        class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10"
-      >
+      <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
-            v-for="token in props.offerType === 'loan' && !props.isSender
-              ? tokens
-              : tokenStore.balance"
+            v-for="token in props.offerType === 'loan' && !props.isSender ? tokens : tokenStore.balance"
             v-bind:key="token.name"
             :token="token"
             :is-offer="props.isSender"

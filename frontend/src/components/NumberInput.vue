@@ -15,9 +15,7 @@ defineEmits<{
       @input="
         $emit(
           'update:modelValue',
-          ($event.target as HTMLInputElement).value !== ''
-            ? parseFloat(($event.target as HTMLInputElement).value)
-            : 0.0
+          ($event.target as HTMLInputElement).value !== '' ? parseFloat(($event.target as HTMLInputElement).value) : 0.0
         )
       "
     />

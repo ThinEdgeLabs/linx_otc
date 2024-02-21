@@ -31,10 +31,7 @@ function calculateInterest(interest: number, duration: number, loan: number) {
     </div>
     <div class="border-dashed border-r-2 border-core h-[20px] w-[20px]"></div>
     <div class="flex flex-row items-center space-x-[15px]">
-      <img
-        :src="`./images/${props.loan.collateralToken}.png`"
-        class="w-[40px] h-[40px] rounded-full"
-      />
+      <img :src="`./images/${props.loan.collateralToken}.png`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col items-center justify-center">
         <div class="flex flex-row space-x-1 text-[14px]">
           <p class="font-extrabold text-white">{{ props.loan.collateralAmount }}</p>

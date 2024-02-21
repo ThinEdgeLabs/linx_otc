@@ -53,26 +53,17 @@ function resetOrder() {
       <div class="flex flex-row justify-between">
         <p class="font-semibold text-core-light">Interest % over Loan</p>
         <p class="font-extrabold text-core-lightest">
-          {{
-            (
-              ((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) *
-              100
-            ).toFixed(2)
-          }}
+          {{ (((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) * 100).toFixed(2) }}
           %
         </p>
       </div>
       <HorizontalDivider />
-      <div
-        class="flex flex-row justify-between"
-        v-if="loanOfferStore.order?.duration && loanOfferStore.order.interest"
-      >
+      <div class="flex flex-row justify-between" v-if="loanOfferStore.order?.duration && loanOfferStore.order.interest">
         <p class="font-semibold text-core-light">Interest % Annualised</p>
         <p class="font-extrabold text-core-lightest">
           {{
             (
-              ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) *
-                100) /
+              ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) * 100) /
                 (loanOfferStore.order?.duration ?? 0)) *
               365
             ).toFixed(2)

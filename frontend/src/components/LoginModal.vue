@@ -28,11 +28,7 @@ const connectWalletConnect = async () => {
   <div v-if="!account?.isConnected">
     <div v-if="isLoading">
       <div class="flex flex-col items-center pt-[30px] space-y-[30px]">
-        <font-awesome-icon
-          :icon="['fal', 'spinner-third']"
-          spin
-          class="text-accent-3 text-[46px] lg:text-[60px]"
-        />
+        <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[46px] lg:text-[60px]" />
         <p>Approve the connection in your wallet</p>
       </div>
     </div>

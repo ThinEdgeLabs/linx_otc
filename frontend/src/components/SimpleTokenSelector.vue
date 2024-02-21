@@ -32,10 +32,7 @@ const openSelector = ref(false)
 
       <font-awesome-icon :icon="['fas', 'angle-down']" class="text-[18px] text-accent-3" />
     </div>
-    <div
-      v-if="openSelector"
-      class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-64 overflow-auto"
-    >
+    <div v-if="openSelector" class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-64 overflow-auto">
       <div
         v-for="token in props.tokenList"
         v-bind:key="token.name"

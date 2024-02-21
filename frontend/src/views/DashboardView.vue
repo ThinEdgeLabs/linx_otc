@@ -23,16 +23,8 @@ const accountStore = useAccountStore()
           :title="'Create a P2P Loan'"
           :description="'Create your loan in seconds'"
         />
-        <DashboardButton
-          :icon="'list'"
-          :title="'Explore P2P Loans'"
-          :description="'Find a loan that suits YOU'"
-        />
-        <DashboardButton
-          :icon="'comment-question'"
-          :title="'FAQ'"
-          :description="'Check the most asked questions'"
-        />
+        <DashboardButton :icon="'list'" :title="'Explore P2P Loans'" :description="'Find a loan that suits YOU'" />
+        <DashboardButton :icon="'comment-question'" :title="'FAQ'" :description="'Check the most asked questions'" />
       </div>
       <DashboardLogin v-if="!accountStore.account?.isConnected" />
       <DashboardUserData v-else />
