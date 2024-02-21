@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CustomButton from '@/components/CustomButton.vue'
+import WalletButton from '@/components/WalletButton.vue'
 </script>
 
 <template>
@@ -8,6 +8,6 @@ import CustomButton from '@/components/CustomButton.vue'
       Please Connect your Alephium Wallet
     </div>
     <div class="pb-[30px] text-core-light text-[14px]">Some useless text</div>
-    <CustomButton :title="'Connect wallet'" :class="'w-[200px]'" />
+    <WalletButton />
   </div>
 </template>
