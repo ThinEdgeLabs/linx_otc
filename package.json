@@ -9,7 +9,9 @@
     "devnet:start": "npx --yes @alephium/cli@latest devnet start",
     "devnet:stop": "npx --yes @alephium/cli@latest devnet stop",
     "compile": "npx --yes @alephium/cli@latest compile",
-    "deploy": "npx --yes @alephium/cli@latest deploy",
+    "deploy:devnet": "npx --yes @alephium/cli@latest deploy -n devnet",
+    "deploy:testnet": "npx --yes @alephium/cli@latest deploy -n testnet",
+    "deploy:mainnet": "npx --yes @alephium/cli@latest deploy -n mainnet",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
     "test": "jest -i --config ./jest-config.json"

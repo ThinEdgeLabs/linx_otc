@@ -1,50 +1,45 @@
 import { Configuration } from '@alephium/cli'
 import { Number256 } from '@alephium/web3'
 
-// Settings are usually for configuring
 export type Settings = {
-  // issueTokenAmount: Number256
-  // openaiAPIKey?: string
-  // ipfs?: {
-  //   infura?: {
-  //     projectId: string
-  //     projectSecret: string
-  //   }
-  // }
-  fee: Number256
+  fee: Number256,
+  admin: string
 }
 
-const defaultSettings: Settings = {
-  // issueTokenAmount: 100n,
-  // openaiAPIKey: process.env.OPENAI_API_KEY || '',
-  // ipfs: {
-  //   infura: {
-  //     projectId: process.env.IPFS_INFURA_PROJECT_ID || '',
-  //     projectSecret: process.env.IPFS_INFURA_PROJECT_SECRET || ''
-  //   }
-  // }
-  fee: 100n
+const loadSettings = (network: 'devnet' | 'testnet' | 'mainnet'): Settings => {
+  if (network === 'devnet') {
+    return {
+      fee: 100n,
+      admin: '1EJCtZP3HZP5rDX5v2o32woqLTxp6GS4GoLQGpzVPQm6E'
+    }
+  } else if (network === 'testnet' || network === 'mainnet') {
+    return {
+      fee: process.env.FEE as Number256,
+      admin: process.env.ADMIN_ADDRESS as string
+    }
+  } else {
+    throw new Error('Invalid network')
+  }
 }
 
 const configuration: Configuration<Settings> = {
   networks: {
     devnet: {
       nodeUrl: 'http://127.0.0.1:22973',
-      // here we could configure which address groups to deploy the contract
       privateKeys: ['a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5'],
-      settings: defaultSettings
+      settings: loadSettings('devnet')
     },
 
     testnet: {
       nodeUrl: process.env.NODE_URL as string,
       privateKeys: process.env.PRIVATE_KEYS === undefined ? [] : process.env.PRIVATE_KEYS.split(','),
-      settings: defaultSettings
+      settings: loadSettings('testnet')
     },
 
     mainnet: {
       nodeUrl: process.env.NODE_URL as string,
       privateKeys: process.env.PRIVATE_KEYS === undefined ? [] : process.env.PRIVATE_KEYS.split(','),
-      settings: defaultSettings
+      settings: loadSettings('mainnet')
     }
   }
 }
