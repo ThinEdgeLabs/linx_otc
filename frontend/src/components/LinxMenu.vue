@@ -6,6 +6,7 @@ import MenuItem from '@/components/MenuItem.vue'
 import WalletButton from '@/components/WalletButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import MenuButton from '@/components/MenuButton.vue'
+import { useRoute } from 'vue-router'
 
 const selectedMenuItem = ref('Home')
 const showSideBar = ref(false)
@@ -40,6 +41,8 @@ const menuItems = [
     destination: '/contact'
   }
 ]
+
+const route = useRoute()
 </script>
 
 <template>
@@ -71,7 +74,7 @@ const menuItems = [
           v-bind:key="menuItems.indexOf(item)"
           :title="item.title"
           :destination="item.destination"
-          :is-selected="selectedMenuItem === item.title"
+          :is-selected="$route.fullPath === item.destination"
         ></MenuItem>
       </div>
 

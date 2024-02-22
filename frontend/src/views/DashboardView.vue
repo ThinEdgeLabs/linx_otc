@@ -17,14 +17,26 @@ const accountStore = useAccountStore()
           :icon="'arrow-up-arrow-down'"
           :title="'Create a P2P Trade'"
           :description="'Create your order in seconds'"
+          :destination="'/trading'"
         />
         <DashboardButton
           :icon="'sack-dollar'"
           :title="'Create a P2P Loan'"
           :description="'Create your loan in seconds'"
+          :destination="'new-loan'"
         />
-        <DashboardButton :icon="'list'" :title="'Explore P2P Loans'" :description="'Find a loan that suits YOU'" />
-        <DashboardButton :icon="'comment-question'" :title="'FAQ'" :description="'Check the most asked questions'" />
+        <DashboardButton
+          :icon="'list'"
+          :title="'Explore P2P Loans'"
+          :description="'Find a loan that suits YOU'"
+          :destination="'/lending'"
+        />
+        <DashboardButton
+          :icon="'comment-question'"
+          :title="'FAQ'"
+          :description="'Check the most asked questions'"
+          :destination="'/faq'"
+        />
       </div>
       <DashboardLogin v-if="!accountStore.account?.isConnected" />
       <DashboardUserData v-else />
