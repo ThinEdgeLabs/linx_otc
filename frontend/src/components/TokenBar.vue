@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref } from 'vue'
+import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import { useRequesterBalanceStore } from '@/stores/requesterBalance'
 import { useReceiverBalanceStore } from '@/stores/receiverBalance'
@@ -14,16 +14,10 @@ import { onMounted } from 'vue'
 
 onMounted(() => checkSelectedLoanTokens())
 
-const props = defineProps({
-  isSender: {
-    type: Boolean,
-    required: true
-  },
-  offerType: {
-    type: String,
-    required: true
-  }
-})
+const props = defineProps<{
+  isSender: boolean
+  offerType: 'trade' | 'loan'
+}>()
 
 const tokenStore = props.isSender ? useRequesterBalanceStore() : useReceiverBalanceStore()
 

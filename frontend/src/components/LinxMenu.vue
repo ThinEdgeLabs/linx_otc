@@ -48,7 +48,7 @@ const menuItems = [
       <div @click="showSideBar = !showSideBar">
         <MenuButton />
       </div>
-      <LinxHubLogo />
+      <LinxOTCLogo />
       <div></div>
     </div>
     <nav
