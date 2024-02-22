@@ -33,10 +33,6 @@ const menuItems = [
     destination: '/faq'
   },
   {
-    title: 'About',
-    destination: '/about'
-  },
-  {
     title: 'Contact',
     destination: '/contact'
   }

@@ -134,7 +134,12 @@ import {
   faCommentQuestion
 } from '@fortawesome/pro-thin-svg-icons'
 
+import { faDiscord, faTelegram, faXTwitter } from '@fortawesome/free-brands-svg-icons'
+
 library.add(
+  faDiscord,
+  faTelegram,
+  faXTwitter,
   fasBell,
   fasSidebar,
   fasSendBack,
