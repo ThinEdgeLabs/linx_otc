@@ -17,10 +17,11 @@ export const useExtensionStore = defineStore('extension', () => {
       if (!windowAlephium) {
         throw new Error('Extension not installed')
       }
-      const selectedAccount = await windowAlephium
-        ?.enable({ networkId: 'mainnet' })
+      windowAlephium
+        ?.enable({ networkId: import.meta.env.VITE_NETWORK_ID, onDisconnected() {
+          extensionIsConnected.value = false
+        }})
         .then((res) => {
-          console.log(res)
           extensionIsConnected.value = true
           accountStore.setAccount(res.address, res.group, 'Extension', res.publicKey)
           loginStore.toggleModal()
@@ -35,6 +36,28 @@ export const useExtensionStore = defineStore('extension', () => {
     }
   }
 
+  async function silentConnectExtension() {
+    const alephium = await getDefaultAlephiumWallet()
+    if (alephium === undefined) {
+      return undefined
+    }
+    alephium?.enableIfConnected({ onDisconnected() {
+      extensionIsConnected.value = false
+    }, networkId: import.meta.env.VITE_NETWORK_ID })
+    .then((res) => {
+      if (res === undefined) {
+        extensionIsConnected.value = false
+      } else {
+        extensionIsConnected.value = true
+        accountStore.setAccount(res.address, res.group, 'Extension', res.publicKey)
+      }
+    })
+    .catch((error: any) => {
+      console.error(error)
+      return undefined
+    })
+  }
+
   async function disconnectExtension() {
     try {
       const windowAlephium = await getDefaultAlephiumWallet()
@@ -45,5 +68,5 @@ export const useExtensionStore = defineStore('extension', () => {
     loginStore.toggleModal()
   }
 
-  return { extensionIsConnected, connectExtension, disconnectExtension }
+  return { extensionIsConnected, connectExtension, disconnectExtension, silentConnectExtension }
 })
