@@ -4,8 +4,10 @@ import DashboardData from '@/components/dashboard/DashboardData.vue'
 import DashboardLogin from '@/components/dashboard/DashboardLogin.vue'
 import DashboardUserData from '@/components/dashboard/DashboardUserData.vue'
 import { useAccountStore } from '@/stores/account'
+import { useLoginStore } from '@/stores/login'
 
 const accountStore = useAccountStore()
+const loginStore = useLoginStore()
 </script>
 
 <template>
@@ -38,7 +40,7 @@ const accountStore = useAccountStore()
           :destination="'/faq'"
         />
       </div>
-      <DashboardLogin v-if="!accountStore.account?.isConnected" />
+      <DashboardLogin v-if="!accountStore.account?.isConnected" @click="loginStore.toggleModal()" />
       <DashboardUserData v-else />
     </section>
   </main>
