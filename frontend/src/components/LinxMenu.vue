@@ -52,19 +52,19 @@ const menuItems = [
       <div></div>
     </div>
     <nav
-      class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full bg-core-darkest space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 py-5"
+      class="sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px] z-20"
       :class="{ 'absolute -translate-x-0 left-56 ': showSideBar, 'left-0': !showSideBar }"
     >
       <RouterLink :to="'/'">
-        <LinxOTCLogo class="invisible lg:visible" @click="selectedMenuItem = 'Home'" />
+        <LinxOTCLogo :class="'invisible lg:visible lg:pt-[10px]'" @click="selectedMenuItem = 'Home'" />
       </RouterLink>
-      <div @click="showSideBar = !showSideBar" class="visible lg:invisible sm:h-0 flex items-center pb-[6px]">
+      <div @click="showSideBar = !showSideBar" class="visible lg:invisible sm:h-0 flex items-center">
         <font-awesome-icon :icon="['fal', 'times']" class="text-lg text-white text-[28px]" />
 
         <div class="text-white font-extrabold text-[22px]">Menu</div>
       </div>
 
-      <div class="flex flex-col lg:flex-row justify-center pl-[40px] lg:pl-0 lg:space-x-[40px] lg:space-y-0 -mb-[3px]">
+      <div class="flex flex-col lg:flex-row justify-center pl-[40px] lg:pl-0 lg:space-x-[40px] lg:space-y-0 z-20">
         <MenuItem
           @click="(selectedMenuItem = item.title), (showSideBar = false)"
           v-for="item in menuItems"
@@ -77,6 +77,6 @@ const menuItems = [
 
       <WalletButton />
     </nav>
-    <HorizontalDivider :class="'invisible lg:visible'" />
+    <HorizontalDivider :class="'relative invisible lg:visible -mt-[3px] z-10'" />
   </div>
 </template>

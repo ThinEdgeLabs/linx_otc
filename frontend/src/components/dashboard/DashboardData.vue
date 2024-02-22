@@ -13,10 +13,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <section
-    class="w-full flex flex-row justify-between items-center py-[40px]"
-    :class="$props.isLandingPage ? '' : 'px-[30px] '"
-  >
+  <section class="w-full flex flex-row justify-between items-center py-[40px]">
     <div v-if="!props.isLandingPage" class="text-[40px] font-extrabold text-core-lightest">Dashboard</div>
     <div class="w-full flex flex-row items-center" :class="$props.isLandingPage ? 'space-x-[30px] ' : 'justify-evenly'">
       <div class="flex flex-col" :class="props.isLandingPage ? 'w-full bg-menu rounded-lg p-[30px]' : 'text-end'">
