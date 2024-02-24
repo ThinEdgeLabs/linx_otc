@@ -1,5 +1,7 @@
-import { ContractState, DUST_AMOUNT, ExecuteScriptResult, NodeProvider, SignerProvider, node, number256ToBigint, web3 } from "@alephium/web3"
+import { ContractState, DUST_AMOUNT, ExecuteScriptResult, NodeProvider, SignerProvider, binToHex, contractIdFromAddress, node, number256ToBigint, web3 } from "@alephium/web3"
 import { GetToken, TestToken } from "../artifacts/ts"
+import { randomBytes } from 'crypto'
+import * as base58 from 'bs58'
 
 export async function deployTestToken(signer: SignerProvider): Promise<string> {
   const result = await TestToken.deploy(signer, {
@@ -56,4 +58,14 @@ export async function waitTxConfirmed(
   }
   await new Promise((r) => setTimeout(r, 1000))
   return waitTxConfirmed(provider, txId, confirmations)
+}
+
+export function randomContractId(): string {
+  return binToHex(contractIdFromAddress(randomContractAddress()))
+}
+
+export function randomContractAddress(): string {
+  const prefix = Buffer.from([0x03])
+  const bytes = Buffer.concat([prefix, randomBytes(32)])
+  return base58.encode(bytes)
 }

@@ -2,11 +2,11 @@ import { SignerProvider, Project, NodeProvider } from '@alephium/web3'
 
 export class DeployHelpers {
   signer: SignerProvider
-  nodeProvider: NodeProvider
+  // nodeProvider: NodeProvider
 
   constructor(signer: SignerProvider) {
     this.signer = signer
-    this.nodeProvider = signer.nodeProvider!
+    // this.nodeProvider = signer.nodeProvider!
   }
 
   async buildProject(errorOnWarnings = true): Promise<void> {
