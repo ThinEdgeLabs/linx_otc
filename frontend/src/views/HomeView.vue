@@ -3,13 +3,18 @@ import DashboardData from '@/components/dashboard/DashboardData.vue'
 import HeroItem from '@/components/landing/HeroItem.vue'
 import Faq from '@/components/faq/FaqComponent.vue'
 import LandingTitle from '@/components/landing/LandingTitle.vue'
+
+//TODO: On mobile ignore parent x-padding for background image
 </script>
 
 <template>
-  <div class="w-full flex flex-col space-y-[150px] overflow-auto leading-snug items-center">
+  <div class="w-full flex flex-col space-y-[80px] lg:space-y-[150px] overflow-auto leading-snug items-center">
     <div class="flex flex-col relative w-full">
       <LandingTitle />
-      <img class="w-full max-h-[800px] absolute top-0 left-0 -z-1" :src="'./images/landing.png'" />
+      <img
+        class="w-full h-full object-cover lg:max-h-[800px] absolute top-0 left-0 lg:-z-1"
+        :src="'./images/landing.png'"
+      />
     </div>
     <DashboardData :class="'z-10'" :is-landing-page="true" />
     <HeroItem
