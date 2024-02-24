@@ -60,7 +60,9 @@ function updateFilteredList() {
 </script>
 
 <template>
-  <div class="flex flex-row items-end w-full space-x-[30px] text-[14px] font-bold text-core-lightest">
+  <div
+    class="flex flex-col lg:flex-row items-end w-full space-y-[20px] lg:space-y-0 lg:space-x-[30px] text-[14px] font-bold text-core-lightest"
+  >
     <div class="flex flex-col w-full space-y-[10px]">
       <p>Token you want to loan</p>
       <SimpleTokenSelector :token-value="selectedLoanToken" :set-token="setSelectedLoanToken" :token-list="tokenList" />
@@ -78,7 +80,7 @@ function updateFilteredList() {
       <DurationSelector :duration-value="selectedDuration" :set-duration="setSelectedDuration" />
     </div>
 
-    <div @click="props.changeView('list')" class="flex flex-row items-center bg-divider p-[14px] rounded-lg">
+    <div @click="props.changeView('list')" class="hidden lg:flex flex-row items-center bg-divider p-[14px] rounded-lg">
       <font-awesome-icon
         :icon="['fal', 'list']"
         class="text-[20px]"
@@ -86,7 +88,7 @@ function updateFilteredList() {
       />
     </div>
 
-    <div @click="props.changeView('grid')" class="flex flex-row items-center bg-divider p-[14px] rounded-lg">
+    <div @click="props.changeView('grid')" class="hidden lg:flex flex-row items-center bg-divider p-[14px] rounded-lg">
       <font-awesome-icon
         :icon="['fal', 'grid-2']"
         class="text-[20px]"

@@ -16,20 +16,22 @@ const loans = loanStore.filterLoans()
 <template>
   <section class="pt-[30px] space-y-[30px]">
     <div>
-      <div class="flex flex-row justify-between w-full">
-        <p class="text-[32px] font-extrabold text-white">
-          P2P Loans
-          {{ loanOfferStore.order || selectedLoan ? '' : `(${loanStore.filteredLoans.length})` }}
-        </p>
+      <div class="flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 justify-between w-full">
+        <div class="flex flex-col leading-snug">
+          <p class="text-[32px] font-extrabold text-white">
+            P2P Loans
+            {{ loanOfferStore.order || selectedLoan ? '' : `(${loanStore.filteredLoans.length})` }}
+          </p>
+          <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
+          <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
+        </div>
         <CustomButton
           v-if="!selectedLoan"
           :title="'Create New Loan'"
-          :class="loanOfferStore.order ? 'invisible' : 'visible'"
+          :class="loanOfferStore.order ? 'invisible' : 'visible h-[52px]'"
           @click="loanOfferStore.startNewLoanOrder()"
         />
       </div>
-      <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
-      <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
     </div>
     <LoansList v-if="!loanOfferStore.order && !selectedLoan" @update:selected-loan="selectedLoan = $event" />
     <AcceptLoanOffer v-if="selectedLoan" :loan="selectedLoan" @update:close-offer="selectedLoan = undefined" />
