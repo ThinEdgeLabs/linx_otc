@@ -4,12 +4,12 @@ import SectionTitle from '@/components/SectionTitle.vue'
 </script>
 
 <template>
-  <section class="flex flex-col pt-[40px] space-y-[40px]">
+  <section class="flex flex-col pt-[40px] space-y-[40px] leading-snug">
     <SectionTitle
       :title="'Contact us'"
       :description="'If you run into issues or have a question, feel free to reach out on the platforms below'"
     />
-    <div class="flex flex-row space-x-[30px] text-center">
+    <div class="flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px] items-center">
       <ContactCard
         :title="'Discord'"
         :icon="'discord'"
