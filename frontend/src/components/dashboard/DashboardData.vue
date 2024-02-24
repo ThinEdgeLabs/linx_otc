@@ -16,7 +16,7 @@ const props = defineProps({
   <section class="w-full flex flex-row justify-between items-center py-[40px]">
     <div v-if="!props.isLandingPage" class="text-[40px] font-extrabold text-core-lightest">Dashboard</div>
     <div
-      class="w-full flex flex-col lg:flex-row items-center"
+      class="hidden lg:flex w-full flex-col lg:flex-row items-center"
       :class="$props.isLandingPage ? 'space-y-[20px] lg:space-y-0 lg:space-x-[30px] ' : 'justify-evenly'"
     >
       <div
