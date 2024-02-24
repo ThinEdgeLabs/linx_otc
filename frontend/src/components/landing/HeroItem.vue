@@ -24,8 +24,10 @@ const props = defineProps({
 </script>
 
 <template>
-  <section class="w-full flex flex-row space-x-[134px] z-10 leading-snug">
-    <div v-if="!imageRight" class="w-full bg-menu rounded-lg"></div>
+  <section class="w-full flex flex-row space-x-[134px] z-10 leading-snug items-center">
+    <div v-if="!imageRight" class="max-w-[490px]">
+      <img :src="`./images/${props.image}`" />
+    </div>
     <div class="w-full flex flex-col w-full space-y-[20px] py-[48px]">
       <div class="flex flex-col">
         <p class="text-[14px] text-accent-3">{{ props.leader }}</p>
@@ -33,6 +35,8 @@ const props = defineProps({
       </div>
       <p class="text-[18px] text-core-light">{{ props.description }}</p>
     </div>
-    <div v-if="imageRight" class="w-full bg-menu rounded-lg"></div>
+    <div v-if="imageRight" class="max-w-[490px]">
+      <img :src="`./images/${props.image}`" />
+    </div>
   </section>
 </template>

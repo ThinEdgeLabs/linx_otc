@@ -7,8 +7,10 @@ import TokenBar from '@/components/TokenBar.vue'
 import HorizontalDividerVue from '@/components/HorizontalDivider.vue'
 import CustomeButton from '@/components/CustomButton.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
+import { useLoginStore } from '@/stores/login'
 
 const account = useAccountStore()
+const loginStore = useLoginStore()
 </script>
 
 <template>
@@ -30,6 +32,7 @@ const account = useAccountStore()
       :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
       :open="false"
       :class="'w-full lg:w-[228px]'"
+      @click="account.account?.isConnected ? {} : loginStore.toggleModal()"
     />
     <AgreeToTerms />
   </section>

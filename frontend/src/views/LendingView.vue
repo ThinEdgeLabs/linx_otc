@@ -4,7 +4,7 @@ import { useLoanStore, type Loan } from '@/stores/loans'
 import LoansList from '@/components/lending/LoansList.vue'
 import CreateLoan from '@/components/lending/CreateLoan.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
-import AcceptLoanOffer from '@/components/lending/AcceptLoanOffer.vue'
+import AcceptLoanOffer from '@/components/lending/ManageLoanOffer.vue'
 import { ref } from 'vue'
 
 const loanStore = useLoanStore()

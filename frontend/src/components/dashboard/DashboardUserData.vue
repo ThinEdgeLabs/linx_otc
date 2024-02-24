@@ -6,13 +6,20 @@ import ActivityFromToVue from './ActivityFromTo.vue'
 import { shortenString } from '@/functions/stringUtils'
 import CustomButton from '../CustomButton.vue'
 import type { Activity } from '@/config'
+import ActivityID from './ActivityID.vue'
+import { ref } from 'vue'
+import ManageActivity from './ManageActivity.vue'
+
+defineEmits<{
+  (e: 'update:editActivity', activity: Activity): void
+}>()
 
 const activities = dummyActivity
 
 function getButtonTitle(activity: Activity): string {
   if (activity.status === 'Open') {
-    return 'Edit'
-  } else if (activity.status === 'Completed' || activity.status === 'Expired') {
+    return 'Delete'
+  } else if (activity.status === 'Expired') {
     return 'Claim'
   } else {
     return 'Payback'
@@ -48,8 +55,8 @@ function getButtonTitle(activity: Activity): string {
         <div v-if="activity.type === 'Loan'" class="w-full flex flex-col">
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
-            <div class="font-extrabold" :class="activity.duration === 0 ? 'text-danger' : 'text-core-lightest'">
-              {{ activity.duration }}
+            <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
+              {{ activity.remaining }}
             </div>
             <div class="text-core-light">DAYS</div>
           </div>
@@ -63,7 +70,9 @@ function getButtonTitle(activity: Activity): string {
         <CustomButton
           :class="activity.status != 'Pending' ? 'min-w-[134px] visible ' : 'invisible'"
           :title="getButtonTitle(activity)"
-          :open="activity.status === 'Active'"
+          :open="activity.status === 'Active' || activity.status === 'Open'"
+          :delete="activity.status === 'Open'"
+          @click="$emit('update:editActivity', activity)"
         />
       </div>
       <HorizontalDivider />

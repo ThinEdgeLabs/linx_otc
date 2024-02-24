@@ -70,10 +70,12 @@ export const dummyActivity: Array<Activity> = [
     offerAmount: 1180.0,
     requestToken: 'USDC',
     requestAmount: 1500.0,
+    interest: 55,
     status: 'Active',
     counterParty: '19tvYk2qzrSnb3SjVzqxE7EaybVrtxEGGpWYDC6dBcsMa',
     txId: undefined,
-    duration: 49,
+    duration: 60,
+    remaining: 49,
     created: Date.now() - 10 * oneDay
   },
   {
@@ -104,28 +106,17 @@ export const dummyActivity: Array<Activity> = [
   },
   {
     type: 'Loan',
-    id: 8199,
-    offerToken: 'ALPH',
-    offerAmount: 1233.0,
-    requestToken: 'WETH',
-    requestAmount: 1.0,
-    status: 'Completed',
-    counterParty: undefined,
-    txId: undefined,
-    duration: 0,
-    created: Date.now() - 1 * oneDay
-  },
-  {
-    type: 'Loan',
     id: 1234,
     offerToken: 'ALPH',
     offerAmount: 250.0,
+    interest: 50,
     requestToken: 'ALPH',
     requestAmount: 260.0,
     status: 'Expired',
-    counterParty: undefined,
+    counterParty: '5X3KS23ed2d32d2393jd0223d2saqq3WALQ9',
     txId: undefined,
-    duration: 0,
+    duration: 30,
+    remaining: 0,
     created: Date.now() - 30 * oneDay
   }
 ]

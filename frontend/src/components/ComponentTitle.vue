@@ -38,7 +38,11 @@ const props = defineProps({
         </p>
       </div>
     </div>
-    <div v-if="props.status" class="border-2 border-ok rounded-[20px] text-ok text-[12px] min-w-[70px] text-center">
+    <div
+      v-if="props.status"
+      class="border-2 rounded-[20px] text-[12px] min-w-[70px] text-center"
+      :class="$props.status != 'Expired' ? 'border-ok text-ok' : 'border-danger text-danger'"
+    >
       {{ status }}
     </div>
   </div>
