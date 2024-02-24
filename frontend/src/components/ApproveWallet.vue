@@ -57,7 +57,7 @@ function retryTransaction() {
   />
   <section
     v-if="status === 'approve' || status === 'signed'"
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg space-y-[30px] justify-center items-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] lg:py-0 space-y-[30px] justify-center items-center"
   >
     <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     <div v-if="status === 'approve'">
@@ -78,7 +78,7 @@ function retryTransaction() {
       :open="true"
       :title="'Cancel'"
       @click="$emit('update:cancel', 0)"
-      :class="'border-0 bg-core-darkest text-core-lightest'"
+      :class="'w-full lg:w-[228px] border-0 bg-core-darkest text-core-lightest'"
     />
   </section>
 </template>

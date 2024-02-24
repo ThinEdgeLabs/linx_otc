@@ -41,7 +41,9 @@ onMounted(() => startTimer())
 </script>
 
 <template>
-  <section class="flex flex-col w-full min-h-full bg-menu rounded-lg space-y-[30px] justify-center items-center">
+  <section
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] lg:py-0 space-y-[30px] justify-center items-center"
+  >
     <div class="flex bg-ok w-[60px] h-[60px] rounded-full justify-center items-center">
       <font-awesome-icon :icon="['fal', 'check']" class="text-core-lightest text-[27px]" />
     </div>
@@ -58,13 +60,15 @@ onMounted(() => startTimer())
     >
       {{ props.txId }}
     </button>
-    <div class="flex flex-row space-x-[30px] items-center">
-      <CustomButton :title="'Copy'" :icon="'copy'" @click="copy()" />
+    <div
+      class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px] items-center justify-center"
+    >
+      <CustomButton :title="'Copy'" :icon="'copy'" @click="copy()" :class="'w-full lg:w-[228px]'" />
       <CustomButton
         :open="true"
         :title="'Continue'"
         @click="$emit('update:finished')"
-        :class="'border-0 bg-core-darkest text-core-lightest'"
+        :class="'w-full lg:w-[228px] border-0 bg-core-darkest text-core-lightest'"
       />
     </div>
   </section>
