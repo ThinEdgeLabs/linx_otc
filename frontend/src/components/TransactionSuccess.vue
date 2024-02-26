@@ -42,7 +42,7 @@ onMounted(() => startTimer())
 
 <template>
   <section
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] lg:py-0 space-y-[30px] justify-center items-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center"
   >
     <div class="flex bg-ok w-[60px] h-[60px] rounded-full justify-center items-center">
       <font-awesome-icon :icon="['fal', 'check']" class="text-core-lightest text-[27px]" />

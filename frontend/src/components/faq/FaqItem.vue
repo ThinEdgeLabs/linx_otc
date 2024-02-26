@@ -21,6 +21,6 @@ const isOpen = ref(false)
       <p class="font-semibold text-core-lightest">{{ props.question }}</p>
       <font-awesome-icon :icon="['fal', 'plus']" class="text-lg text-accent-3 ]" />
     </div>
-    <p v-if="isOpen" class="text-core-light pt-[30px]">{{ props.answer }}</p>
+    <p v-if="isOpen" class="text-core-light text-start lg:text-center pt-[30px]">{{ props.answer }}</p>
   </button>
 </template>

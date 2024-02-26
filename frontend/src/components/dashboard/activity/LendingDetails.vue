@@ -86,15 +86,15 @@ function calculateAPR() {
         </div>
       </div>
     </div>
-    <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
-      <div class="flex flex-row space-x-[10px] items-center">
-        <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
-        <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>
-      </div>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a efficitur purus fringilla
-        sed viverra pretium nisl.
-      </p>
+  </div>
+  <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
+    <div class="flex flex-row space-x-[10px] items-center">
+      <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
+      <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>
     </div>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a efficitur purus fringilla
+      sed viverra pretium nisl.
+    </p>
   </div>
 </template>

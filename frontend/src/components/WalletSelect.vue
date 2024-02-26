@@ -8,9 +8,9 @@ const loginStore = useLoginStore()
 <template>
   <div
     v-if="loginStore.showModal"
-    class="absolute top-0 left-0 w-full h-screen flex justify-center items-center bg-core-darkest bg-opacity-50 backdrop-blur-md dark:text-core-light"
+    class="absolute top-0 left-0 w-full h-screen flex justify-center items-center bg-core-darkest bg-opacity-50 backdrop-blur-md dark:text-core-light z-30"
   >
-    <section class="pt-4 pb-12 px-8 py-5 rounded-lg bg-core-darkest">
+    <section class="pt-4 pb-12 px-8 py-5 rounded-lg bg-core-darkest max-w-[500px]">
       <div>
         <h3 class="flex justify-between items-baseline text-2xl font-extrabold leading-10 text-white">
           Connect Wallet

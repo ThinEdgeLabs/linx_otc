@@ -32,9 +32,10 @@ function changeView(newView: string) {
       <LoanFilters :view="'list'" :change-view="changeView" :class="'z-10'" />
     </div>
     <div
+      @click="$emit('update:selectedLoan', loan)"
       v-for="loan in loanStore.filteredLoans"
       v-bind:key="loan.loanId"
-      class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darkest -z-1"
+      class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
     >
       <LoanGridCard :loan="loan" />
     </div>

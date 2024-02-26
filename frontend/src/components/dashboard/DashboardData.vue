@@ -13,11 +13,13 @@ const props = defineProps({
 </script>
 
 <template>
-  <section class="w-full flex flex-row justify-between items-center py-[40px]">
+  <section class="w-full flex flex-row justify-between items-center lg:py-[40px]">
     <div v-if="!props.isLandingPage" class="text-[40px] font-extrabold text-core-lightest">Dashboard</div>
     <div
-      class="hidden lg:flex w-full flex-col lg:flex-row items-center"
-      :class="$props.isLandingPage ? 'space-y-[20px] lg:space-y-0 lg:space-x-[30px] ' : 'justify-evenly'"
+      class="w-full flex-col lg:flex-row items-center"
+      :class="
+        $props.isLandingPage ? 'space-y-[20px] lg:space-y-0 lg:space-x-[30px] ' : 'invisible lg:flex justify-evenly'
+      "
     >
       <div
         class="flex flex-col"
