@@ -1,8 +1,7 @@
-import { ALPH_TOKEN_ID, DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ONE_ALPH, SignerProvider, ZERO_ADDRESS, web3 } from '@alephium/web3'
+import { DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ONE_ALPH, SignerProvider, ZERO_ADDRESS  } from '@alephium/web3'
 import { DeployHelpers } from './deploy-helpers'
-import { CancelOffer, CreateOffer, GetToken, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, LendingOfferInstance, TakeOffer, TestToken } from '../artifacts/ts'
-import { randomContractAddress, randomContractId, testPrivateKey } from '@alephium/web3-test'
-import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { CancelOffer, CreateOffer, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, TakeOffer} from '../artifacts/ts'
+import { randomContractId } from './utils'
 
 export class LendingMarketplaceHelper extends DeployHelpers {
   public contractId: string | undefined

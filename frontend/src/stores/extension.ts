@@ -62,6 +62,7 @@ export const useExtensionStore = defineStore('extension', () => {
     try {
       const windowAlephium = await getDefaultAlephiumWallet()
       windowAlephium?.disconnect()
+      extensionIsConnected.value = false
     } catch (error) {
       console.log(error)
     }
