@@ -27,7 +27,7 @@ function calculateInterest() {
 </script>
 
 <template>
-  <div class="flex flex-col bg-menu w-[40%] p-[30px] rounded-lg space-y-[30px]">
+  <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[30px] rounded-lg space-y-[30px]">
     <PreviewTitle
       :title="'Payback Loan'"
       :description="`You have ${props.activity.remaining} days to payback the loan. The interest is calculated per day, the sooner paid back the less interest you owe.`"

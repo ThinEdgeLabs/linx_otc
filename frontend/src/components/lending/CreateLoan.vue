@@ -33,11 +33,11 @@ function resetOrder() {
       :description="'Some text about creating a new loan offer'"
       @update:go-back="resetOrder()"
     />
-    <div class="w-full flex flex-row items-center space-x-[30px]">
+    <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" />
       <InterestField />
     </div>
-    <div class="w-full flex flex-row items-center space-x-[30px]">
+    <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" />
       <div class="w-full flex flex-row space-x-[30px]">
         <DurationSelect />
@@ -74,16 +74,23 @@ function resetOrder() {
       <HorizontalDivider />
     </div>
 
-    <div class="flex flex-row items-center justify-between">
-      <div class="flex flex-row space-x-[30px]">
-        <WalletButton v-if="!account.account" />
-        <CustomButton v-else :title="'Continue'" @click="step++" />
-        <CustomButton :title="'Cancel'" :open="true" @click="loanOfferStore.resetOrder()" />
+    <div
+      class="w-full flex flex-col lg:flex-row items-center text-center lg:justify-between space-y-[20px] lg:space-y-0"
+    >
+      <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
+        <WalletButton v-if="!account.account" :class="'w-full lg:w-[228px]'" />
+        <CustomButton v-else :title="'Continue'" @click="step++" :class="'w-full lg:w-[228px]'" />
+        <CustomButton
+          :title="'Cancel'"
+          :open="true"
+          @click="loanOfferStore.resetOrder()"
+          :class="'w-full lg:w-[228px]'"
+        />
       </div>
-      <AgreeToTerms />
+      <AgreeToTerms class="w-full" />
     </div>
   </div>
-  <div v-else class="w-full flex flex-row space-x-[30px]">
+  <div v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
     <ApproveWallet @update:cancel="updateStep($event)" @update:finished="resetOrder()" />
     <LoanPreview />
   </div>

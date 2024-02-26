@@ -9,7 +9,7 @@ const step = ref(1)
 
 <template>
   <section class="flex flex-col w-full space-y-[40px]">
-    <DashboardData />
+    <DashboardData class="hidden lg:flex" />
     <NewTrade />
   </section>
 </template>

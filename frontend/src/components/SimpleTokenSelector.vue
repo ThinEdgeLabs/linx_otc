@@ -17,7 +17,7 @@ const openSelector = ref(false)
     <div
       @click="openSelector = !openSelector"
       class="w-full flex flex-row bg-divider p-[12px] justify-between items-center font-normal"
-      :class="openSelector ? 'rounded-t-lg' : 'rounded-lg'"
+      :class="openSelector ? 'rounded-t-lg z-10' : 'rounded-lg -z-1'"
     >
       <div class="flex flex-row space-x-[10px] items-center">
         <img
@@ -32,7 +32,10 @@ const openSelector = ref(false)
 
       <font-awesome-icon :icon="['fas', 'angle-down']" class="text-[18px] text-accent-3" />
     </div>
-    <div v-if="openSelector" class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-64 overflow-auto">
+    <div
+      v-if="openSelector"
+      class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-48 lg:h-64 overflow-auto z-10"
+    >
       <div
         v-for="token in props.tokenList"
         v-bind:key="token.name"

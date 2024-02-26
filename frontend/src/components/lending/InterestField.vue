@@ -14,7 +14,7 @@ function setAmount(amount: number) {
     <p class="text-[14px] font-extrabold text-core-light">Amount of interest</p>
     <div class="flex flex-row w-full rounded-lg bg-white text-center p-[10px]">
       <div v-if="loanOrderStore.order?.loanToken != ''" class="w-full flex flex-row justify-between items-center">
-        <div class="flex flex-row items-center space-x-[10px]">
+        <div class="w-full flex flex-row items-center space-x-[10px]">
           <img
             :src="`./images/${loanOrderStore.order?.loanToken ?? 'NONE'}.png`"
             class="w-[32px] h-[32px] rounded-full"

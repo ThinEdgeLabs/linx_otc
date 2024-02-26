@@ -43,14 +43,28 @@ const connectWalletConnect = async () => {
       </div>
     </div>
   </div>
-  <div v-else class="space-y-[30px]">
-    <div class="space-y-[12px]">
-      <p class="text-white">Connected account: {{ shortenString(account.address, 12) }}</p>
-      <p class="text-white">Connected wallet: {{ account.wallet }}</p>
+  <div v-else class="flex flex-col items-center space-y-[30px]">
+    <div class="space-y-[12px] pt-[30px]">
+      <p>
+        You are connected with your wallet to LinxOTC. If you disconnect all saved data from your browser will be
+        erased.
+      </p>
+      <div class="flex flex-row justify-between items-center px-[30px] pt-[30px]">
+        <p class="text-core-lightest text-start font-extrabold">Connected account:</p>
+        <p class="text-core-light text-start font-semibold">
+          {{ shortenString(account.address, 12) }}
+        </p>
+      </div>
+      <div class="flex flex-row justify-between items-center px-[30px] pb-[30px]">
+        <p class="text-core-lightest text-start font-extrabold">Connected wallet:</p>
+        <p class="text-core-light text-start font-semibold">
+          {{ account.wallet }}
+        </p>
+      </div>
     </div>
-    <p class="text-white">Do you want to logout?</p>
-    <div @click="accountStore.disconnect">
-      <CustomButton title="Logout" />
+    <p class="text-core-light">Do you want to logout?</p>
+    <div @click="accountStore.disconnect" class="w-full">
+      <CustomButton title="Logout" :class="'w-full'" />
     </div>
   </div>
 </template>

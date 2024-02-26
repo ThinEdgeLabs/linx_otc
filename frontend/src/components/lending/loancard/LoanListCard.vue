@@ -15,7 +15,7 @@ function calculateInterest() {
 </script>
 
 <template>
-  <div class="group hover:bg-core-darkest">
+  <div class="group lg:hover:bg-core-darkest">
     <section class="w-full flex flex-row items-center p-[20px]">
       <div class="w-full flex flex-col">
         <div class="text-[16px] font-extrabold text-core-lightest">Loan offer #{{ loan.loanId }}</div>

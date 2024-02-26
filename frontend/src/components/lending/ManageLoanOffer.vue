@@ -26,7 +26,7 @@ function calculateInterest() {
 </script>
 
 <template>
-  <section class="w-full h-full flex flex-row space-x-[30px]">
+  <section class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px]">
     <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[30px] space-y-[30px] rounded-lg">
       <div class="flex flex-col h-full justify-between">
         <div class="flex flex-col space-y-[30px]">
@@ -96,21 +96,20 @@ function calculateInterest() {
             </div>
           </div>
         </div>
-
-        <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
-          <div class="flex flex-row space-x-[10px] items-center">
-            <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
-            <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>
-          </div>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a efficitur purus
-            fringilla sed viverra pretium nisl.
-          </p>
+      </div>
+      <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
+        <div class="flex flex-row space-x-[10px] items-center">
+          <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
+          <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>
         </div>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra pretium nisl, a efficitur purus
+          fringilla sed viverra pretium nisl.
+        </p>
       </div>
     </div>
     <ApproveWallet v-else @update:cancel="step--" @update:finished="$emit('update:closeOffer')" />
-    <div class="flex flex-col bg-menu w-[40%] p-[30px] rounded-lg space-y-[30px]">
+    <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[30px] rounded-lg space-y-[30px]">
       <div class="flex flex-col">
         <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
         <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>

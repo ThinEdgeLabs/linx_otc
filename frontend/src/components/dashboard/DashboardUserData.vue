@@ -39,20 +39,25 @@ function getButtonTitle(activity: Activity): string {
     </div>
     <HorizontalDivider />
     <div v-for="activity in activities" v-bind:key="activity.id">
-      <div class="w-full flex flex-row p-[30px] items-center space-x-[30px]">
-        <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
-        <ActivityStatus :status="activity.status" />
-        <ActivityFromToVue
-          :token="activity.offerToken"
-          :amount="activity.offerAmount"
-          :title="activity.type === 'Trade' ? 'Sending' : 'Loan'"
-        />
-        <ActivityFromToVue
-          :token="activity.requestToken"
-          :amount="activity.requestAmount"
-          :title="activity.type === 'Trade' ? 'Receiving' : 'Collateral'"
-        />
-        <div v-if="activity.type === 'Loan'" class="w-full flex flex-col">
+      <div class="w-full flex flex-col lg:flex-row py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0">
+        <div class="w-full flex flex-row justify-between items-center">
+          <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
+          <ActivityStatus :status="activity.status" />
+        </div>
+        <div class="w-full flex flex-row justify-between items-center">
+          <ActivityFromToVue
+            :token="activity.offerToken"
+            :amount="activity.offerAmount"
+            :title="activity.type === 'Trade' ? 'Sending' : 'Loan'"
+          />
+          <ActivityFromToVue
+            :token="activity.requestToken"
+            :amount="activity.requestAmount"
+            :title="activity.type === 'Trade' ? 'Receiving' : 'Collateral'"
+          />
+        </div>
+
+        <div v-if="activity.type === 'Loan'" class="w-full hidden lg:flex flex-col">
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
             <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
@@ -61,14 +66,14 @@ function getButtonTitle(activity: Activity): string {
             <div class="text-core-light">DAYS</div>
           </div>
         </div>
-        <div v-else class="w-full flex flex-col" :class="activity.counterParty ? 'visible' : 'invisible'">
+        <div v-else class="w-full hidden lg:flex flex-col" :class="activity.counterParty ? 'visible' : 'invisible'">
           <div class="text-[10px] text-core-light">TO</div>
           <div class="text-[14px] font-extrabold text-core-lightest">
             {{ shortenString(activity.counterParty || '', 12) }}
           </div>
         </div>
         <CustomButton
-          :class="activity.status != 'Pending' ? 'min-w-[134px] visible ' : 'invisible'"
+          :class="activity.status != 'Pending' ? 'w-full lg:max-w-[134px] visible ' : 'invisible'"
           :title="getButtonTitle(activity)"
           :open="activity.status === 'Active' || activity.status === 'Open'"
           :delete="activity.status === 'Open'"

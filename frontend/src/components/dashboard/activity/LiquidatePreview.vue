@@ -18,7 +18,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="flex flex-col bg-menu w-[40%] p-[30px] rounded-lg space-y-[30px]">
+  <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[30px] rounded-lg space-y-[30px]">
     <PreviewTitle
       :title="'Liquidate Loan'"
       :description="`Your loan has expired. This mean you have lost your loan + interest, but can claim the collateral. The borrower's rating has been reset to 0 stars for letting the loan expire.`"
