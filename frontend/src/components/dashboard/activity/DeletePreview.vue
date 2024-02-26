@@ -26,7 +26,7 @@ function agreeDelete() {
 </script>
 
 <template>
-  <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[30px] rounded-lg space-y-[30px]">
+  <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg space-y-[30px]">
     <PreviewTitle
       :title="`Delete ${props.activity.type} Offer #${props.activity.id}`"
       :description="`As long as your offer has not been accepted you can delete the offer.`"

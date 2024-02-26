@@ -52,7 +52,7 @@ onMounted(() => startTimer())
       <p class="text-[16px] text-core-light">{{ props.description }}</p>
     </div>
     <button
-      class="w-[60%] bg-core-lightest rounded-lg py-[20px] text-center text-core-darkest text-[14px] font-extrabold"
+      class="w-full lg:w-[60%] bg-core-lightest rounded-lg py-[20px] text-center text-core-darkest text-[14px] font-extrabold"
       @click="
         {
         }

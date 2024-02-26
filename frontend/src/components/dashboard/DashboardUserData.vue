@@ -39,7 +39,9 @@ function getButtonTitle(activity: Activity): string {
     </div>
     <HorizontalDivider />
     <div v-for="activity in activities" v-bind:key="activity.id">
-      <div class="w-full flex flex-col lg:flex-row py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0">
+      <div
+        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
+      >
         <div class="w-full flex flex-row justify-between items-center">
           <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
           <ActivityStatus :status="activity.status" />

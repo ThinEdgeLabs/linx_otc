@@ -27,7 +27,7 @@ function resetOrder() {
 }
 </script>
 <template>
-  <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[30px] space-y-[30px]">
+  <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]">
     <ComponentTitle
       :title="'Create new Loan Offer'"
       :description="'Some text about creating a new loan offer'"

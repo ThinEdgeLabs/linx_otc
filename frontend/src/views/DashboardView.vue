@@ -24,7 +24,7 @@ const selectedActivity = ref<Activity>()
     />
     <div v-else>
       <DashboardData />
-      <section class="relative flex flex-col bg-menu rounded-lg p-[30px] overflow-y-auto">
+      <section class="relative flex flex-col bg-menu rounded-lg p-[10px] lg:p-[30px] overflow-y-auto leading-snug">
         <div class="flex flex-row lg:w-full space-x-[30px] items-center overflow-x-auto overflow-y-hidden">
           <DashboardButton
             :icon="'arrow-up-arrow-down'"

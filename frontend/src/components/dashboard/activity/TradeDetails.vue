@@ -31,8 +31,8 @@ function calculateAPR() {
           <div class="flex flex-row space-x-[10px] item-center">
             <img :src="`./images/${props.activity.offerToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">OFFER</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <p class="text-[10px] lg:text-[12px] text-core-light">OFFER</p>
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">{{ props.activity.offerAmount }}</p>
                 <p class="text-core-light">{{ props.activity.offerToken }}</p>
               </div>
@@ -44,8 +44,8 @@ function calculateAPR() {
           <div class="flex flex-row space-x-[10px] item-center">
             <img :src="`./images/${props.activity.requestToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">REQUEST</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <p class="text-[10px] lg:text-[12px] text-core-light">REQUEST</p>
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">
                   {{ props.activity.requestAmount }}
                 </p>

@@ -27,7 +27,7 @@ const props = defineProps({
 
 <template>
   <section class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px]">
-    <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[30px] space-y-[30px] rounded-lg">
+    <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[10px] lg:p-[30px] space-y-[30px] rounded-lg">
       <LendingDetails
         v-if="props.activity.type === 'Loan'"
         :activity="props.activity"

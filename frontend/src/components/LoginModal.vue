@@ -49,13 +49,13 @@ const connectWalletConnect = async () => {
         You are connected with your wallet to LinxOTC. If you disconnect all saved data from your browser will be
         erased.
       </p>
-      <div class="flex flex-row justify-between items-center px-[30px] pt-[30px]">
+      <div class="flex flex-row justify-between items-center px-[10px] lg:px-[30px] pt-[30px]">
         <p class="text-core-lightest text-start font-extrabold">Connected account:</p>
         <p class="text-core-light text-start font-semibold">
           {{ shortenString(account.address, 12) }}
         </p>
       </div>
-      <div class="flex flex-row justify-between items-center px-[30px] pb-[30px]">
+      <div class="flex flex-row justify-between items-center px-[10px] lg:px-[30px] pb-[30px]">
         <p class="text-core-lightest text-start font-extrabold">Connected wallet:</p>
         <p class="text-core-light text-start font-semibold">
           {{ account.wallet }}

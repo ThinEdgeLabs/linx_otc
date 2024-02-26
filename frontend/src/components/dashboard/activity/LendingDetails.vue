@@ -31,8 +31,8 @@ function calculateAPR() {
           <div class="flex flex-row space-x-[10px] item-center">
             <img :src="`./images/${props.activity.offerToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">LENDING</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">{{ props.activity.offerAmount }}</p>
                 <p class="text-core-light">{{ props.activity.offerToken }}</p>
               </div>
@@ -43,10 +43,10 @@ function calculateAPR() {
               <font-awesome-icon :icon="['fal', 'receipt']" class="text-core-light text-[20px]" />
             </div>
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">
+              <p class="text-[10px] lg:text-[12px] text-core-light">
                 INTEREST {{ props.activity.interest }} {{ props.activity.offerToken }}
               </p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">
                   {{ calculateAPR().toFixed(2) }}
                 </p>
@@ -60,8 +60,8 @@ function calculateAPR() {
           <div class="flex flex-row space-x-[10px] item-center">
             <img :src="`./images/${props.activity.requestToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">COLLATERAL</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <p class="text-[10px] lg:text-[12px] text-core-light">COLLATERAL</p>
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">
                   {{ props.activity.requestAmount }}
                 </p>
@@ -74,8 +74,8 @@ function calculateAPR() {
               <font-awesome-icon :icon="['fal', 'calendar-days']" class="text-core-light text-[20px]" />
             </div>
             <div class="flex flex-col text-start justify-center">
-              <p class="text-[12px] text-core-light">DURATION</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+              <p class="text-[10px] lg:text-[12px] text-core-light">DURATION</p>
+              <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                 <p class="font-extrabold text-core-lightest">
                   {{ props.activity.duration }}
                 </p>

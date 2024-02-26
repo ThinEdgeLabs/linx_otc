@@ -26,8 +26,8 @@ function calculateInterest() {
 </script>
 
 <template>
-  <section class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px]">
-    <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[30px] space-y-[30px] rounded-lg">
+  <section class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px] leading-snug">
+    <div v-if="step === 0" class="flex flex-col bg-menu w-full p-[10px] lg:p-[30px] space-y-[30px] rounded-lg">
       <div class="flex flex-col h-full justify-between">
         <div class="flex flex-col space-y-[30px]">
           <ComponentTitle
@@ -41,8 +41,8 @@ function calculateInterest() {
               <div class="flex flex-row space-x-[10px] item-center">
                 <img :src="`./images/${props.loan.loanToken}.png`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
-                  <p class="text-[12px] text-core-light">LENDING</p>
-                  <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+                  <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
+                  <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                     <p class="font-extrabold text-core-lightest">{{ props.loan.loanAmount }}</p>
                     <p class="text-core-light">{{ props.loan.loanToken }}</p>
                   </div>
@@ -53,10 +53,10 @@ function calculateInterest() {
                   <font-awesome-icon :icon="['fal', 'receipt']" class="text-core-light text-[20px]" />
                 </div>
                 <div class="flex flex-col text-start justify-center">
-                  <p class="text-[12px] text-core-light">
+                  <p class="text-[10px] lg:text-[12px] text-core-light">
                     INTEREST {{ props.loan.interest }} {{ props.loan.loanToken }}
                   </p>
-                  <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+                  <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                     <p class="font-extrabold text-core-lightest">
                       {{ calculateInterest().toFixed(2) }}
                     </p>
@@ -70,8 +70,8 @@ function calculateInterest() {
               <div class="flex flex-row space-x-[10px] item-center">
                 <img :src="`./images/${props.loan.collateralToken}.png`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
-                  <p class="text-[12px] text-core-light">COLLATERAL</p>
-                  <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+                  <p class="text-[10px] lg:text-[12px] text-core-light">COLLATERAL</p>
+                  <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                     <p class="font-extrabold text-core-lightest">
                       {{ props.loan.collateralAmount }}
                     </p>
@@ -84,8 +84,8 @@ function calculateInterest() {
                   <font-awesome-icon :icon="['fal', 'calendar-days']" class="text-core-light text-[20px]" />
                 </div>
                 <div class="flex flex-col text-start justify-center">
-                  <p class="text-[12px] text-core-light">DURATION</p>
-                  <div class="flex flex-row items-center space-x-[10px] text-[18px]">
+                  <p class="text-[10px] lg:text-[12px] text-core-light">DURATION</p>
+                  <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                     <p class="font-extrabold text-core-lightest">
                       {{ props.loan.duration }}
                     </p>
@@ -109,7 +109,7 @@ function calculateInterest() {
       </div>
     </div>
     <ApproveWallet v-else @update:cancel="step--" @update:finished="$emit('update:closeOffer')" />
-    <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[30px] rounded-lg space-y-[30px]">
+    <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg space-y-[30px]">
       <div class="flex flex-col">
         <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
         <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
