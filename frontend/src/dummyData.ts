@@ -1,4 +1,4 @@
-import type { Activity } from './config'
+import type { Activity } from '@/types'
 import type { Loan } from './stores/loans'
 
 const oneDay = 24 * 60 * 60 * 1000

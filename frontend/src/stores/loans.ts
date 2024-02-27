@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { dummyLoans } from '@/dummyData'
-import type { Token } from '@/config'
+import type { Token } from '@/types'
 
 export interface Loan {
   loanId: number

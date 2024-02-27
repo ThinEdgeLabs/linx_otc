@@ -4,7 +4,7 @@ import { useOrderStore } from '@/stores/tradeOrder'
 import { useExtensionStore } from '@/stores/extension'
 import { useWalletConnectStore } from '@/stores/walletconnect'
 import { useNodeStore } from '@/stores/node'
-import type { Wallet } from '@/types/types'
+import type { Wallet } from '@/types'
 
 interface Account {
   address: string
