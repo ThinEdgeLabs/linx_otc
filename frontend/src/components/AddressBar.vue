@@ -65,4 +65,3 @@ async function handleAddress(address: string) {
     </div>
   </section>
 </template>
-@/stores/tradeOrder

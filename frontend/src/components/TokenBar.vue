@@ -8,7 +8,7 @@ import NumberInput from '@/components/NumberInput.vue'
 import MaxButton from '@/components/MaxButton.vue'
 import type { TokenData } from '@/stores/node'
 import { parseBalance } from '@/functions/utils'
-import { tokens, type Token } from '@/config'
+import { getTokens, type Token } from '@/config'
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import { onMounted } from 'vue'
 
@@ -83,9 +83,9 @@ function onAmountChange(amount: number) {
 function checkSelectedLoanTokens() {
   if (props.offerType === 'loan' && loanStore.order) {
     if (props.isSender && loanStore.order!.loanToken && !selectedToken.value) {
-      selectedToken.value = tokens.find((e) => e.symbol === loanStore.order!.loanToken)
+      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.loanToken)
     } else if (loanStore.order!.collateralToken && !selectedToken.value) {
-      selectedToken.value = tokens.find((e) => e.symbol === loanStore.order!.collateralToken)
+      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.collateralToken)
     }
   }
 }
@@ -150,7 +150,7 @@ function checkSelectedLoanTokens() {
       <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
-            v-for="token in props.offerType === 'loan' && !props.isSender ? tokens : tokenStore.balance"
+            v-for="token in props.offerType === 'loan' && !props.isSender ? getTokens() : tokenStore.balance"
             v-bind:key="token.name"
             :token="token"
             :is-offer="props.isSender"

@@ -3,7 +3,7 @@ import SimpleTokenSelector from '@/components/SimpleTokenSelector.vue'
 import DurationSelector from '@/components/DurationSelector.vue'
 import { useLoanStore } from '@/stores/loans'
 import { ref } from 'vue'
-import { tokens, type Token } from '@/config'
+import { getTokens, type Token } from '@/config'
 
 const loanStore = useLoanStore()
 
@@ -18,11 +18,11 @@ const props = defineProps({
   }
 })
 
-const tokenList = Array.from(tokens)
+const tokenList = getTokens()
 const anyToken: Token = {
   name: 'Any token',
   symbol: 'NONE',
-  contract: '',
+  contractId: '',
   decimals: 18
 }
 
