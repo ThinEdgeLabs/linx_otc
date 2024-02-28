@@ -26,7 +26,7 @@ const configuration: Configuration<Settings> = {
   networks: {
     devnet: {
       nodeUrl: 'http://127.0.0.1:22973',
-      privateKeys: ['a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5'],
+      privateKeys: ['a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5', '7babd8a9b3af814757fde3d801afcf9a94d1d9e35863c31db75e05202136e1b8'],
       settings: loadSettings('devnet')
     },
 

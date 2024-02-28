@@ -15,6 +15,7 @@
     "deploy:devnet": "npx --yes @alephium/cli@latest deploy -n devnet",
     "deploy:testnet": "npx --yes @alephium/cli@latest deploy -n testnet",
     "deploy:mainnet": "npx --yes @alephium/cli@latest deploy -n mainnet",
+    "deploy:tokens": "npx ts-node scripts/devnet.ts",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
     "test": "jest -i --config ./jest-config.json"

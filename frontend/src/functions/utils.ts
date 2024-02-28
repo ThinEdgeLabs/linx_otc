@@ -27,3 +27,7 @@ export function parseBalance(balance: number, decimals: number) {
   const actualTokenBalance = balance / Math.pow(10, decimals)
   return actualTokenBalance
 }
+
+export function expandToDecimals(num: number | bigint, decimals: number) {
+  return BigInt(num) * (10n ** BigInt(decimals))
+}
