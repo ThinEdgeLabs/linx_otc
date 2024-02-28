@@ -13,10 +13,10 @@ function setAmount(amount: number) {
   <div class="w-full flex flex-col space-y-[10px]">
     <p class="text-[14px] font-extrabold text-core-light">Amount of interest</p>
     <div class="flex flex-row w-full rounded-lg bg-white text-center p-[10px]">
-      <div v-if="loanOrderStore.order?.loanToken != ''" class="w-full flex flex-row justify-between items-center">
+      <div v-if="loanOrderStore.order?.loanToken" class="w-full flex flex-row justify-between items-center">
         <div class="w-full flex flex-row items-center space-x-[10px]">
           <img
-            :src="`./images/${loanOrderStore.order?.loanToken ?? 'NONE'}.png`"
+            :src="`./images/${loanOrderStore.order?.loanToken.symbol ?? 'NONE'}.png`"
             class="w-[32px] h-[32px] rounded-full"
           />
           <input
@@ -29,7 +29,7 @@ function setAmount(amount: number) {
         </div>
 
         <div class="flex flex-row space-x-[10px] items-center">
-          <p>{{ loanOrderStore.order?.loanToken }}</p>
+          <p>{{ loanOrderStore.order?.loanToken.symbol }}</p>
           <PercentageButton :interest="1" />
           <PercentageButton :interest="5" />
           <PercentageButton :interest="10" />

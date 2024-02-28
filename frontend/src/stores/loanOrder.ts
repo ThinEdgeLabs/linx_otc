@@ -1,10 +1,11 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import type { Token } from '@/types'
 
 interface LoanOrder {
-  loanToken: string
+  loanToken?: Token
   loanAmount: number
-  collateralToken: string
+  collateralToken?: Token
   collateralAmount: number
   interest: number
   duration: number
@@ -15,11 +16,11 @@ interface LoanOrder {
 export const useLoanOrderStore = defineStore('loanOrder', () => {
   const order = ref<LoanOrder | undefined>()
 
-  function setLoanToken(token: string) {
+  function setLoanToken(token: Token) {
     order.value!.loanToken = token
   }
 
-  function setCollateralToken(token: string) {
+  function setCollateralToken(token: Token) {
     order.value!.collateralToken = token
   }
 
@@ -45,9 +46,9 @@ export const useLoanOrderStore = defineStore('loanOrder', () => {
 
   function startNewLoanOrder() {
     order.value = {
-      loanToken: '',
+      loanToken: undefined,
       loanAmount: 0.0,
-      collateralToken: '',
+      collateralToken: undefined,
       collateralAmount: 0.0,
       interest: 0.0,
       duration: 0,

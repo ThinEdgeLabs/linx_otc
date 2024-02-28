@@ -20,12 +20,12 @@ function getAnnualisedInterest() {
     <div class="flex flex-col w-full">
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center">
         <div class="flex flex-row space-x-[10px] item-center">
-          <img :src="`./images/${loanOrder.order!.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
+          <img :src="`./images/${loanOrder.order!.loanToken?.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">LENDING</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">
               <p class="font-extrabold text-core-lightest">{{ loanOrder.order!.loanAmount }}</p>
-              <p class="text-core-light">{{ loanOrder.order!.loanToken }}</p>
+              <p class="text-core-light">{{ loanOrder.order!.loanToken?.symbol }}</p>
             </div>
           </div>
         </div>
@@ -40,14 +40,14 @@ function getAnnualisedInterest() {
       <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-start items-center">
         <div class="flex flex-row space-x-[10px] item-center">
-          <img :src="`./images/${loanOrder.order!.collateralToken}.png`" class="w-[40px] h-[40px] rounded-full" />
+          <img :src="`./images/${loanOrder.order!.collateralToken?.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">COLLATERAL</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">
               <p class="font-extrabold text-core-lightest">
                 {{ loanOrder.order!.collateralAmount }}
               </p>
-              <p class="text-core-light">{{ loanOrder.order!.collateralToken }}</p>
+              <p class="text-core-light">{{ loanOrder.order!.collateralToken?.symbol }}</p>
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@ function getAnnualisedInterest() {
     <LoanPreviewLabel
       :title="'Interest'"
       :amount="loanOrder.order!.interest.toString()"
-      :amount_description="loanOrder.order!.loanToken"
+      :amount_description="loanOrder.order!.loanToken?.symbol"
     />
     <HorizontalDivider />
     <LoanPreviewLabel

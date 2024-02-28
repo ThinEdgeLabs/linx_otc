@@ -8,9 +8,10 @@ import NumberInput from '@/components/NumberInput.vue'
 import MaxButton from '@/components/MaxButton.vue'
 import type { TokenData } from '@/stores/node'
 import { parseBalance } from '@/functions/utils'
-import { getTokens, type Token } from '@/config'
+import { getTokens } from '@/config'
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import { onMounted } from 'vue'
+import type { Token } from '@/types/token'
 
 onMounted(() => checkSelectedLoanTokens())
 
@@ -41,9 +42,9 @@ function selectToken(token: TokenData | Token) {
   } else {
     if (loanStore.order) {
       if (props.isSender) {
-        loanStore.setLoanToken(selectedToken.value.symbol)
+        loanStore.setLoanToken(selectedToken.value as Token)
       } else {
-        loanStore.setCollateralToken(selectedToken.value.symbol)
+        loanStore.setCollateralToken(selectedToken.value as Token)
       }
     }
   }
@@ -55,7 +56,7 @@ function toggleDropDown() {
 
 function onAmountChange(amount: number) {
   if (props.offerType === 'trade') {
-    if (amount > parseBalance(selectedToken.value!.balance, selectedToken.value!.decimals)) {
+    if (amount > parseBalance((selectedToken.value! as TokenData).balance, selectedToken.value!.decimals)) {
       // amountError.value = 'Insufficient Balance'
       // bridgeStore.data.isFormValid = false
     } else {
@@ -64,7 +65,7 @@ function onAmountChange(amount: number) {
     }
   } else {
     if (props.isSender) {
-      if (amount > parseBalance(selectedToken.value!.balance, selectedToken.value!.decimals)) {
+      if (amount > parseBalance((selectedToken.value! as TokenData).balance, selectedToken.value!.decimals)) {
         // amountError.value = 'Insufficient Balance'
         // bridgeStore.data.isFormValid = false
       } else {
@@ -83,9 +84,9 @@ function onAmountChange(amount: number) {
 function checkSelectedLoanTokens() {
   if (props.offerType === 'loan' && loanStore.order) {
     if (props.isSender && loanStore.order!.loanToken && !selectedToken.value) {
-      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.loanToken)
+      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.loanToken?.symbol)
     } else if (loanStore.order!.collateralToken && !selectedToken.value) {
-      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.collateralToken)
+      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.collateralToken?.symbol)
     }
   }
 }
@@ -138,8 +139,8 @@ function checkSelectedLoanTokens() {
               v-if="props.offerType === 'trade' || props.isSender"
               @click="
                 props.offerType === 'trade'
-                  ? orderStore.setFromAmount(parseBalance(selectedToken.balance, selectedToken.decimals))
-                  : loanStore.setLoanAmount(parseBalance(selectedToken.balance, selectedToken.decimals))
+                  ? orderStore.setFromAmount(parseBalance((selectedToken as TokenData).balance, selectedToken.decimals))
+                  : loanStore.setLoanAmount(parseBalance((selectedToken as TokenData).balance, selectedToken.decimals))
               "
             />
           </div>
