@@ -29,24 +29,28 @@ const selectedToken = ref<TokenData | undefined | Token>()
 const dropdownOpen = ref(false)
 
 function selectToken(token: TokenData | Token) {
-  dropdownOpen.value = false
-  selectedToken.value = token
-  if (props.offerType === 'trade') {
-    if (orderStore.order) {
-      if (props.isSender) {
-        orderStore.setFromToken(selectedToken.value.symbol)
-      } else {
-        orderStore.setToToken(selectedToken.value.symbol)
+  if (token.symbol != 'NONE') {
+    dropdownOpen.value = false
+    selectedToken.value = token
+    if (props.offerType === 'trade') {
+      if (orderStore.order) {
+        if (props.isSender) {
+          orderStore.setFromToken(selectedToken.value.symbol)
+        } else {
+          orderStore.setToToken(selectedToken.value.symbol)
+        }
+      }
+    } else {
+      if (loanStore.order) {
+        if (props.isSender) {
+          loanStore.setLoanToken(selectedToken.value as Token)
+        } else {
+          loanStore.setCollateralToken(selectedToken.value as Token)
+        }
       }
     }
   } else {
-    if (loanStore.order) {
-      if (props.isSender) {
-        loanStore.setLoanToken(selectedToken.value as Token)
-      } else {
-        loanStore.setCollateralToken(selectedToken.value as Token)
-      }
-    }
+    dropdownOpen.value = false
   }
 }
 
