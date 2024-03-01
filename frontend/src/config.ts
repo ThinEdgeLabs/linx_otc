@@ -1,4 +1,6 @@
 import type { Token } from "@/types"
+import { default as devnetTokens } from './devnet-token-list.json'
+import { ALPH_TOKEN_ID } from "@alephium/web3"
 
 export const mainnetTokens: Token[] = [
   {
@@ -204,8 +206,6 @@ const testnetTokens: Token[] = [
   }
 ]
 
-const devnetTokens: Token[] = []
-
 export const getTokens = () => {
   const network = import.meta.env.VITE_NETWORK_ID
   if (network === 'testnet') {
@@ -215,7 +215,7 @@ export const getTokens = () => {
     return mainnetTokens
   }
   else if (network === 'devnet') {
-    return devnetTokens
+    return [{ symbol: 'ALPH', name: 'Alephium', contractId: ALPH_TOKEN_ID, decimals: 18 }].concat(Array.from(devnetTokens))
   } else {
     return []
   }
