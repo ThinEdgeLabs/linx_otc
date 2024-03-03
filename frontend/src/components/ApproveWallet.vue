@@ -1,58 +1,52 @@
 <script setup lang="ts">
-import CustomButton from '@/components/CustomButton.vue'
 import ProgressBar from '@/components/ProgressBar.vue'
 import TransactionError from '@/components/TransactionError.vue'
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import TransactionSuccess from './TransactionSuccess.vue'
 
 defineEmits<{
   (e: 'update:cancel', value: number): void
   (f: 'update:finished'): void
+  (f: 'update:retry'): void
 }>()
 
-onMounted(() => startTimer())
+export type Status = 'approve' | 'signed' | 'timeout' | 'denied' | 'success'
 
-const status = ref('approve')
-const timer = ref(5)
-const order = ref(0)
+const props = defineProps<{
+  status: Status,
+  txId?: string
+}>()
 
-async function startTimer() {
-  while (timer.value > 0) {
-    //TODO: Set timeout to 60 seconds once everything is ready
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    timer.value--
+const percentageFilled = computed(() => {
+  if (props.status === 'approve') {
+    return 25
+  } else if (props.status === 'signed') {
+    return 50
+  } else {
+    return 100
   }
-  if (status.value === 'approve') {
-    status.value = 'timeout'
-  }
-}
+})
 
-function retryTransaction() {
-  timer.value = 5
-  status.value = 'success'
-  order.value = 3565
-  startTimer()
-}
 </script>
 
 <template>
-  <TransactionError
+  <!-- <TransactionError
     v-if="status === 'timeout'"
     :description="'Did not receive a response from the wallet'"
     @update:cancel="$emit('update:cancel', 0)"
     @update:retry="retryTransaction()"
-  />
+  /> -->
   <TransactionError
     v-if="status === 'denied'"
-    :description="'User did not sign the transaction'"
+    :description="'Transaction was rejected'"
     @update:cancel="$emit('update:cancel', 0)"
-    @update:retry="retryTransaction()"
+    @update:retry="$emit('update:retry')"
   />
   <TransactionSuccess
     v-if="status === 'success'"
-    :title="`Your order #${order} was created succesfully`"
+    :title="`Your transaction was confirmed`"
     :description="'Click the transaction ID to open in the explorer'"
-    :tx-id="'23nd832bndi2902j3ndklwdn329023ndo'"
+    :tx-id="txId!"
     @update:finished="$emit('update:finished')"
   />
   <section
@@ -72,13 +66,6 @@ function retryTransaction() {
         <div class="text-[16px]">Waiting for network confirmation</div>
       </div>
     </div>
-
-    <ProgressBar :percentage-filled="20" />
-    <CustomButton
-      :open="true"
-      :title="'Cancel'"
-      @click="$emit('update:cancel', 0)"
-      :class="'w-full lg:w-[228px] border-0 bg-core-darkest text-core-lightest'"
-    />
+    <ProgressBar :percentage-filled="percentageFilled" />
   </section>
 </template>

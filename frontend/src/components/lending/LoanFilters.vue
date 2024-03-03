@@ -3,7 +3,8 @@ import SimpleTokenSelector from '@/components/SimpleTokenSelector.vue'
 import DurationSelector from '@/components/DurationSelector.vue'
 import { useLoanStore } from '@/stores/loans'
 import { ref } from 'vue'
-import { getTokens, type Token } from '@/config'
+import { getTokens } from '@/config'
+import type { Token } from '@/types/token'
 
 const loanStore = useLoanStore()
 
