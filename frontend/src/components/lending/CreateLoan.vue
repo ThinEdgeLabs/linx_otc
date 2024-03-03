@@ -13,25 +13,64 @@ import { ref } from 'vue'
 import LoanPreview from './LoanPreview.vue'
 import ComponentTitle from '@/components/ComponentTitle.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
+import { LendingMarketplaceHelper} from '../../../../shared/lending-marketplace'
+import { useSignerStore } from '@/stores/signer'
+import { getMarketplaceConfig } from '../../../../shared/config'
+import { expandToDecimals } from '@/functions/utils'
+import { useBalance } from '@/composables/balance'
+import { waitTxConfirmed } from '@alephium/cli'
+import { useNodeStore } from '@/stores/node'
+import type { Status } from '@/components/ApproveWallet.vue'
 
 const loanOfferStore = useLoanOrderStore()
-const account = useAccountStore()
-const step = ref(0)
+const accountStore = useAccountStore()
+const signerStore = useSignerStore()
+const { nodeProvider } = useNodeStore()
 
-function updateStep(stepChange: number) {
-  step.value = stepChange
+const status = ref<Status | undefined>(undefined)
+const txId = ref<string | undefined>(undefined)
+
+function reset() {
+  status.value = undefined
+  txId.value = undefined
+  loanOfferStore.resetOrder()
 }
 
-function resetOrder() {
-  loanOfferStore.resetOrder()
+async function createLoan() {
+  const config = getMarketplaceConfig()
+  const signer = await signerStore.getSigner()
+  const marketplace = new LendingMarketplaceHelper(signer!)
+  marketplace.contractId = config.marketplaceContractId
+
+  const lendingTokenId = loanOfferStore.order!.loanToken!.contractId
+  const collateralTokenId = loanOfferStore.order!.collateralToken!.contractId
+  const loanTokenDecimals = loanOfferStore.order!.loanToken!.decimals
+  const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
+  const lendingAmount = expandToDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
+  const collateralAmount = expandToDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
+  const interestRate = BigInt(loanOfferStore.order!.interest)
+  const duration = BigInt(loanOfferStore.order!.duration)
+
+  try {
+    status.value = 'approve'
+    const result = await marketplace.createOffer(signer!, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration)
+    status.value = 'signed'
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
+    txId.value = result.txId
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
+  }
 }
 </script>
 <template>
-  <div v-if="step === 0" class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]">
+  <div v-if="!status" class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]">
     <ComponentTitle
       :title="'Create new Loan Offer'"
       :description="'Some text about creating a new loan offer'"
-      @update:go-back="resetOrder()"
+      @update:go-back="reset"
     />
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" />
@@ -78,12 +117,12 @@ function resetOrder() {
       class="w-full flex flex-col lg:flex-row items-center text-center lg:justify-between space-y-[20px] lg:space-y-0"
     >
       <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-        <WalletButton v-if="!account.account" :class="'w-full lg:w-[228px]'" />
-        <CustomButton v-else :title="'Continue'" @click="step++" :class="'w-full lg:w-[228px]'" />
+        <WalletButton v-if="!accountStore.account" :class="'w-full lg:w-[228px]'" />
+        <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
         <CustomButton
           :title="'Cancel'"
           :open="true"
-          @click="loanOfferStore.resetOrder()"
+          @click="reset"
           :class="'w-full lg:w-[228px]'"
         />
       </div>
@@ -91,7 +130,7 @@ function resetOrder() {
     </div>
   </div>
   <div v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-    <ApproveWallet @update:cancel="updateStep($event)" @update:finished="resetOrder()" />
+    <ApproveWallet @update:cancel="reset" @update:finished="reset" :status="status!" :tx-id="txId" />
     <LoanPreview />
   </div>
 </template>
