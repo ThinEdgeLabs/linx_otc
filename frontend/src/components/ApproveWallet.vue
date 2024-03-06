@@ -13,7 +13,7 @@ defineEmits<{
 export type Status = 'approve' | 'signed' | 'timeout' | 'denied' | 'success'
 
 const props = defineProps<{
-  status: Status,
+  status: Status
   txId?: string
 }>()
 
@@ -26,7 +26,6 @@ const percentageFilled = computed(() => {
     return 100
   }
 })
-
 </script>
 
 <template>

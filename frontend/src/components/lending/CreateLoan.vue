@@ -13,11 +13,10 @@ import { ref } from 'vue'
 import LoanPreview from './LoanPreview.vue'
 import ComponentTitle from '@/components/ComponentTitle.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
-import { LendingMarketplaceHelper} from '../../../../shared/lending-marketplace'
+import { LendingMarketplaceHelper } from '../../../../shared/lending-marketplace'
 import { useSignerStore } from '@/stores/signer'
 import { getMarketplaceConfig } from '../../../../shared/config'
 import { expandToDecimals } from '@/functions/utils'
-import { useBalance } from '@/composables/balance'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useNodeStore } from '@/stores/node'
 import type { Status } from '@/components/ApproveWallet.vue'
@@ -53,9 +52,17 @@ async function createLoan() {
 
   try {
     status.value = 'approve'
-    const result = await marketplace.createOffer(signer!, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration)
+    const result = await marketplace.createOffer(
+      signer!,
+      lendingTokenId,
+      collateralTokenId,
+      lendingAmount,
+      collateralAmount,
+      interestRate,
+      duration
+    )
     status.value = 'signed'
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 3000))
     await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
     txId.value = result.txId
     status.value = 'success'
@@ -119,12 +126,7 @@ async function createLoan() {
       <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
         <WalletButton v-if="!accountStore.account" :class="'w-full lg:w-[228px]'" />
         <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
-        <CustomButton
-          :title="'Cancel'"
-          :open="true"
-          @click="reset"
-          :class="'w-full lg:w-[228px]'"
-        />
+        <CustomButton :title="'Cancel'" :open="true" @click="reset" :class="'w-full lg:w-[228px]'" />
       </div>
       <AgreeToTerms class="w-full" />
     </div>
