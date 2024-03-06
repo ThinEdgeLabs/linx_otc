@@ -1,4 +1,4 @@
-import { DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ONE_ALPH, SignerProvider, ZERO_ADDRESS  } from '@alephium/web3'
+import { ContractEvent, DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ExplorerProvider, NodeProvider, ONE_ALPH, SignerProvider, ZERO_ADDRESS, addressFromContractId, decodeEvent  } from '@alephium/web3'
 import { DeployHelpers } from './deploy-helpers'
 import { CancelOffer, CreateOffer, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, TakeOffer} from '../artifacts/ts'
 import { randomContractId } from './utils'

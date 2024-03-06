@@ -1,4 +1,4 @@
-import { ContractState, DUST_AMOUNT, ExecuteScriptResult, NodeProvider, SignerProvider, binToHex, contractIdFromAddress, node, number256ToBigint, web3 } from "@alephium/web3"
+import { Contract, ContractInstance, ContractState, DUST_AMOUNT, ExecuteScriptResult, SignerProvider, binToHex, contractIdFromAddress, fromApiVals, node, number256ToBigint, web3 } from "@alephium/web3"
 import { GetToken, TestToken } from "../artifacts/ts"
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'

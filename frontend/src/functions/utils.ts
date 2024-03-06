@@ -1,3 +1,5 @@
+import type { Loan } from '@/types'
+
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -29,5 +31,10 @@ export function parseBalance(balance: number, decimals: number) {
 }
 
 export function expandToDecimals(num: number | bigint, decimals: number) {
-  return BigInt(num) * (10n ** BigInt(decimals))
+  return BigInt(num) * 10n ** BigInt(decimals)
+}
+
+export function calculateApr(loan: Loan) {
+  const totalInterest = (loan.interest * loan.loanAmount) / 10000n
+  return ((totalInterest * 10n ** 18n) / loan.loanAmount / loan.duration) * 365n * 100n
 }
