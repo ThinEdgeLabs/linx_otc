@@ -1,44 +1,50 @@
 <script setup lang="ts">
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
+import { calculateApr } from '@/functions/utils'
+import type { Loan, Token } from '@/types'
+import { prettifyTokenAmount } from '@alephium/web3'
 
-const props = defineProps({
-  loan: {
-    type: Object,
-    required: true
-  }
-})
+const props = defineProps<{
+  loan: Loan
+  tokens: Map<string, Token>
+}>()
 
-function calculateInterest(interest: number, duration: number, loan: number) {
-  return Math.round((((interest / loan) * 100) / duration) * 365 * 100) / 100
+const collateralToken = props.tokens.get(props.loan.collateralToken) ?? {
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18
 }
+const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown', name: 'unknown', decimals: 18 }
 </script>
 
 <template>
-  <div>
+  <!-- <div>
     <p class="text-[18px] font-extrabold text-white">Loan offer #{{ loan.loanId }}</p>
     <p class="text-[12px] font-semibold text-core-light">
       Created on {{ new Date(props.loan.created).toDateString() }}
     </p>
-  </div>
+  </div> -->
   <div class="lg:pt-[30px] flex flex-row lg:flex-col">
     <div class="flex flex-row w-full items-center space-x-[15px]">
-      <img :src="`./images/${props.loan.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
+      <img :src="`./images/${loanToken.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col space-y-0 leading-snug">
         <p class="text-[10px]">LOAN</p>
         <div class="flex flex-row space-x-1 text-[14px] items-center">
-          <p class="font-extrabold text-white">{{ props.loan.loanAmount }}</p>
-          <p>{{ props.loan.loanToken }}</p>
+          <p class="font-extrabold text-white">{{ prettifyTokenAmount(props.loan.loanAmount, loanToken.decimals) }}</p>
+          <p>{{ loanToken.symbol }}</p>
         </div>
       </div>
     </div>
     <div class="hidden lg:flex border-dashed border-r-2 border-core h-[20px] w-[20px]"></div>
     <div class="flex flex-row w-full items-center space-x-[15px]">
-      <img :src="`./images/${props.loan.collateralToken}.png`" class="w-[40px] h-[40px] rounded-full" />
+      <img :src="`./images/${collateralToken.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col items-center justify-center leading-snug">
         <div class="text-[10px]">COLLATERAL</div>
         <div class="flex flex-row space-x-1 text-[14px]">
-          <p class="font-extrabold text-white">{{ props.loan.collateralAmount }}</p>
-          <p>{{ props.loan.collateralToken }}</p>
+          <p class="font-extrabold text-white">
+            {{ prettifyTokenAmount(props.loan.collateralAmount, collateralToken.decimals) }}
+          </p>
+          <p>{{ collateralToken.symbol }}</p>
         </div>
       </div>
     </div>
@@ -55,8 +61,8 @@ function calculateInterest(interest: number, duration: number, loan: number) {
       </div>
       <div class="border border-r-2 border-core-darkest -mt-3 -mb-5" />
       <div class="w-full flex flex-col items-center justify-center">
-        <p>{{ calculateInterest(loan.interest, loan.duration, loan.loanAmount) }} % APR</p>
-        <p>{{ loan.interest }} {{ loan.loanToken }}</p>
+        <p>{{ prettifyTokenAmount(calculateApr(props.loan), loanToken.decimals) }} % APR</p>
+        <p>{{ loan.interest }} {{ loanToken.symbol }}</p>
       </div>
     </div>
   </div>

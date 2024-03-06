@@ -8,7 +8,7 @@ const loanStore = useLoanStore()
 <template>
   <div class="">
     <div class="w-full py-4 px-[20px] flex flex-row text-[14px] font-bold text-core-light">
-      <button
+      <!-- <button
         class="group w-full flex flex-row justify-between items-center hover:text-accent-3"
         @click="loanStore.sortLoans('loanId')"
       >
@@ -18,7 +18,7 @@ const loanStore = useLoanStore()
           class="text-[18px] max-w-[20px] pr-[30px] group-hover:text-accent-3"
           :class="loanStore.sortCategory === 'loanId' ? 'text-accent-3' : 'text-divider '"
         />
-      </button>
+      </button> -->
       <button
         class="group w-full flex flex-row justify-between items-center hover:text-accent-3"
         @click="loanStore.sortLoans('loanAmount')"

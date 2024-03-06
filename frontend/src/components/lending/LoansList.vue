@@ -5,21 +5,39 @@ import LoanHeaders from './LoanHeaders.vue'
 import LoanGridCard from './loancard/LoanGridCard.vue'
 import LoanListCard from './loancard/LoanListCard.vue'
 import { useLoanStore, type Loan } from '@/stores/loans'
-import { ref } from 'vue'
+import { useAccountStore } from '@/stores'
+import { onMounted, ref, watchEffect } from 'vue'
+import { getTokens } from '@/config'
 
 defineEmits<{
   (e: 'update:selectedLoan', value: Loan): void
 }>()
 
 const loanStore = useLoanStore()
+const store = useAccountStore()
+const tokens = new Map(getTokens().map((token) => [token.contractId, token]))
 
 const view = ref('list')
-
 const showFilters = ref(false)
+const loans = ref<Loan[]>([])
 
 function changeView(newView: string) {
   view.value = newView
 }
+
+onMounted(() => {
+  watchEffect(async () => {
+    if (!store.explorerProvider) return
+    loanStore
+      .fetchLoans(1, 10)
+      .then((result) => {
+        loans.value = result
+      })
+      .catch((error) => {
+        console.error('Error fetching loans', error)
+      })
+  })
+})
 </script>
 
 <template>
@@ -33,11 +51,11 @@ function changeView(newView: string) {
     </div>
     <div
       @click="$emit('update:selectedLoan', loan)"
-      v-for="loan in loanStore.filteredLoans"
+      v-for="loan in loans"
       v-bind:key="loan.loanId"
       class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
     >
-      <LoanGridCard :loan="loan" />
+      <LoanGridCard :loan="loan" :tokens="tokens" />
     </div>
   </div>
 
@@ -46,18 +64,18 @@ function changeView(newView: string) {
       <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
       <LoanHeaders v-if="view === 'list'" />
       <div v-if="view === 'list'">
-        <div class="space-y-4" v-for="loan in loanStore.filteredLoans" v-bind:key="loan.loanId">
-          <LoanListCard :loan="loan" @click="$emit('update:selectedLoan', loan)" />
+        <div class="space-y-4" v-for="loan in loans" v-bind:key="loan.loanId">
+          <LoanListCard :loan="loan" :tokens="tokens" @click="$emit('update:selectedLoan', loan)" />
         </div>
       </div>
       <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
         <div
-          v-for="loan in loanStore.filteredLoans"
+          v-for="loan in loans"
           v-bind:key="loan.loanId"
           class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"
         >
           <div class="w-full">
-            <LoanGridCard :loan="loan" />
+            <LoanGridCard :loan="loan" :tokens="tokens" />
             <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
               <CustomButton :title="'View'" @click="$emit('update:selectedLoan', loan)" />
             </div>
