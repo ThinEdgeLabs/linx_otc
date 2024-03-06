@@ -7,11 +7,15 @@ import LinxMenu from '@/components/LinxMenu.vue'
 import SelectWalletModal from '@/components/WalletSelect.vue'
 import FooterComponent from './components/FooterComponent.vue'
 import { useExtensionStore } from './stores/extension'
+import { useAccountStore } from './stores'
 
-onMounted(() => {
+onMounted(async () => {
   const wcStore = useWalletConnectStore()
   wcStore.checkExistingWCConnection()
-  useExtensionStore().silentConnectExtension()
+  const store = useAccountStore()
+  if (!store.account?.isConnected) {
+    useExtensionStore().silentConnectExtension()
+  }
 })
 </script>
 
