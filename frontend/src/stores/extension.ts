@@ -18,12 +18,22 @@ export const useExtensionStore = defineStore('extension', () => {
         throw new Error('Extension not installed')
       }
       windowAlephium
-        ?.enable({ networkId: import.meta.env.VITE_NETWORK_ID, onDisconnected() {
-          extensionIsConnected.value = false
-        }})
+        ?.enable({
+          networkId: import.meta.env.VITE_NETWORK_ID,
+          onDisconnected() {
+            extensionIsConnected.value = false
+          }
+        })
         .then((res) => {
           extensionIsConnected.value = true
-          accountStore.setAccount(res.address, res.group, 'Extension', res.publicKey)
+          accountStore.setAccount(
+            res.address,
+            res.group,
+            'Extension',
+            res.publicKey,
+            windowAlephium.explorerProvider,
+            windowAlephium.nodeProvider
+          )
           loginStore.toggleModal()
         })
         .catch((err) => {
@@ -39,23 +49,33 @@ export const useExtensionStore = defineStore('extension', () => {
   async function silentConnectExtension() {
     const alephium = await getDefaultAlephiumWallet()
     if (alephium === undefined) {
-      return undefined
+      return
     }
-    alephium?.enableIfConnected({ onDisconnected() {
-      extensionIsConnected.value = false
-    }, networkId: import.meta.env.VITE_NETWORK_ID })
-    .then((res) => {
-      if (res === undefined) {
-        extensionIsConnected.value = false
-      } else {
-        extensionIsConnected.value = true
-        accountStore.setAccount(res.address, res.group, 'Extension', res.publicKey)
-      }
-    })
-    .catch((error: any) => {
-      console.error(error)
-      return undefined
-    })
+    alephium
+      ?.enableIfConnected({
+        onDisconnected() {
+          extensionIsConnected.value = false
+        },
+        networkId: import.meta.env.VITE_NETWORK_ID
+      })
+      .then((res) => {
+        if (res === undefined) {
+          extensionIsConnected.value = false
+        } else {
+          extensionIsConnected.value = true
+          accountStore.setAccount(
+            res.address,
+            res.group,
+            'Extension',
+            res.publicKey,
+            alephium.explorerProvider,
+            alephium.nodeProvider
+          )
+        }
+      })
+      .catch((error: any) => {
+        console.error(error)
+      })
   }
 
   async function disconnectExtension() {

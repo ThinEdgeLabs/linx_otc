@@ -1,10 +1,11 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 import { useOrderStore } from '@/stores/tradeOrder'
 import { useExtensionStore } from '@/stores/extension'
 import { useWalletConnectStore } from '@/stores/walletconnect'
 import { useNodeStore } from '@/stores/node'
 import type { Wallet } from '@/types'
+import { explorer, NodeProvider, type ExplorerProvider, type SignerProvider } from '@alephium/web3'
 
 interface Account {
   address: string
@@ -12,13 +13,24 @@ interface Account {
   group: number
   isConnected: boolean
   wallet?: Wallet
+  signerProvider?: SignerProvider
 }
 
 export const useAccountStore = defineStore('account', () => {
   const account = ref<Account | undefined>()
-  const nodeProvider = useNodeStore()
+  const explorerProvider = ref<ExplorerProvider | undefined>()
+  const nodeProvider = ref<NodeProvider | undefined>()
 
-  async function setAccount(address: string, group: number, wallet: Wallet, publicKey: string) {
+  const _nodeProvider = useNodeStore()
+
+  async function setAccount(
+    address: string,
+    group: number,
+    wallet: Wallet,
+    publicKey: string,
+    explorerProv?: ExplorerProvider,
+    nodeProv?: NodeProvider
+  ) {
     account.value = {
       group,
       publicKey,
@@ -26,8 +38,10 @@ export const useAccountStore = defineStore('account', () => {
       isConnected: true,
       wallet
     }
+    explorerProvider.value = explorerProv
+    nodeProvider.value = nodeProv
 
-    await nodeProvider.getBalance(address, true)
+    await _nodeProvider.getBalance(address, true)
 
     const orderStore = useOrderStore()
     orderStore.startNewOrder(address, group)
@@ -47,5 +61,5 @@ export const useAccountStore = defineStore('account', () => {
     account.value = undefined
   }
 
-  return { account, setAccount, disconnect }
+  return { account, explorerProvider, nodeProvider, setAccount, disconnect }
 })
