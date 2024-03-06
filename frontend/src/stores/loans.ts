@@ -1,33 +1,56 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { dummyLoans } from '@/dummyData'
-import type { Token } from '@/types'
-
-export interface Loan {
-  loanId: number
-  lender: string
-  borrower: string | undefined
-  loanToken: Token['symbol']
-  loanAmount: number
-  interest: number
-  collateralToken: Token['symbol']
-  collateralAmount: number
-  created: number
-  startDate: number
-  duration: number
-  minRating: number
-}
+import type { Loan } from '@/types'
+import { useAccountStore } from '.'
+import { getMarketplaceConfig } from '../../../shared/config'
+import { addressFromContractId, decodeEvent } from '@alephium/web3'
+import { LendingMarketplace } from '../../../artifacts/ts'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan> | undefined>()
   const filteredLoans = ref<Array<Loan>>([])
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
+  const isLoading = ref<boolean>(false)
 
   function initLoans() {
     // Init dummy loans
     loans.value = dummyLoans
     filteredLoans.value = dummyLoans
+  }
+
+  async function fetchLoans(start: number, limit: number): Promise<Loan[]> {
+    const store = useAccountStore()
+    const config = getMarketplaceConfig()
+    if (!store.nodeProvider) return []
+    isLoading.value = true
+    const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
+    const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
+      start: 0,
+      limit: 10
+    })
+    isLoading.value = false
+    return contractEvents.events
+      .map((event) =>
+        decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
+      )
+      .filter((event) => event.name === 'OfferCreated')
+      .map((event) => {
+        return {
+          loanId: event.fields['lendingOfferContractId'] as string,
+          lender: event.fields['lender'] as string,
+          borrower: undefined,
+          loanToken: event.fields['lendingTokenId'] as string,
+          loanAmount: event.fields['lendingAmount'],
+          interest: event.fields['interestRate'] as bigint,
+          collateralToken: event.fields['collateralTokenId'] as string,
+          collateralAmount: event.fields['collateralAmount'] as bigint,
+          created: 0,
+          startDate: undefined,
+          duration: event.fields['duration'] as bigint
+        } as Loan
+      })
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
@@ -93,5 +116,5 @@ export const useLoanStore = defineStore('loans', () => {
     })
   }
 
-  return { filterLoans, filteredLoans, sortLoans, sortCategory }
+  return { filterLoans, filteredLoans, sortLoans, sortCategory, fetchLoans, isLoading }
 })

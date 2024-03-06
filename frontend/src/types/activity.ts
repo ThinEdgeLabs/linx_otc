@@ -1,4 +1,4 @@
-import type { Token } from "./token"
+import type { Token } from './token'
 
 export interface Activity {
   type: string
