@@ -14,23 +14,31 @@ export const useLoanStore = defineStore('loans', () => {
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
 
-  function initLoans() {
-    // Init dummy loans
-    loans.value = dummyLoans
+  async function initLoans() {
     filteredLoans.value = dummyLoans
   }
 
-  async function fetchLoans(start: number, limit: number): Promise<Loan[]> {
+  async function fetchLoans() {
     const store = useAccountStore()
     const config = getMarketplaceConfig()
-    isLoading.value = true
     const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
-    const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
-      start: 0,
-      limit: 10
-    })
-    isLoading.value = false
-    return contractEvents.events
+
+    async function go(start: number, limit: number, events: any[]) {
+      const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
+        start,
+        limit
+      })
+      if (contractEvents.events.length === 0) {
+        return events
+      } else {
+        events = [...events, ...contractEvents.events]
+        return go(contractEvents.nextStart, limit, events)
+      }
+    }
+
+    isLoading.value = true
+    const events = await go(0, 20, [])
+    loans.value = events
       .map((event) =>
         decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
       )
@@ -50,6 +58,7 @@ export const useLoanStore = defineStore('loans', () => {
           duration: event.fields['duration'] as bigint
         } as Loan
       })
+    isLoading.value = false
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
@@ -115,5 +124,7 @@ export const useLoanStore = defineStore('loans', () => {
     })
   }
 
-  return { filterLoans, filteredLoans, sortLoans, sortCategory, fetchLoans, isLoading }
+  fetchLoans()
+
+  return { filterLoans, filteredLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading }
 })

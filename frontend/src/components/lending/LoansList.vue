@@ -5,7 +5,7 @@ import LoanHeaders from './LoanHeaders.vue'
 import LoanGridCard from './loancard/LoanGridCard.vue'
 import LoanListCard from './loancard/LoanListCard.vue'
 import { useLoanStore } from '@/stores/loans'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { getTokens } from '@/config'
 import type { Loan } from '@/types'
 
@@ -18,22 +18,10 @@ const tokens = new Map(getTokens().map((token) => [token.contractId, token]))
 
 const view = ref('list')
 const showFilters = ref(false)
-const loans = ref<Loan[]>([])
 
 function changeView(newView: string) {
   view.value = newView
 }
-
-onMounted(() => {
-  loanStore
-    .fetchLoans(1, 10)
-    .then((result) => {
-      loans.value = result
-    })
-    .catch((error) => {
-      console.error('Error fetching loans', error)
-    })
-})
 </script>
 
 <template>
@@ -47,7 +35,7 @@ onMounted(() => {
     </div>
     <div
       @click="$emit('update:selectedLoan', loan)"
-      v-for="loan in loans"
+      v-for="loan in loanStore.loans"
       v-bind:key="loan.loanId"
       class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
     >
@@ -60,13 +48,13 @@ onMounted(() => {
       <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
       <LoanHeaders v-if="view === 'list'" />
       <div v-if="view === 'list'">
-        <div class="space-y-4" v-for="loan in loans" v-bind:key="loan.loanId">
+        <div class="space-y-4" v-for="loan in loanStore.loans" v-bind:key="loan.loanId">
           <LoanListCard :loan="loan" :tokens="tokens" @click="$emit('update:selectedLoan', loan)" />
         </div>
       </div>
       <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
         <div
-          v-for="loan in loans"
+          v-for="loan in loanStore.loans"
           v-bind:key="loan.loanId"
           class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"
         >
