@@ -31,6 +31,7 @@ export const useExtensionStore = defineStore('extension', () => {
             res.group,
             'Extension',
             res.publicKey,
+            windowAlephium,
             windowAlephium.explorerProvider,
             windowAlephium.nodeProvider
           )
@@ -68,6 +69,7 @@ export const useExtensionStore = defineStore('extension', () => {
             res.group,
             'Extension',
             res.publicKey,
+            alephium,
             alephium.explorerProvider,
             alephium.nodeProvider
           )

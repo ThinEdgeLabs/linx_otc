@@ -23,7 +23,6 @@ export const useLoanStore = defineStore('loans', () => {
   async function fetchLoans(start: number, limit: number): Promise<Loan[]> {
     const store = useAccountStore()
     const config = getMarketplaceConfig()
-    if (!store.nodeProvider) return []
     isLoading.value = true
     const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
     const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {

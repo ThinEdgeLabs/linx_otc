@@ -20,6 +20,7 @@ export const useAccountStore = defineStore('account', () => {
   const account = ref<Account | undefined>()
   const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER))
   const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(import.meta.env.VITE_ALPH_NODE))
+  const signer = shallowRef<SignerProvider | undefined>()
 
   const _nodeProvider = useNodeStore()
 
@@ -28,6 +29,7 @@ export const useAccountStore = defineStore('account', () => {
     group: number,
     wallet: Wallet,
     publicKey: string,
+    signerProv: SignerProvider,
     explorerProv?: ExplorerProvider,
     nodeProv?: NodeProvider
   ) {
@@ -38,6 +40,7 @@ export const useAccountStore = defineStore('account', () => {
       isConnected: true,
       wallet
     }
+    signer.value = signerProv
     if (explorerProv) explorerProvider.value = explorerProv
     if (nodeProv) nodeProvider.value = nodeProv
 
@@ -61,5 +64,5 @@ export const useAccountStore = defineStore('account', () => {
     account.value = undefined
   }
 
-  return { account, explorerProvider, nodeProvider, setAccount, disconnect }
+  return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect }
 })

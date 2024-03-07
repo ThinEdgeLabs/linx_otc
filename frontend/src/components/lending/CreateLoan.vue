@@ -14,16 +14,15 @@ import LoanPreview from './LoanPreview.vue'
 import ComponentTitle from '@/components/ComponentTitle.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
 import { LendingMarketplaceHelper } from '../../../../shared/lending-marketplace'
-import { useSignerStore } from '@/stores/signer'
 import { getMarketplaceConfig } from '../../../../shared/config'
 import { expandToDecimals } from '@/functions/utils'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useNodeStore } from '@/stores/node'
 import type { Status } from '@/components/ApproveWallet.vue'
+import type { SignerProvider } from '@alephium/web3'
 
 const loanOfferStore = useLoanOrderStore()
 const accountStore = useAccountStore()
-const signerStore = useSignerStore()
 const { nodeProvider } = useNodeStore()
 
 const status = ref<Status | undefined>(undefined)
@@ -37,8 +36,7 @@ function reset() {
 
 async function createLoan() {
   const config = getMarketplaceConfig()
-  const signer = await signerStore.getSigner()
-  const marketplace = new LendingMarketplaceHelper(signer!)
+  const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
   marketplace.contractId = config.marketplaceContractId
 
   const lendingTokenId = loanOfferStore.order!.loanToken!.contractId
@@ -53,7 +51,7 @@ async function createLoan() {
   try {
     status.value = 'approve'
     const result = await marketplace.createOffer(
-      signer!,
+      accountStore.signer as SignerProvider,
       lendingTokenId,
       collateralTokenId,
       lendingAmount,
