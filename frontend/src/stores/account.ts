@@ -5,7 +5,7 @@ import { useExtensionStore } from '@/stores/extension'
 import { useWalletConnectStore } from '@/stores/walletconnect'
 import { useNodeStore } from '@/stores/node'
 import type { Wallet } from '@/types'
-import { explorer, NodeProvider, type ExplorerProvider, type SignerProvider } from '@alephium/web3'
+import { NodeProvider, ExplorerProvider, type SignerProvider } from '@alephium/web3'
 
 interface Account {
   address: string
@@ -18,8 +18,8 @@ interface Account {
 
 export const useAccountStore = defineStore('account', () => {
   const account = ref<Account | undefined>()
-  const explorerProvider = ref<ExplorerProvider | undefined>()
-  const nodeProvider = ref<NodeProvider | undefined>()
+  const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER))
+  const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(import.meta.env.VITE_ALPH_NODE))
 
   const _nodeProvider = useNodeStore()
 
@@ -38,8 +38,8 @@ export const useAccountStore = defineStore('account', () => {
       isConnected: true,
       wallet
     }
-    explorerProvider.value = explorerProv
-    nodeProvider.value = nodeProv
+    if (explorerProv) explorerProvider.value = explorerProv
+    if (nodeProv) nodeProvider.value = nodeProv
 
     await _nodeProvider.getBalance(address, true)
 

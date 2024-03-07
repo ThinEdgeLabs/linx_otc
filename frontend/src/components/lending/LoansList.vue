@@ -4,17 +4,16 @@ import LoanFilters from './LoanFilters.vue'
 import LoanHeaders from './LoanHeaders.vue'
 import LoanGridCard from './loancard/LoanGridCard.vue'
 import LoanListCard from './loancard/LoanListCard.vue'
-import { useLoanStore, type Loan } from '@/stores/loans'
-import { useAccountStore } from '@/stores'
-import { onMounted, ref, watchEffect } from 'vue'
+import { useLoanStore } from '@/stores/loans'
+import { onMounted, ref } from 'vue'
 import { getTokens } from '@/config'
+import type { Loan } from '@/types'
 
 defineEmits<{
   (e: 'update:selectedLoan', value: Loan): void
 }>()
 
 const loanStore = useLoanStore()
-const store = useAccountStore()
 const tokens = new Map(getTokens().map((token) => [token.contractId, token]))
 
 const view = ref('list')
@@ -26,17 +25,14 @@ function changeView(newView: string) {
 }
 
 onMounted(() => {
-  watchEffect(async () => {
-    if (!store.explorerProvider) return
-    loanStore
-      .fetchLoans(1, 10)
-      .then((result) => {
-        loans.value = result
-      })
-      .catch((error) => {
-        console.error('Error fetching loans', error)
-      })
-  })
+  loanStore
+    .fetchLoans(1, 10)
+    .then((result) => {
+      loans.value = result
+    })
+    .catch((error) => {
+      console.error('Error fetching loans', error)
+    })
 })
 </script>
 
