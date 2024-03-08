@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { dummyLoans } from '@/dummyData'
 import type { Loan } from '@/types'
 import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '../../../shared/config'
@@ -8,15 +7,11 @@ import { addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 
 export const useLoanStore = defineStore('loans', () => {
-  const loans = ref<Array<Loan> | undefined>()
-  const filteredLoans = ref<Array<Loan>>([])
+  const loans = ref<Array<Loan>>([])
+  const _loans = ref<Array<Loan>>([])
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
-
-  async function initLoans() {
-    filteredLoans.value = dummyLoans
-  }
 
   async function fetchLoans() {
     const store = useAccountStore()
@@ -58,26 +53,42 @@ export const useLoanStore = defineStore('loans', () => {
           duration: event.fields['duration'] as bigint
         } as Loan
       })
+    _loans.value = loans.value
     isLoading.value = false
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
-    initLoans()
-
     if (loanToken != undefined) {
-      filteredLoans.value = filteredLoans.value.filter((e) => e.loanToken === loanToken)
-    }
-
-    if (collateralToken != undefined) {
-      filteredLoans.value = filteredLoans.value.filter((e) => e.collateralToken === collateralToken)
-    }
-
-    if (durationDays != undefined) {
-      console.log(durationDays)
+      loans.value = _loans.value.filter((e) => e.loanToken === loanToken)
+    } else if (collateralToken != undefined) {
+      loans.value = _loans.value.filter((e) => e.collateralToken === collateralToken)
+    } else if (durationDays != undefined) {
       if (durationDays === 1) {
-        filteredLoans.value = filteredLoans.value.filter((e) => e.duration <= 7)
+        loans.value = _loans.value.filter((e) => e.duration <= 7)
       } else {
-        filteredLoans.value = filteredLoans.value.filter((e) => e.duration > durationDays)
+        loans.value = _loans.value.filter((e) => e.duration > durationDays)
+      }
+    } else {
+      loans.value = _loans.value
+    }
+  }
+
+  function compareBigInt(a: bigint, b: bigint, asc: boolean) {
+    if (asc) {
+      if (a > b) {
+        return 1
+      } else if (a < b) {
+        return -1
+      } else {
+        return 0
+      }
+    } else {
+      if (a > b) {
+        return -1
+      } else if (a < b) {
+        return 1
+      } else {
+        return 0
       }
     }
   }
@@ -89,42 +100,45 @@ export const useLoanStore = defineStore('loans', () => {
       sortCategory.value = category
       sortUpDown.value = category === 'interest' ? 'down' : 'up'
     }
-    filteredLoans.value.sort((a, b) => {
-      if (sortCategory.value === 'loanId') {
+    loans.value.sort((a, b) => {
+      // if (sortCategory.value === 'loanId') {
+      //   if (sortUpDown.value === 'up') {
+      //     return a.loanId - b.loanId
+      //   } else {
+      //     return b.loanId - a.loanId
+      //   }
+      // } else
+      if (sortCategory.value === 'loanAmount') {
         if (sortUpDown.value === 'up') {
-          return a.loanId - b.loanId
+          return compareBigInt(a.loanAmount, b.loanAmount, true)
         } else {
-          return b.loanId - a.loanId
-        }
-      } else if (sortCategory.value === 'loanAmount') {
-        if (sortUpDown.value === 'up') {
-          return a.loanAmount - b.loanAmount
-        } else {
-          return b.loanAmount - a.loanAmount
+          return compareBigInt(a.loanAmount, b.loanAmount, false)
         }
       } else if (sortCategory.value === 'collateralAmount') {
         if (sortUpDown.value === 'up') {
-          return a.collateralAmount - b.collateralAmount
+          return compareBigInt(a.collateralAmount, b.collateralAmount, true)
         } else {
-          return b.collateralAmount - a.collateralAmount
+          return compareBigInt(a.collateralAmount, b.collateralAmount, false)
         }
       } else if (sortCategory.value === 'interest') {
         if (sortUpDown.value === 'up') {
-          return a.interest / a.loanAmount / a.duration - b.interest / b.loanAmount / b.duration
+          return compareBigInt(a.interest, b.interest, true)
         } else {
-          return b.interest / b.loanAmount / b.duration - a.interest / a.loanAmount / a.duration
+          return compareBigInt(a.interest, b.interest, false)
+        }
+      } else if (sortCategory.value === 'duration') {
+        if (sortUpDown.value === 'up') {
+          return compareBigInt(a.duration, b.duration, true)
+        } else {
+          return compareBigInt(a.duration, b.duration, false)
         }
       } else {
-        if (sortUpDown.value === 'up') {
-          return a.duration - b.duration
-        } else {
-          return b.duration - a.duration
-        }
+        return 0
       }
     })
   }
 
   fetchLoans()
 
-  return { filterLoans, filteredLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading }
+  return { filterLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading }
 })

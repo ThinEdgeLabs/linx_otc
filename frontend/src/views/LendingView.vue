@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CustomButton from '@/components/CustomButton.vue'
-import { useLoanStore, type Loan } from '@/stores/loans'
+import { useLoanStore } from '@/stores/loans'
+import { type Loan } from '@/types'
 import LoansList from '@/components/lending/LoansList.vue'
 import CreateLoan from '@/components/lending/CreateLoan.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
@@ -10,8 +11,6 @@ import { ref } from 'vue'
 const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
 const selectedLoan = ref<Loan>()
-
-const loans = loanStore.filterLoans()
 </script>
 <template>
   <section class="pt-[30px] space-y-[30px]">
@@ -20,7 +19,7 @@ const loans = loanStore.filterLoans()
         <div class="flex flex-col leading-snug">
           <p class="text-[32px] font-extrabold text-white">
             P2P Loans
-            {{ loanOfferStore.order || selectedLoan ? '' : `(${loanStore.filteredLoans.length})` }}
+            {{ loanOfferStore.order || selectedLoan ? '' : `(${loanStore.loans.length})` }}
           </p>
           <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
           <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
