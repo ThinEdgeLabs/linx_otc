@@ -6,23 +6,26 @@ import CustomButton from '../CustomButton.vue'
 import ComponentTitle from '../ComponentTitle.vue'
 import { ref } from 'vue'
 import ApproveWallet from '../ApproveWallet.vue'
+import { calculateApr } from '@/functions/utils'
+import type { Loan } from '@/types'
+import { prettifyTokenAmount } from '@alephium/web3'
+import { getMarketplaceConfig} from '@/config'
 
 defineEmits<{
   (e: 'update:closeOffer'): void
 }>()
 
-const step = ref(0)
+const props = defineProps<{
+  loan: Loan
+}>()
 
-const props = defineProps({
-  loan: {
-    type: Object,
-    required: true
-  }
-})
+const config = getMarketplaceConfig()
 
-function calculateInterest() {
-  return (((props.loan.interest / props.loan.loanAmount) * 100) / props.loan.duration) * 365
+function calculateReceivedAmount(loan: Loan) {
+  return loan.loanAmount * (10000n - (config.fee as bigint)) / 10000n
 }
+
+const step = ref(0)
 </script>
 
 <template>
@@ -58,7 +61,7 @@ function calculateInterest() {
                   </p>
                   <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                     <p class="font-extrabold text-core-lightest">
-                      {{ calculateInterest().toFixed(2) }}
+                      {{ prettifyTokenAmount(calculateApr(loan), 18) }}
                     </p>
                     <p class="text-core-light">% APR</p>
                   </div>
@@ -140,7 +143,7 @@ function calculateInterest() {
         <HorizontalDivider />
         <LoanPreviewLabel
           :title="'You receive'"
-          :amount="(0.993 * props.loan.loanAmount).toString()"
+          :amount="prettifyTokenAmount(calculateReceivedAmount(loan), 18) ?? '0'"
           :amount_description="props.loan.loanToken"
         />
         <HorizontalDivider />
