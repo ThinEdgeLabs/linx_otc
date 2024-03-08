@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Loan } from '@/types'
 import { useAccountStore } from '.'
-import { getMarketplaceConfig } from '../../../shared/config'
+import { getMarketplaceConfig } from '@/config'
 import { addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 

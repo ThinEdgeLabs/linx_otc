@@ -1,6 +1,8 @@
 import type { Token } from '@/types'
 import { default as devnetTokens } from './devnet-token-list.json'
-import { ALPH_TOKEN_ID } from '@alephium/web3'
+import { ALPH_TOKEN_ID, type NetworkId, type Number256 } from '@alephium/web3'
+import { loadSettings } from '../../alephium.config'
+import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const mainnetTokens: Token[] = [
   {
@@ -218,5 +220,55 @@ export const getTokens = () => {
     )
   } else {
     return []
+  }
+}
+
+export function getDefaultNodeUrl(): string {
+  const network = import.meta.env.VITE_NETWORK_ID
+  return network === 'devnet'
+    ? 'http://127.0.0.1:22973'
+    : network === 'testnet'
+      ? 'https://wallet-v20.testnet.alephium.org'
+      : 'https://wallet-v20.mainnet.alephium.org'
+}
+
+export function getDefaultExplorerUrl(): string {
+  const network = import.meta.env.VITE_NETWORK_ID
+  return network === 'devnet'
+    ? 'http://localhost:9090'
+    : network === 'testnet'
+      ? 'https://backend-v113.testnet.alephium.org'
+      : 'https://backend-v113.mainnet.alephium.org'
+}
+
+export interface MarketplaceConfig {
+  network: NetworkId
+  groupIndex: number
+  marketplaceAdminAddress: string
+  marketplaceContractId: string
+  marketplaceContractAddress: string
+  nftTemplateId: string
+  fee: Number256
+  defaultNodeUrl: string
+  defaultExplorerUrl: string
+}
+
+export function getMarketplaceConfig(): MarketplaceConfig {
+  const network = import.meta.env.VITE_NETWORK_ID
+  const settings = loadSettings(network as NetworkId)
+  const deployments = loadDeployments(network as NetworkId)
+  const marketPlace = deployments.contracts.LendingMarketplace.contractInstance
+  const groupIndex = marketPlace.groupIndex
+  const marketplaceAdminAddress = deployments.deployerAddress
+  return {
+    network,
+    groupIndex,
+    marketplaceAdminAddress,
+    marketplaceContractId: marketPlace.contractId,
+    marketplaceContractAddress: marketPlace.address,
+    nftTemplateId: deployments.contracts.LendingOffer.contractInstance.contractId,
+    fee: settings.fee,
+    defaultNodeUrl: getDefaultNodeUrl(),
+    defaultExplorerUrl: getDefaultExplorerUrl()
   }
 }

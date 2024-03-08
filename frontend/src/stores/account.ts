@@ -6,6 +6,7 @@ import { useWalletConnectStore } from '@/stores/walletconnect'
 import { useNodeStore } from '@/stores/node'
 import type { Wallet } from '@/types'
 import { NodeProvider, ExplorerProvider, type SignerProvider } from '@alephium/web3'
+import { getMarketplaceConfig } from '@/config'
 
 interface Account {
   address: string
@@ -17,9 +18,10 @@ interface Account {
 }
 
 export const useAccountStore = defineStore('account', () => {
+  const config = getMarketplaceConfig()
   const account = ref<Account | undefined>()
-  const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER))
-  const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(import.meta.env.VITE_ALPH_NODE))
+  const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(config.defaultExplorerUrl))
+  const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(config.defaultNodeUrl))
   const signer = shallowRef<SignerProvider | undefined>()
 
   const _nodeProvider = useNodeStore()

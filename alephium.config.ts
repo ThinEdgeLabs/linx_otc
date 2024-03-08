@@ -6,7 +6,7 @@ export type Settings = {
   admin: string
 }
 
-const loadSettings = (network: 'devnet' | 'testnet' | 'mainnet'): Settings => {
+export const loadSettings = (network: 'devnet' | 'testnet' | 'mainnet'): Settings => {
   if (network === 'devnet') {
     return {
       fee: 100n,

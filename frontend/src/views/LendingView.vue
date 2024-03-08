@@ -5,13 +5,14 @@ import { type Loan } from '@/types'
 import LoansList from '@/components/lending/LoansList.vue'
 import CreateLoan from '@/components/lending/CreateLoan.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
-import AcceptLoanOffer from '@/components/lending/ManageLoanOffer.vue'
+import ManageLoanOffer from '@/components/lending/ManageLoanOffer.vue'
 import { ref } from 'vue'
 
 const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
 const selectedLoan = ref<Loan>()
 </script>
+
 <template>
   <section class="pt-[30px] space-y-[30px]">
     <div>
@@ -33,7 +34,7 @@ const selectedLoan = ref<Loan>()
       </div>
     </div>
     <LoansList v-if="!loanOfferStore.order && !selectedLoan" @update:selected-loan="selectedLoan = $event" />
-    <AcceptLoanOffer v-if="selectedLoan" :loan="selectedLoan" @update:close-offer="selectedLoan = undefined" />
+    <ManageLoanOffer v-if="selectedLoan" :loan="selectedLoan" @update:close-offer="selectedLoan = undefined" />
     <CreateLoan v-if="loanOfferStore.order" />
   </section>
 </template>

@@ -3,12 +3,14 @@ import { defineStore } from 'pinia'
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { useAccountStore } from '@/stores/account'
 import { useLoginStore } from '@/stores/login'
+import { getMarketplaceConfig } from '@/config'
 
 export const useExtensionStore = defineStore('extension', () => {
   const extensionIsConnected = ref(false)
 
   const accountStore = useAccountStore()
   const loginStore = useLoginStore()
+  const marketplaceConfig = getMarketplaceConfig()
 
   async function connectExtension() {
     console.log('connecting to extension')
@@ -19,7 +21,7 @@ export const useExtensionStore = defineStore('extension', () => {
       }
       windowAlephium
         ?.enable({
-          networkId: import.meta.env.VITE_NETWORK_ID,
+          networkId: marketplaceConfig.network,
           onDisconnected() {
             extensionIsConnected.value = false
           }
@@ -57,7 +59,7 @@ export const useExtensionStore = defineStore('extension', () => {
         onDisconnected() {
           extensionIsConnected.value = false
         },
-        networkId: import.meta.env.VITE_NETWORK_ID
+        networkId: marketplaceConfig.network
       })
       .then((res) => {
         if (res === undefined) {
