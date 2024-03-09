@@ -14,8 +14,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@alephium/get-extension-wallet": "0.31.1",
-    "@alephium/walletconnect-provider": "0.31.1",
+    "@alephium/get-extension-wallet": "0.36.1",
+    "@alephium/walletconnect-provider": "0.36.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
     "@fortawesome/pro-light-svg-icons": "^6.5.1",
