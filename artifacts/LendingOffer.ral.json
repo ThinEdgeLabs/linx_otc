@@ -1,0 +1,382 @@
+{
+  "version": "v2.10.1",
+  "name": "LendingOffer",
+  "bytecode": "09111140384050406040694072407b4084408d4096409f40a840b140df40f8412b4159010000000108561343e82d0d13203b2e02010005070112160016012b1705160216032c1367102d1706160616052c138001518016042c2d02010003030109160213800151802c0c160016011602000102010002020106160016012c1367102d02010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0302010000000102ce0402010000000102ce0502010000000102ce0602010000000102a00002010000000102a0010201010101001ace00a000450d7b1600ce042f0f7bb4a1000000a101a000ce02ce04aca000ce01ce03ab05a000b15f01020000000fb4ce0045107bce00a000450d7b06b15ece00b001010001001cb4a000450e7b0000a001ce03ce05ce0600011700a000ce00ce01ce0316002aaaa000ce02ce04ab08b15ece00b001020001001ab4ce0045107ba000ce0046117b000017001600a001ce0613800151802c2a3313067b07b15ece00b0",
+  "codeHash": "8f2dd2d044ed24cdcfe29d48501ab4fdec4456342b44a9f1eef7f6036254cb48",
+  "fieldsSig": {
+    "names": [
+      "lender",
+      "lendingTokenId",
+      "collateralTokenId",
+      "lendingAmount",
+      "collateralAmount",
+      "interestRate",
+      "duration",
+      "borrower",
+      "loanTimeStamp"
+    ],
+    "types": [
+      "Address",
+      "ByteVec",
+      "ByteVec",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "Address",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "eventsSig": [
+    {
+      "name": "OfferTaken",
+      "fieldNames": [
+        "borrower",
+        "offerId"
+      ],
+      "fieldTypes": [
+        "Address",
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "OfferCancelled",
+      "fieldNames": [
+        "offerId"
+      ],
+      "fieldTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "LoanLiquidated",
+      "fieldNames": [
+        "offerId"
+      ],
+      "fieldTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "LoanPaidBack",
+      "fieldNames": [
+        "offerId"
+      ],
+      "fieldTypes": [
+        "ByteVec"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "blockTimeStampInSeconds",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateInterestPayment",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "currentBlockTimeStamp",
+        "loanTimestamp",
+        "amount",
+        "interest",
+        "days"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateTotalInterestPayment",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "amount",
+        "interest",
+        "days"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateMarketplaceFee",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "amount",
+        "feeRate"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getLender",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "Address"
+      ]
+    },
+    {
+      "name": "getLendingTokenId",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "getCollateralTokenId",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "getLendingAmount",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getCollateralAmount",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getInterestRate",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getDuration",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getBorrower",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "Address"
+      ]
+    },
+    {
+      "name": "getLoanTimeStamp",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "take",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": true,
+      "isPublic": true,
+      "paramNames": [
+        "collateral"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "cancel",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": true,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    },
+    {
+      "name": "payback",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": true,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    },
+    {
+      "name": "liquidate",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": true,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ],
+  "constants": [
+    {
+      "name": "Day",
+      "value": {
+        "type": "U256",
+        "value": "86400"
+      }
+    }
+  ],
+  "enums": [
+    {
+      "name": "ErrorCodes",
+      "fields": [
+        {
+          "name": "OfferAlreadyTaken",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        },
+        {
+          "name": "BorrowerAllowedOnly",
+          "value": {
+            "type": "U256",
+            "value": "2"
+          }
+        },
+        {
+          "name": "IncorrectCollateralAmount",
+          "value": {
+            "type": "U256",
+            "value": "3"
+          }
+        },
+        {
+          "name": "LenderAllowedOnly",
+          "value": {
+            "type": "U256",
+            "value": "4"
+          }
+        },
+        {
+          "name": "OfferNotTaken",
+          "value": {
+            "type": "U256",
+            "value": "5"
+          }
+        },
+        {
+          "name": "LoanNotOverdue",
+          "value": {
+            "type": "U256",
+            "value": "6"
+          }
+        }
+      ]
+    }
+  ]
+}

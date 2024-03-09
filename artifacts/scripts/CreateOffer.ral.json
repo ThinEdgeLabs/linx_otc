@@ -1,0 +1,46 @@
+{
+  "version": "v2.10.1",
+  "name": "CreateOffer",
+  "bytecodeTemplate": "0101030001001413c40de0b6b3a76400001700b47a1600a2{0}{2}a3{0}{1}{2}{3}{4}{5}13060d{6}010718",
+  "fieldsSig": {
+    "names": [
+      "lendingTokenId",
+      "collateralTokenId",
+      "lendingAmount",
+      "collateralAmount",
+      "interestRate",
+      "duration",
+      "lendingMarketplace"
+    ],
+    "types": [
+      "ByteVec",
+      "ByteVec",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "LendingMarketplace"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

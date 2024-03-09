@@ -14,7 +14,7 @@ import LoanPreview from './LoanPreview.vue'
 import ComponentTitle from '@/components/ComponentTitle.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
 import { LendingMarketplaceHelper } from '../../../../shared/lending-marketplace'
-import { getMarketplaceConfig } from '../../../../shared/config'
+import { getMarketplaceConfig } from '@/config'
 import { expandToDecimals } from '@/functions/utils'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useNodeStore } from '@/stores/node'
@@ -45,6 +45,7 @@ async function createLoan() {
   const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
   const lendingAmount = expandToDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
   const collateralAmount = expandToDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
+  //TODO: Convert to basis points
   const interestRate = BigInt(loanOfferStore.order!.interest)
   const duration = BigInt(loanOfferStore.order!.duration)
 
