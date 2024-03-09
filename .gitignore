@@ -3,7 +3,6 @@ coverage/
 lerna-debug.log
 /dist
 /dev
-.deployments.devnet.json
 # Logs
 logs
 *.log
