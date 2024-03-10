@@ -9,7 +9,7 @@ import ApproveWallet from '../ApproveWallet.vue'
 import { calculateApr } from '@/functions/utils'
 import type { Loan } from '@/types'
 import { prettifyTokenAmount } from '@alephium/web3'
-import { getMarketplaceConfig} from '@/config'
+import { getMarketplaceConfig } from '@/config'
 
 defineEmits<{
   (e: 'update:closeOffer'): void
@@ -22,7 +22,7 @@ const props = defineProps<{
 const config = getMarketplaceConfig()
 
 function calculateReceivedAmount(loan: Loan) {
-  return loan.loanAmount * (10000n - (config.fee as bigint)) / 10000n
+  return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
 }
 
 const step = ref(0)
@@ -42,7 +42,7 @@ const step = ref(0)
           <div class="flex flex-col">
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
-                <img :src="`./images/${props.loan.loanToken}.png`" class="w-[60px] h-[60px] rounded-full" />
+                <img :src="`./images/tokens/${props.loan.loanToken}.png`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
@@ -71,7 +71,10 @@ const step = ref(0)
             <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
-                <img :src="`./images/${props.loan.collateralToken}.png`" class="w-[60px] h-[60px] rounded-full" />
+                <img
+                  :src="`./images/tokens/${props.loan.collateralToken}.png`"
+                  class="w-[60px] h-[60px] rounded-full"
+                />
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[10px] lg:text-[12px] text-core-light">COLLATERAL</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
@@ -119,7 +122,7 @@ const step = ref(0)
       </div>
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg">
         <div class="flex flex-row space-x-[10px] items-center">
-          <img :src="`./images/${props.loan.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
+          <img :src="`./images/tokens/${props.loan.loanToken}.png`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">LENDING</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">

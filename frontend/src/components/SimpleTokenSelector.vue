@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { type Token } from '@/config'
+import { type Token } from '@/types'
 import { ref } from 'vue'
 import HorizontalDivider from './HorizontalDivider.vue'
 
-const props = defineProps({
-  tokenValue: { type: Object, required: true },
-  setToken: { type: Function, required: true },
-  tokenList: { type: Array<Token>, required: true }
-})
+const props = defineProps<{
+  tokenValue: Token
+  setToken: Function
+  tokenList: Array<Token>
+}>()
 
 const openSelector = ref(false)
 </script>
@@ -22,7 +22,7 @@ const openSelector = ref(false)
       <div class="flex flex-row space-x-[10px] items-center">
         <img
           v-if="tokenValue.name != 'Any token'"
-          :src="`./images/${tokenValue.symbol}.png`"
+          :src="`${tokenValue.logoUri}`"
           class="w-[20px] h-[20px] rounded-full"
         />
         <div class="text-[14px] text-core-lightest">
@@ -44,7 +44,7 @@ const openSelector = ref(false)
       >
         <HorizontalDivider :class="'bg-menu'" />
         <div class="flex flex-row items-center space-x-[10px]">
-          <img :src="`./images/${token.symbol}.png`" class="w-[32px] h-[32px] rounded-full" />
+          <img :src="`${token.logoUri}`" class="w-[32px] h-[32px] rounded-full" />
           <div>{{ token.name }}</div>
           <div v-if="token.symbol != 'NONE'">({{ token.symbol }})</div>
         </div>

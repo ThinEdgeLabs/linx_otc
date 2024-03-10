@@ -258,13 +258,19 @@ const testnetTokens: Token[] = [
 export const getTokens = () => {
   const network = import.meta.env.VITE_NETWORK_ID
   if (network === 'testnet') {
-    return testnetTokens
+    return Array.from(testnetTokens)
   } else if (network === 'mainnet') {
-    return mainnetTokens
+    return Array.from(mainnetTokens)
   } else if (network === 'devnet') {
-    const alph = { symbol: 'ALPH', name: 'Alephium', contractId: ALPH_TOKEN_ID, decimals: 18 }
+    const alph = {
+      symbol: 'ALPH',
+      name: 'Alephium',
+      contractId: ALPH_TOKEN_ID,
+      decimals: 18,
+      logoUri: '/images/tokens/ALPH.png'
+    }
     devnetTokens.unshift(alph)
-    return devnetTokens
+    return Array.from(devnetTokens)
   } else {
     return []
   }

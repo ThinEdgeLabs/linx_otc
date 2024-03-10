@@ -23,7 +23,6 @@ export const useAccountStore = defineStore('account', () => {
   const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(config.defaultExplorerUrl))
   const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(config.defaultNodeUrl))
   const signer = shallowRef<SignerProvider | undefined>()
-
   const _nodeProvider = useNodeStore()
 
   async function setAccount(

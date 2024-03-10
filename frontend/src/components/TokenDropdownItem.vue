@@ -1,26 +1,18 @@
 <script setup lang="ts">
 import { parseBalance } from '@/functions/utils'
+import type { Token } from '@/types'
 
-const props = defineProps({
-  token: {
-    type: Object,
-    required: true
-  },
-  isSelected: {
-    type: Boolean,
-    default: false
-  },
-  isOffer: {
-    type: Boolean,
-    required: true
-  }
-})
+const props = defineProps<{
+  token: Token
+  isSelected: Boolean
+  isOffer: Boolean
+}>()
 </script>
 
 <template>
   <div class="flex flex-row w-full items-center justify-between py-[14px] px-[19px]">
     <div class="flex flex-row items-center space-x-[10px]">
-      <img :src="`./images/${props.token.symbol}.png`" class="w-[32px] h-[32px] rounded-full" />
+      <img :src="`${token.logoUri}`" class="w-[32px] h-[32px] rounded-full" />
       <div class="flex flex-col">
         <p class="text-[14px] text-core-darkest font-extrabold">{{ props.token.symbol }}</p>
         <p class="text-[12px] text-core-light font-semibold">{{ props.token.name }}</p>

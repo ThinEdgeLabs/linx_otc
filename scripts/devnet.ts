@@ -6,11 +6,12 @@ import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs from 'fs'
 
-interface Token{
+interface Token {
   contractId: string
   name: string
   symbol: string
-  decimals: number
+  decimals: number,
+  logoUri: string
 }
 
 async function createToken(signer: SignerProvider, num: number): Promise<Token> {
@@ -34,7 +35,7 @@ async function createToken(signer: SignerProvider, num: number): Promise<Token> 
     initialFields: {
       token: deployResult.contractInstance.contractId,
       sender: account.address,
-      amount: expandTo18Decimals(1000000)
+      amount: expandTo18Decimals(1000000),
     },
     attoAlphAmount: ONE_ALPH
   })
@@ -50,7 +51,8 @@ async function createToken(signer: SignerProvider, num: number): Promise<Token> 
     contractId: deployResult.contractInstance.contractId,
     symbol,
     name,
-    decimals
+    decimals,
+    logoUri: '/images/tokens/nologo.png'
   }
 }
 

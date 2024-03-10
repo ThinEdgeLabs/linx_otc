@@ -20,7 +20,10 @@ function getAnnualisedInterest() {
     <div class="flex flex-col w-full">
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center">
         <div class="flex flex-row space-x-[10px] item-center">
-          <img :src="`./images/${loanOrder.order!.loanToken?.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
+          <img
+            :src="`./images/tokens/${loanOrder.order!.loanToken?.symbol}.png`"
+            class="w-[40px] h-[40px] rounded-full"
+          />
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">LENDING</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">
@@ -41,7 +44,7 @@ function getAnnualisedInterest() {
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-start items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img
-            :src="`./images/${loanOrder.order!.collateralToken?.symbol}.png`"
+            :src="`./images/tokens/${loanOrder.order!.collateralToken?.symbol}.png`"
             class="w-[40px] h-[40px] rounded-full"
           />
           <div class="flex flex-col text-start justify-center">

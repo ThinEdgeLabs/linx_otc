@@ -29,7 +29,7 @@ function calculateAPR() {
       <div class="flex flex-col">
         <div class="grid grid-cols-2 w-full items-center">
           <div class="flex flex-row space-x-[10px] item-center">
-            <img :src="`./images/${props.activity.offerToken}.png`" class="w-[60px] h-[60px] rounded-full" />
+            <img :src="`./images/tokens/${props.activity.offerToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
               <p class="text-[10px] lg:text-[12px] text-core-light">OFFER</p>
               <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
@@ -42,7 +42,7 @@ function calculateAPR() {
         <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
         <div class="grid grid-cols-2 w-full items-center">
           <div class="flex flex-row space-x-[10px] item-center">
-            <img :src="`./images/${props.activity.requestToken}.png`" class="w-[60px] h-[60px] rounded-full" />
+            <img :src="`./images/tokens/${props.activity.requestToken}.png`" class="w-[60px] h-[60px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
               <p class="text-[10px] lg:text-[12px] text-core-light">REQUEST</p>
               <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">

@@ -12,9 +12,15 @@ const props = defineProps<{
 const collateralToken = props.tokens.get(props.loan.collateralToken) ?? {
   symbol: 'unknown',
   name: 'unknown',
-  decimals: 18
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
 }
-const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown', name: 'unknown', decimals: 18 }
+const loanToken = props.tokens.get(props.loan.loanToken) ?? {
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
+}
 </script>
 
 <template>
@@ -26,7 +32,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown',
   </div> -->
   <div class="lg:pt-[30px] flex flex-row lg:flex-col">
     <div class="flex flex-row w-full items-center space-x-[15px]">
-      <img :src="`./images/${loanToken.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
+      <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col space-y-0 leading-snug">
         <p class="text-[10px]">LOAN</p>
         <div class="flex flex-row space-x-1 text-[14px] items-center">
@@ -37,7 +43,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown',
     </div>
     <div class="hidden lg:flex border-dashed border-r-2 border-core h-[20px] w-[20px]"></div>
     <div class="flex flex-row w-full items-center space-x-[15px]">
-      <img :src="`./images/${collateralToken.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
+      <img :src="`${collateralToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col items-center justify-center leading-snug">
         <div class="text-[10px]">COLLATERAL</div>
         <div class="flex flex-row space-x-1 text-[14px]">

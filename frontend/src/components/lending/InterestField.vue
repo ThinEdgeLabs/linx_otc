@@ -16,7 +16,7 @@ function setAmount(amount: number) {
       <div v-if="loanOrderStore.order?.loanToken" class="w-full flex flex-row justify-between items-center">
         <div class="w-full flex flex-row items-center space-x-[10px]">
           <img
-            :src="`./images/${loanOrderStore.order?.loanToken.symbol ?? 'NONE'}.png`"
+            :src="`${loanOrderStore.order?.loanToken.logoUri ?? './images/tokens/NONE.png'}`"
             class="w-[32px] h-[32px] rounded-full"
           />
           <input
@@ -36,7 +36,7 @@ function setAmount(amount: number) {
         </div>
       </div>
       <div v-else class="flex flex-row space-x-[10px] items-center">
-        <img :src="`./images/NONE.png`" class="w-[32px] h-[32px] rounded-full" />
+        <img :src="`./images/tokens/NONE.png`" class="w-[32px] h-[32px] rounded-full" />
         <div>Choose Token</div>
       </div>
     </div>

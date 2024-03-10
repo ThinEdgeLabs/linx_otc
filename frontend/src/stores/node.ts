@@ -38,7 +38,8 @@ export const useNodeStore = defineStore('nodeProvider', () => {
         name: 'Alephium',
         symbol: 'ALPH',
         decimals: 18,
-        balance: parseInt(balance.balance)
+        balance: parseInt(balance.balance),
+        logoUri: '/images/tokens/ALPH.png'
       })
     }
     for (const i in balance.tokenBalances) {

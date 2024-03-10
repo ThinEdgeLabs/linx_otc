@@ -13,9 +13,15 @@ const props = defineProps<{
 const collateralToken = props.tokens.get(props.loan.collateralToken) ?? {
   symbol: 'unknown',
   name: 'unknown',
-  decimals: 18
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
 }
-const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown', name: 'unknown', decimals: 18 }
+const loanToken = props.tokens.get(props.loan.loanToken) ?? {
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
+}
 </script>
 
 <template>
@@ -28,7 +34,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown',
         </div>
       </div> -->
       <div class="w-full flex flex-row items-center space-x-[10px] text-[14px]">
-        <img :src="`./images/${loanToken?.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
+        <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
         <div class="flex flex-row items-center space-x-1">
           <div class="font-extrabold text-core-lightest">
             {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
@@ -37,7 +43,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? { symbol: 'unknown',
         </div>
       </div>
       <div class="w-full flex flex-row items-center space-x-[10px] text-[14px]">
-        <img :src="`./images/${collateralToken?.symbol}.png`" class="w-[40px] h-[40px] rounded-full" />
+        <img :src="`${collateralToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
         <div class="flex flex-row items-center space-x-1">
           <div class="font-extrabold text-core-lightest">
             {{ prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) }}

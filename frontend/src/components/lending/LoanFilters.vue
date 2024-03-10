@@ -24,7 +24,8 @@ const anyToken: Token = {
   name: 'Any token',
   symbol: 'NONE',
   contractId: '',
-  decimals: 18
+  decimals: 18,
+  logoUri: '/images/tokens/NONE.png'
 }
 
 tokenList.unshift(anyToken)

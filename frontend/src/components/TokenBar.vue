@@ -118,7 +118,7 @@ function checkSelectedLoanTokens() {
         <div class="flex flex-row space-x-[10px] items-center w-full">
           <img
             @click="toggleDropDown()"
-            :src="`./images/${selectedToken?.symbol ?? 'NONE'}.png`"
+            :src="`${selectedToken?.logoUri ?? './images/tokens/NONE.png'}`"
             class="w-[32px] h-[32px] rounded-full"
           />
           <div v-if="selectedToken" class="flex flex-row items-center space-x-[10px] w-full">
