@@ -15,11 +15,10 @@ import ComponentTitle from '@/components/ComponentTitle.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
 import { LendingMarketplaceHelper } from '../../../../shared/lending-marketplace'
 import { getMarketplaceConfig } from '@/config'
-import { expandToDecimals } from '@/functions/utils'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useNodeStore } from '@/stores/node'
 import type { Status } from '@/components/ApproveWallet.vue'
-import type { SignerProvider } from '@alephium/web3'
+import { convertAmountWithDecimals, type SignerProvider } from '@alephium/web3'
 
 const loanOfferStore = useLoanOrderStore()
 const accountStore = useAccountStore()
@@ -43,8 +42,8 @@ async function createLoan() {
   const collateralTokenId = loanOfferStore.order!.collateralToken!.contractId
   const loanTokenDecimals = loanOfferStore.order!.loanToken!.decimals
   const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
-  const lendingAmount = expandToDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
-  const collateralAmount = expandToDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
+  const lendingAmount = convertAmountWithDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
+  const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
   //TODO: Convert to basis points
   const interestRate = BigInt(loanOfferStore.order!.interest)
   const duration = BigInt(loanOfferStore.order!.duration)
@@ -55,8 +54,8 @@ async function createLoan() {
       accountStore.signer as SignerProvider,
       lendingTokenId,
       collateralTokenId,
-      lendingAmount,
-      collateralAmount,
+      lendingAmount!,
+      collateralAmount!,
       interestRate,
       duration
     )
