@@ -1,57 +1,39 @@
 import { useAccountStore } from '@/stores/account'
-import { useNodeStore } from '@/stores/node'
-import type { Token } from '@/types'
-import { ALPH_TOKEN_ID, hexToString } from '@alephium/web3'
-import { ref } from 'vue'
+import { node } from '@alephium/web3'
+import { storeToRefs } from 'pinia'
+import { ref, watchEffect } from 'vue'
 
-export interface Balance {
-  amount: string
-}
-
-export function useBalance() {
-  const isLoading = ref<boolean>(true)
+export function useBalance(address?: string) {
+  const isLoading = ref<boolean>(false)
   const error = ref<any>(undefined)
-  const balance = ref<(Token & Balance)[] | undefined>(undefined)
+  const balance = ref<node.Balance | undefined>()
 
-  const { nodeProvider } = useNodeStore()
-  const { account } = useAccountStore()
+  const { account, nodeProvider } = storeToRefs(useAccountStore())
 
-  if (!account) {
-    error.value = 'Account not found'
-    return {
-      isLoading,
-      error,
-      balance
-    }
-  }
-
-  isLoading.value = true
-  nodeProvider?.addresses
-    .getAddressesAddressBalance(account?.address)
-    .then(async (balanceData) => {
-      balance.value = []
-      balance.value.push({
-        contractId: ALPH_TOKEN_ID,
-        name: 'Alephium',
-        symbol: 'ALPH',
-        decimals: 18,
-        amount: balanceData.balance
-      })
-      for (const tokenBalance of balanceData.tokenBalances ?? []) {
-        const tokenData = await nodeProvider.fetchFungibleTokenMetaData(tokenBalance.id)
-        balance.value.push({
-          contractId: tokenBalance.id,
-          name: hexToString(tokenData.name),
-          symbol: hexToString(tokenData.symbol),
-          decimals: tokenData.decimals,
-          amount: tokenBalance.amount
-        })
+  watchEffect(() => {
+    if (!account.value) {
+      error.value = 'Account not connected'
+      balance.value = undefined
+      return {
+        isLoading,
+        error,
+        balance
       }
-      isLoading.value = false
-    })
-    .catch((e) => {
-      error.value = e
-    })
+    }
+
+    isLoading.value = true
+    nodeProvider?.value.addresses
+      .getAddressesAddressBalance(address ?? account?.value.address)
+      .then(async (data) => {
+        balance.value = data
+      })
+      .catch((e) => {
+        error.value = e
+      })
+      .finally(() => {
+        isLoading.value = false
+      })
+  })
 
   return {
     isLoading,

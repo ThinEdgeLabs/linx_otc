@@ -1,34 +1,60 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, toValue, watchEffect } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
-import { useRequesterBalanceStore } from '@/stores/requesterBalance'
-import { useReceiverBalanceStore } from '@/stores/receiverBalance'
 import TokenDropdownItem from '@/components/TokenDropdownItem.vue'
 import NumberInput from '@/components/NumberInput.vue'
 import MaxButton from '@/components/MaxButton.vue'
-import type { TokenData } from '@/stores/node'
-import { parseBalance } from '@/functions/utils'
 import { getTokens } from '@/config'
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import { onMounted } from 'vue'
 import type { Token } from '@/types/token'
-
-onMounted(() => checkSelectedLoanTokens())
+import { useBalance } from '@/composables/balance'
+import { ALPH_TOKEN_ID, convertAmountWithDecimals, prettifyExactAmount } from '@alephium/web3'
 
 const props = defineProps<{
   isSender: boolean
   offerType: 'trade' | 'loan'
 }>()
 
-const tokenStore = props.isSender ? useRequesterBalanceStore() : useReceiverBalanceStore()
+onMounted(() => {
+  watchEffect(() => {
+    if (!toValue(isLoading)) {
+      if (toValue(balance)) {
+        const alph: Token | undefined = tokens.value.find((e) => e.contractId === ALPH_TOKEN_ID)
+        alph!.balance = {
+          balance: balance.value!.balance,
+          balanceHint: balance.value!.balanceHint
+        }
+        balance.value!.tokenBalances?.forEach((tokenBalance) => {
+          const token = tokens.value.find((e) => e.contractId === tokenBalance.id)
+          if (token) {
+            token.balance = {
+              balance: tokenBalance.amount,
+              balanceHint: ` ${prettifyExactAmount(tokenBalance.amount, token.decimals)!} ${token.symbol}`
+            }
+          }
+        })
+      } else {
+        // Reset any previously set balances
+        tokens.value.forEach((token) => {
+          token.balance = undefined
+        })
+      }
+      checkSelectedLoanTokens()
+    }
+  })
+})
 
 const orderStore = useOrderStore()
 const loanStore = useLoanOrderStore()
 
-const selectedToken = ref<TokenData | undefined | Token>()
-const dropdownOpen = ref(false)
+const { balance, isLoading } = useBalance()
 
-function selectToken(token: TokenData | Token) {
+const selectedToken = ref<Token | undefined>()
+const dropdownOpen = ref(false)
+const tokens = ref<Token[]>(getTokens())
+
+function selectToken(token: Token) {
   if (token.symbol != 'NONE') {
     dropdownOpen.value = false
     selectedToken.value = token
@@ -58,29 +84,21 @@ function toggleDropDown() {
   dropdownOpen.value = !dropdownOpen.value
 }
 
-function onAmountChange(amount: number) {
+function onAmountChange(value: number) {
+  const amount = convertAmountWithDecimals(value, selectedToken.value!.decimals)
+  if (!amount) throw new Error('Invalid amount')
+
+  if (amount > BigInt(selectedToken.value!.balance!.balance)) {
+    throw new Error('Insufficient Balance')
+  }
+
   if (props.offerType === 'trade') {
-    if (amount > parseBalance((selectedToken.value! as TokenData).balance, selectedToken.value!.decimals)) {
-      // amountError.value = 'Insufficient Balance'
-      // bridgeStore.data.isFormValid = false
-    } else {
-      const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-      orderStore.setFromAmount(selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount))
-    }
+    orderStore.setFromAmount(value)
   } else {
     if (props.isSender) {
-      if (amount > parseBalance((selectedToken.value! as TokenData).balance, selectedToken.value!.decimals)) {
-        // amountError.value = 'Insufficient Balance'
-        // bridgeStore.data.isFormValid = false
-      } else {
-        const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-        loanStore.setLoanAmount(selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount))
-      }
+      loanStore.setLoanAmount(value)
     } else {
-      const parsedAmount = amount.toFixed(selectedToken.value!.decimals)
-      loanStore.setCollateralAmount(
-        selectedToken.value!.decimals > 0 ? parseFloat(parsedAmount) : parseInt(parsedAmount)
-      )
+      loanStore.setCollateralAmount(value)
     }
   }
 }
@@ -88,10 +106,19 @@ function onAmountChange(amount: number) {
 function checkSelectedLoanTokens() {
   if (props.offerType === 'loan' && loanStore.order) {
     if (props.isSender && loanStore.order!.loanToken && !selectedToken.value) {
-      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.loanToken?.symbol)
+      selectedToken.value = tokens.value.find((e) => e.symbol === loanStore.order!.loanToken?.symbol)
     } else if (loanStore.order!.collateralToken && !selectedToken.value) {
-      selectedToken.value = getTokens().find((e) => e.symbol === loanStore.order!.collateralToken?.symbol)
+      selectedToken.value = tokens.value.find((e) => e.symbol === loanStore.order!.collateralToken?.symbol)
     }
+  }
+}
+
+function onMaxButtonClick() {
+  const token = toValue(selectedToken)
+  if (props.offerType === 'trade') {
+    orderStore.setFromAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+  } else {
+    loanStore.setLoanAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
   }
 }
 </script>
@@ -139,14 +166,7 @@ function checkSelectedLoanTokens() {
               "
               @update:model-value="onAmountChange"
             />
-            <MaxButton
-              v-if="props.offerType === 'trade' || props.isSender"
-              @click="
-                props.offerType === 'trade'
-                  ? orderStore.setFromAmount(parseBalance((selectedToken as TokenData).balance, selectedToken.decimals))
-                  : loanStore.setLoanAmount(parseBalance((selectedToken as TokenData).balance, selectedToken.decimals))
-              "
-            />
+            <MaxButton v-if="props.offerType === 'trade' || props.isSender" @click="onMaxButtonClick" />
           </div>
           <p v-else>{{ 'Select a token' }}</p>
         </div>
@@ -155,7 +175,7 @@ function checkSelectedLoanTokens() {
       <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
-            v-for="token in props.offerType === 'loan' && !props.isSender ? getTokens() : tokenStore.balance"
+            v-for="token in props.offerType === 'loan' && !props.isSender ? getTokens() : tokens"
             v-bind:key="token.name"
             :token="token"
             :is-offer="props.isSender"
