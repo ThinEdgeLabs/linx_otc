@@ -4,6 +4,8 @@ import { useAccountStore } from '@/stores/account'
 import { useLoginStore } from '@/stores/login'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import { WalletConnectModal } from '@walletconnect/modal'
+import { getMarketplaceConfig } from '@/config'
+import { SignerProvider } from '@alephium/web3'
 
 export const useWalletConnectStore = defineStore('walletconnect', () => {
   const wcIsConnected = ref(false)
@@ -54,9 +56,10 @@ export const useWalletConnectStore = defineStore('walletconnect', () => {
   }
 
   async function initWC() {
+    const marketplaceConfig = getMarketplaceConfig()
     wcProvider.value = await WalletConnectProvider.init({
       projectId: projectID,
-      networkId: 'mainnet',
+      networkId: marketplaceConfig.network,
       onDisconnected() {
         console.log('disconnected walletconnect')
       }
@@ -66,7 +69,7 @@ export const useWalletConnectStore = defineStore('walletconnect', () => {
   async function setAccount() {
     const account = await wcProvider.value!.getSelectedAccount()
     if (account) {
-      accountStore.setAccount(account.address, account.group, 'WalletConnect', account.publicKey)
+      accountStore.setAccount(account.address, account.group, 'WalletConnect', account.publicKey, wcProvider.value! as SignerProvider, wcProvider.value!.explorerProvider, wcProvider.value!.nodeProvider)
       wcIsConnected.value = true
       if (loginStore.showModal) {
         loginStore.toggleModal()

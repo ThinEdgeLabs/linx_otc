@@ -4,6 +4,8 @@ import { ALPH_TOKEN_ID, type NetworkId, type Number256 } from '@alephium/web3'
 import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
+export const tradeFee = 0.007
+
 export const mainnetTokens: Token[] = [
   {
     symbol: 'ALPH',

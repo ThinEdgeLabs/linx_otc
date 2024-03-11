@@ -5,16 +5,63 @@ import PageTitle from '@/components/PageTitle.vue'
 import AddressBar from '@/components/AddressBar.vue'
 import TokenBar from '@/components/TokenBar.vue'
 import HorizontalDividerVue from '@/components/HorizontalDivider.vue'
-import CustomeButton from '@/components/CustomButton.vue'
+import CustomButton from '@/components/CustomButton.vue'
 import AgreeToTerms from '@/components/AgreeToTerms.vue'
+import TradePreview from '@/components/trade/TradePreview.vue'
+import ApproveTrade from '@/components/ApproveTrade.vue'
 import { useLoginStore } from '@/stores/login'
+import { ref } from 'vue'
+import { useOrderStore } from '@/stores/tradeOrder'
+import type { Status } from '../ApproveWallet.vue'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()
+const tradeStore = useOrderStore()
+
+const status = ref<Status | undefined>(undefined)
+const txId = ref<string | undefined>(undefined)
+const tradeLink = ref<string | undefined>(undefined)
+
+function reset() {
+  status.value = undefined
+  txId.value = undefined
+  tradeStore.resetOrder()
+}
+
+async function createTrade() {
+  try {
+    status.value = 'approve'
+    const trade = await tradeStore.createOrder()
+    const unsignedTx = {
+      signerAddress: tradeStore.order!.from,
+      unsignedTx: trade.unsignedTx
+    }
+    try {
+      const sig = await account.signer!.signUnsignedTx(unsignedTx)
+      tradeLink.value = btoa(
+        JSON.stringify({
+          tx: trade.unsignedTx,
+          sigs: [sig.signature]
+        })
+      )
+      status.value = 'signed'
+    } catch (e) {
+      console.log(e)
+      status.value = 'denied'
+    }
+    // Create the request and open wallet
+  } catch (e) {
+    console.error(e)
+    status.value = 'denied'
+  }
+}
 </script>
 
 <template>
-  <section class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]">
+  <section
+    v-if="status === undefined"
+    class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]"
+  >
     <PageTitle
       :title="account.account?.isConnected ? 'Create P2P Order' : 'P2P Trade'"
       :description="'Make use of the atomic swap feature on Alephium to trade directly with someone.'"
@@ -28,12 +75,22 @@ const loginStore = useLoginStore()
       <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" />
     </div>
     <HorizontalDividerVue />
-    <CustomeButton
+    <CustomButton
       :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
       :open="false"
       :class="'w-full lg:w-[228px]'"
-      @click="account.account?.isConnected ? {} : loginStore.toggleModal()"
+      @click="account.account?.isConnected ? createTrade() : loginStore.toggleModal()"
     />
     <AgreeToTerms />
+  </section>
+  <section v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
+    <ApproveTrade
+      :status="status ?? 'approve'"
+      @update:cancel="reset"
+      @update:finished="reset"
+      @update:retry="createTrade"
+      :link="tradeLink"
+    />
+    <TradePreview />
   </section>
 </template>

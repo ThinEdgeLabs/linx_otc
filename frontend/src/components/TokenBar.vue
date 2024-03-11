@@ -61,9 +61,9 @@ function selectToken(token: Token) {
     if (props.offerType === 'trade') {
       if (orderStore.order) {
         if (props.isSender) {
-          orderStore.setFromToken(selectedToken.value.symbol)
+          orderStore.setFromToken(selectedToken.value)
         } else {
-          orderStore.setToToken(selectedToken.value.symbol)
+          orderStore.setToToken(selectedToken.value)
         }
       }
     } else {
@@ -93,7 +93,11 @@ function onAmountChange(value: number) {
   }
 
   if (props.offerType === 'trade') {
-    orderStore.setFromAmount(value)
+    if (props.isSender) {
+      orderStore.setFromAmount(value)
+    } else {
+      orderStore.setAmountTo(value)
+    }
   } else {
     if (props.isSender) {
       loanStore.setLoanAmount(value)
@@ -116,7 +120,11 @@ function checkSelectedLoanTokens() {
 function onMaxButtonClick() {
   const token = toValue(selectedToken)
   if (props.offerType === 'trade') {
-    orderStore.setFromAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+    if (props.isSender) {
+      orderStore.setFromAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+    } else {
+      orderStore.setAmountTo(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+    }
   } else {
     loanStore.setLoanAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
   }

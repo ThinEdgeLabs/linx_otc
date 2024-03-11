@@ -3,6 +3,7 @@ import { shortenString } from '@/functions/stringUtils'
 import { useOrderStore } from '@/stores/tradeOrder'
 import { useNodeStore } from '@/stores/node'
 import TextInput from '@/components/TextInput.vue'
+import { addressFromPublicKey } from '@alephium/web3'
 
 const orderStore = useOrderStore()
 
@@ -20,19 +21,20 @@ function pasteAddress() {
   })
 }
 
-async function handleAddress(address: string) {
+async function handleAddress(pubKey: string) {
   // TODO: fetch group for address
   const nodeStore = useNodeStore()
+  const address = addressFromPublicKey(pubKey)
   const group = await nodeStore.getGroupForAddress(address)
   nodeStore.getBalance(address, props.isSender)
-  orderStore.setReceiver(address, group.group)
+  orderStore.setReceiver(address, group.group, pubKey)
 }
 </script>
 
 <template>
   <section class="flex flex-col space-y-[10px] text-[14px]">
     <div class="font-extrabold text-core-light">
-      {{ props.isSender ? 'Your address' : 'Receiver address' }}
+      {{ props.isSender ? 'Your address' : 'Receiver Public Key' }}
     </div>
     <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core">
       <div class="flex flex-row space-x-[10px] items-center w-full">
