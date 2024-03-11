@@ -6,7 +6,7 @@ import { tradeFee } from '@/config'
 import { useNodeStore } from './node'
 import { useAccountStore } from './account'
 
-interface Order {
+export interface Order {
   from: string
   groupFrom: number
   to: string | undefined
@@ -65,42 +65,61 @@ export const useOrderStore = defineStore('order', () => {
     const node = useNodeStore()
     const account = useAccountStore()
 
-    const offerAmount = convertAmountWithDecimals(order.value!.amountFrom * (1 -tradeFee), order.value!.tokenFrom!.decimals)
-    const requestAmount = convertAmountWithDecimals(order.value!.amountTo * (1 - tradeFee), order.value!.tokenTo!.decimals)
-    const feeRequester = convertAmountWithDecimals(order.value!.amountFrom, order.value!.tokenFrom!.decimals) - offerAmount
-    const feeRecipient = convertAmountWithDecimals(order.value!.amountTo, order.value!.tokenTo!.decimals) - requestAmount
+    const offerAmount = convertAmountWithDecimals(
+      order.value!.amountFrom * (1 - tradeFee),
+      order.value!.tokenFrom!.decimals
+    )
+    const requestAmount = convertAmountWithDecimals(
+      order.value!.amountTo * (1 - tradeFee),
+      order.value!.tokenTo!.decimals
+    )
+    const feeRequester =
+      convertAmountWithDecimals(order.value!.amountFrom, order.value!.tokenFrom!.decimals) - offerAmount
+    const feeRecipient =
+      convertAmountWithDecimals(order.value!.amountTo, order.value!.tokenTo!.decimals) - requestAmount
 
     const tx = {
       from: [
         // From sender to receiver for now without the fee
-        { fromPublicKey: account.account!.publicKey,
-        destinations: [
-          {
-            address: order.value!.to,
-            attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? offerAmount!.toString() : null,
-            // tokens: order.value.tokenFrom.symbol != 'ALPH' ?[
-            //   { id: order.value.tokenFrom!.contractId, amount: offerAmount.toString() }
-            // ] : null
-          }
-        ]
+        {
+          fromPublicKey: account.account!.publicKey,
+          destinations: [
+            {
+              address: order.value!.to,
+              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? offerAmount!.toString() : null
+              // tokens: order.value.tokenFrom.symbol != 'ALPH' ?[
+              //   { id: order.value.tokenFrom!.contractId, amount: offerAmount.toString() }
+              // ] : null
+            }
+          ]
         },
         {
           fromPublicKey: order.value!.toPubKey,
           destinations: [
             {
               address: order.value!.from,
-              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? requestAmount!.toString() : null,
+              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? requestAmount!.toString() : null
               // tokens: order.value.tokenTo.symbol != 'ALPH' ?[
               //   { id: order.value.tokenTo!.contractId, amount: requestAmount.toString() }
               // ] : null
             }
           ]
-        
         }
-        ]}
-        const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(tx)
-        return unsignedTx
+      ]
     }
+    const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(tx)
+    return unsignedTx
+  }
 
-  return { order, setFromToken, setToToken, setFromAmount, setAmountTo, setReceiver, startNewOrder, resetOrder, createOrder }
+  return {
+    order,
+    setFromToken,
+    setToToken,
+    setFromAmount,
+    setAmountTo,
+    setReceiver,
+    startNewOrder,
+    resetOrder,
+    createOrder
+  }
 })

@@ -13,6 +13,7 @@ import { useLoginStore } from '@/stores/login'
 import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import type { Status } from '../ApproveWallet.vue'
+import { domainURL } from '@/config'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()
@@ -36,14 +37,17 @@ async function createTrade() {
       signerAddress: tradeStore.order!.from,
       unsignedTx: trade.unsignedTx
     }
+
     try {
       const sig = await account.signer!.signUnsignedTx(unsignedTx)
-      tradeLink.value = btoa(
+      const encodedTx = btoa(
         JSON.stringify({
-          tx: trade.unsignedTx,
+          data: tradeStore.order,
+          tx: trade,
           sigs: [sig.signature]
         })
       )
+      tradeLink.value = `${domainURL}/trading/${encodedTx}`
       status.value = 'signed'
     } catch (e) {
       console.log(e)

@@ -4,6 +4,7 @@ import LendingView from '@/views/LendingView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import HomeView from '@/views/HomeView.vue'
 import FaqView from '@/views/FaqView.vue'
+import ManageTrade from '@/views/ManageTrade.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,11 @@ const router = createRouter({
       path: '/trading',
       name: 'trading',
       component: TradeView
+    },
+    {
+      path: '/trading/:trade',
+      name: 'complete_trade',
+      component: ManageTrade
     },
     {
       path: '/lending',

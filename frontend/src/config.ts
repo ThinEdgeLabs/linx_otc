@@ -5,6 +5,7 @@ import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.007
+export const domainURL = 'localhost:5173'
 
 export const mainnetTokens: Token[] = [
   {
@@ -184,7 +185,7 @@ export const mainnetTokens: Token[] = [
   }
 ]
 
-const testnetTokens: Token[] = [
+export const testnetTokens: Token[] = [
   {
     symbol: 'ALPH',
     name: 'Alephium',

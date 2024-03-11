@@ -12,7 +12,7 @@ const props = defineProps({
 
 <template>
   <div class="w-full">
-    <p class="text-[34px] text-core-lightest font-extrabold">{{ props.title }}</p>
+    <p class="text-[22px] text-core-lightest font-extrabold">{{ props.title }}</p>
     <p v-if="props.description" class="text-[14px] text-core-light">{{ props.description }}</p>
   </div>
 </template>
