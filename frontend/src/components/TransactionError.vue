@@ -10,6 +10,11 @@ const props = defineProps({
   description: {
     type: String,
     required: true
+  },
+  onlyShowBack: {
+    type: Boolean,
+    default: false,
+    required: false
   }
 })
 </script>
@@ -26,12 +31,24 @@ const props = defineProps({
       <p class="text-[16px] text-core-light">{{ props.description }}</p>
     </div>
     <div
+      v-if="!props.onlyShowBack"
       class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px] items-center justify-center"
     >
       <CustomButton :title="'Retry'" @click="$emit('update:retry')" :class="'w-full lg:w-[228px]'" />
       <CustomButton
         :open="true"
         :title="'Cancel'"
+        @click="$emit('update:cancel')"
+        :class="'w-full lg:w-[228px] border-0 bg-core-darkest text-core-lightest'"
+      />
+    </div>
+    <div
+      v-else
+      class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px] items-center justify-center"
+    >
+      <CustomButton
+        :open="true"
+        :title="'Go Back'"
         @click="$emit('update:cancel')"
         :class="'w-full lg:w-[228px] border-0 bg-core-darkest text-core-lightest'"
       />
