@@ -38,3 +38,7 @@ export function calculateApr(loan: Loan) {
   const totalInterest = (loan.interest * loan.loanAmount) / 10000n
   return ((totalInterest * 10n ** 18n) / loan.loanAmount / loan.duration) * 365n * 100n
 }
+
+export function convertBasisPointsToPercentage(basisPoints: bigint | number) {
+  return `${Number(basisPoints) / 100}%`
+}
