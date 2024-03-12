@@ -272,7 +272,7 @@ export const getTokens = () => {
       decimals: 18,
       logoUri: '/images/tokens/ALPH.png'
     }
-    const tokens = Array.from(devnetTokens)
+    const tokens = Array.from(devnetTokens as Token[])
     tokens.unshift(alph)
     return tokens
   } else {
