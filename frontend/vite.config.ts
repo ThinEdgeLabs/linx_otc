@@ -8,9 +8,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 export default defineConfig({
   plugins: [
     vue(),
-    nodePolyfills({
-      exclude: ['buffer']
-    })
+    nodePolyfills()
   ],
   resolve: {
     alias: {

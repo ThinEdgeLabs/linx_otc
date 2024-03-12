@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 import { useAccountStore } from '@/stores/account'
 import { useLoginStore } from '@/stores/login'
@@ -9,7 +9,7 @@ import { SignerProvider } from '@alephium/web3'
 
 export const useWalletConnectStore = defineStore('walletconnect', () => {
   const wcIsConnected = ref(false)
-  const wcProvider = ref<WalletConnectProvider | undefined>(undefined)
+  const wcProvider = shallowRef<WalletConnectProvider | undefined>(undefined)
 
   const accountStore = useAccountStore()
   const loginStore = useLoginStore()

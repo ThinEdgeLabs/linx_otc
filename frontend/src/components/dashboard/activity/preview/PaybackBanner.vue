@@ -24,7 +24,7 @@ const props = defineProps({
     <div class="flex flex-col text-end">
       <p class="text-[10px] text-core-light">FROM</p>
       <p class="text-[14px] font-extrabold text-core-lightest">
-        {{ shortenString(props.address, 12) }}
+        {{ shortenString(props.address!, 12) }}
       </p>
     </div>
   </div>

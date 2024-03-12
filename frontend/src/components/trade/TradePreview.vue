@@ -55,7 +55,7 @@ function calculateResult() {
         <div class="flex flex-col text-end">
           <p class="text-[10px] text-core-light">TO</p>
           <p class="text-[14px] font-extrabold text-core-lightest">
-            {{ shortenString(tradeStore.order!.to, 12) }}
+            {{ shortenString(tradeStore.order!.to!, 12) }}
           </p>
         </div>
       </div>

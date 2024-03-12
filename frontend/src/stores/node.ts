@@ -32,31 +32,31 @@ export const useNodeStore = defineStore('nodeProvider', () => {
     const totalBalances: Array<Token & Balance> = []
     const balance = await nodeProvider.value!.addresses.getAddressesAddressBalance(address)
     // Add Alph balance
-    if (balance.balance.length > 0) {
-      totalBalances.push({
-        contractId: ALPH_TOKEN_ID,
-        name: 'Alephium',
-        symbol: 'ALPH',
-        decimals: 18,
-        balance: parseInt(balance.balance),
-        logoUri: '/images/tokens/ALPH.png'
-      })
-    }
-    for (const i in balance.tokenBalances) {
-      // Fetch token metadata
-      const tokenId = balance.tokenBalances[i].id
-      const tokenData = await nodeProvider.value!.fetchFungibleTokenMetaData(tokenId)
-      const tokenName = hexToString(tokenData.name)
-      const tokenSymbol = hexToString(tokenData.symbol)
-      totalBalances.push({
-        contractId: tokenId,
-        name: tokenName,
-        symbol: tokenSymbol,
-        decimals: tokenData.decimals,
-        balance: balance.tokenBalances[i].amount
-      })
-    }
-    balanceStore.setBalance(totalBalances)
+    // if (balance.balance.length > 0) {
+    //   totalBalances.push({
+    //     contractId: ALPH_TOKEN_ID,
+    //     name: 'Alephium',
+    //     symbol: 'ALPH',
+    //     decimals: 18,
+    //     balance: parseInt(balance.balance),
+    //     logoUri: '/images/tokens/ALPH.png'
+    //   })
+    // }
+    // for (const i in balance.tokenBalances) {
+    //   // Fetch token metadata
+    //   const tokenId = balance.tokenBalances[i].id
+    //   const tokenData = await nodeProvider.value!.fetchFungibleTokenMetaData(tokenId)
+    //   const tokenName = hexToString(tokenData.name)
+    //   const tokenSymbol = hexToString(tokenData.symbol)
+    //   totalBalances.push({
+    //     contractId: tokenId,
+    //     name: tokenName,
+    //     symbol: tokenSymbol,
+    //     decimals: tokenData.decimals,
+    //     balance: balance.tokenBalances[i].amount
+    //   })
+    // }
+    //balanceStore.setBalance(totalBalances)
   }
 
   async function getGroupForAddress(address: string) {

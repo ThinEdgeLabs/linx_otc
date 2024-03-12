@@ -5,6 +5,7 @@ import { convertAmountWithDecimals, addressFromPublicKey } from '@alephium/web3'
 import { tradeFee } from '@/config'
 import { useNodeStore } from './node'
 import { useAccountStore } from './account'
+import { node } from '@alephium/web3'
 
 export interface Order {
   from: string
@@ -74,9 +75,9 @@ export const useOrderStore = defineStore('order', () => {
       order.value!.tokenTo!.decimals
     )
     const feeRequester =
-      convertAmountWithDecimals(order.value!.amountFrom, order.value!.tokenFrom!.decimals) - offerAmount
+      convertAmountWithDecimals(order.value!.amountFrom, order.value!.tokenFrom!.decimals)! - offerAmount!
     const feeRecipient =
-      convertAmountWithDecimals(order.value!.amountTo, order.value!.tokenTo!.decimals) - requestAmount
+      convertAmountWithDecimals(order.value!.amountTo, order.value!.tokenTo!.decimals)! - requestAmount!
 
     const tx = {
       from: [
@@ -107,7 +108,7 @@ export const useOrderStore = defineStore('order', () => {
         }
       ]
     }
-    const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(tx)
+    const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(tx as node.BuildMultiAddressesTransaction)
     return unsignedTx
   }
 
