@@ -30,14 +30,14 @@ const step = ref(0)
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 
-const collateralToken = getTokens().find(e => e.contractId === props.loan.collateralToken) ?? {
+const collateralToken = getTokens().find((e) => e.contractId === props.loan.collateralToken) ?? {
   symbol: 'unknown',
   name: 'unknown',
   decimals: 18,
   logoUri: '/images/tokens/nologo.png'
 }
 
-const loanToken = getTokens().find(e => e.contractId === props.loan.loanToken) ?? {
+const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken) ?? {
   symbol: 'unknown',
   name: 'unknown',
   decimals: 18,
@@ -63,7 +63,9 @@ const loanToken = getTokens().find(e => e.contractId === props.loan.loanToken) ?
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
-                    <p class="font-extrabold text-core-lightest">{{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}</p>
+                    <p class="font-extrabold text-core-lightest">
+                      {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
+                    </p>
                     <p class="text-core-light">{{ loanToken.symbol }}</p>
                   </div>
                 </div>
@@ -88,10 +90,7 @@ const loanToken = getTokens().find(e => e.contractId === props.loan.loanToken) ?
             <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
             <div class="grid grid-cols-2 w-full items-center">
               <div class="flex flex-row space-x-[10px] item-center">
-                <img
-                  :src="`${collateralToken.logoUri}`"
-                  class="w-[60px] h-[60px] rounded-full"
-                />
+                <img :src="`${collateralToken.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
                 <div class="flex flex-col text-start justify-center">
                   <p class="text-[10px] lg:text-[12px] text-core-light">COLLATERAL</p>
                   <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
@@ -131,7 +130,13 @@ const loanToken = getTokens().find(e => e.contractId === props.loan.loanToken) ?
         </p>
       </div>
     </div>
-    <ApproveWallet v-else @update:cancel="step--" @update:finished="$emit('update:closeOffer')" :status="status" :tx-id="txId" />
+    <ApproveWallet
+      v-else
+      @update:cancel="step--"
+      @update:finished="$emit('update:closeOffer')"
+      :status="status"
+      :tx-id="txId"
+    />
     <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg space-y-[30px]">
       <div class="flex flex-col">
         <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
@@ -143,7 +148,9 @@ const loanToken = getTokens().find(e => e.contractId === props.loan.loanToken) ?
           <div class="flex flex-col text-start justify-center">
             <p class="text-[10px] text-core-light">LENDING</p>
             <div class="flex flex-row items-center space-x-[10px] text-[14px]">
-              <p class="font-extrabold text-core-lightest">{{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
+              </p>
               <p class="text-core-light">{{ loanToken.symbol }}</p>
             </div>
           </div>

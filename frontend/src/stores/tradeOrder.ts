@@ -108,7 +108,9 @@ export const useOrderStore = defineStore('order', () => {
         }
       ]
     }
-    const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(tx as node.BuildMultiAddressesTransaction)
+    const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
+      tx as node.BuildMultiAddressesTransaction
+    )
     return unsignedTx
   }
 

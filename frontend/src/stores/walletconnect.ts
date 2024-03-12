@@ -69,7 +69,15 @@ export const useWalletConnectStore = defineStore('walletconnect', () => {
   async function setAccount() {
     const account = await wcProvider.value!.getSelectedAccount()
     if (account) {
-      accountStore.setAccount(account.address, account.group, 'WalletConnect', account.publicKey, wcProvider.value! as SignerProvider, wcProvider.value!.explorerProvider, wcProvider.value!.nodeProvider)
+      accountStore.setAccount(
+        account.address,
+        account.group,
+        'WalletConnect',
+        account.publicKey,
+        wcProvider.value! as SignerProvider,
+        wcProvider.value!.explorerProvider,
+        wcProvider.value!.nodeProvider
+      )
       wcIsConnected.value = true
       if (loginStore.showModal) {
         loginStore.toggleModal()
