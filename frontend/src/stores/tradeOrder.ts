@@ -63,16 +63,17 @@ export const useOrderStore = defineStore('order', () => {
     order.value = undefined
   }
 
-  function returnGasComponent(from:boolean) {
-    if (from) {
+  function returnGasComponent() {
+    const destinations = []
+
       if (order.value?.tokenFrom?.symbol != 'ALPH') {
-        return { address: order.value!.from, attoAlphAmount: DUST_AMOUNT }
-      } 
-    } else {
-      if (order.value?.tokenTo?.symbol != 'ALPH') {
-        return { address: order.value!.from, attoAlphAmount: DUST_AMOUNT }
+        destinations.push({ address: order.value!.from, attoAlphAmount: DUST_AMOUNT })
       }
-    }
+
+      if (order.value?.tokenTo?.symbol != 'ALPH') {
+        destinations.push({ address: order.value!.from, attoAlphAmount: DUST_AMOUNT })
+      }
+      return destinations
   }
 
   async function createOrder() {
@@ -141,17 +142,19 @@ export const useOrderStore = defineStore('order', () => {
         },
         {
           fromPublicKey: gasPayer.publicKey,
-          destinations: [
-            returnGasComponent(true),
-            returnGasComponent(false)
-          ],
+          attoAlphAmount: DUST_AMOUNT,
+          destinations: 
+            returnGasComponent(),
+
           gasAmount: 75000,
         }
       ]
     }
+    console.log(tx)
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )
+    console.log(unsignedTx.unsignedTx)
     const signedForGas = await gasPayer.signUnsignedTx({signerAddress: gasPayer.address, unsignedTx:unsignedTx.unsignedTx})
     
     return {tx: unsignedTx, sigs: [signedForGas.signature]}
