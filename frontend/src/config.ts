@@ -6,6 +6,7 @@ import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.007
 export const domainURL = 'localhost:5173'
+export const feeAddress = '1Dc6yUeHw9x4VJiS4B8HSvJKCSCmAbELv2Anz53Q3QMLL'
 
 export const mainnetTokens: Token[] = [
   {

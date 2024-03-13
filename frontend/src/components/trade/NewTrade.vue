@@ -35,16 +35,16 @@ async function createTrade() {
     const trade = await tradeStore.createOrder()
     const unsignedTx = {
       signerAddress: tradeStore.order!.from,
-      unsignedTx: trade.tx.unsignedTx
+      unsignedTx: trade.unsignedTx
     }
 
     try {
       const sig = await account.signer!.signUnsignedTx(unsignedTx)
-      trade.sigs.push(sig.signature)
       const encodedTx = btoa(
         JSON.stringify({
           data: tradeStore.order,
-          txData: trade
+          tx: trade,
+          sigs: [sig.signature]
         })
       )
       tradeLink.value = `${domainURL}/trading/${encodedTx}`

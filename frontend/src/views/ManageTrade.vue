@@ -39,13 +39,12 @@ try {
   const encodedTrade = atob(trade as string)
   const parsedTrade = JSON.parse(encodedTrade)
   order.value = parsedTrade.data
-  tradeData.value = parsedTrade.txData
+  tradeData.value = parsedTrade
 } catch (error) {
   console.log('error', error)
 }
 
 async function signAndSend() {
-  console.log(tradeData.value)
   status.value = 'approve'
   const tx = {
     signerAddress: order.value!.to!,
@@ -63,7 +62,7 @@ async function signAndSend() {
     })
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(account.nodeProvider, result!.txId, 1, 1000)
+    await waitTxConfirmed(account.nodeProvider, result!.txId, 1, 5000)
     txId.value = result!.txId
     status.value = 'success'
   } catch (error) {
