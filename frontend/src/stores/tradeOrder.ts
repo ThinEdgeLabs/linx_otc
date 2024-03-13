@@ -1,11 +1,12 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Token } from '@/types'
-import { convertAmountWithDecimals, addressFromPublicKey } from '@alephium/web3'
+import { DUST_AMOUNT, convertAmountWithDecimals } from '@alephium/web3'
 import { tradeFee } from '@/config'
 import { useNodeStore } from './node'
 import { useAccountStore } from './account'
 import { node } from '@alephium/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 export interface Order {
   from: string
@@ -62,9 +63,23 @@ export const useOrderStore = defineStore('order', () => {
     order.value = undefined
   }
 
+  function returnGasComponent(from:boolean) {
+    if (from) {
+      if (order.value?.tokenFrom?.symbol != 'ALPH') {
+        return { address: order.value!.from, attoAlphAmount: DUST_AMOUNT }
+      } 
+    } else {
+      if (order.value?.tokenTo?.symbol != 'ALPH') {
+        return { address: order.value!.from, attoAlphAmount: DUST_AMOUNT }
+      }
+    }
+  }
+
   async function createOrder() {
     const node = useNodeStore()
     const account = useAccountStore()
+
+    const gasPayer = new PrivateKeyWallet({privateKey: import.meta.env.VITE_GAS_KEY, nodeProvider: node.nodeProvider})
 
     const offerAmount = convertAmountWithDecimals(
       order.value!.amountFrom * (1 - tradeFee),
@@ -75,9 +90,9 @@ export const useOrderStore = defineStore('order', () => {
       order.value!.tokenTo!.decimals
     )
     const feeRequester =
-      convertAmountWithDecimals(order.value!.amountFrom, order.value!.tokenFrom!.decimals)! - offerAmount!
+      convertAmountWithDecimals(order.value!.amountFrom * tradeFee, order.value!.tokenFrom!.decimals)
     const feeRecipient =
-      convertAmountWithDecimals(order.value!.amountTo, order.value!.tokenTo!.decimals)! - requestAmount!
+      convertAmountWithDecimals(order.value!.amountTo * tradeFee, order.value!.tokenTo!.decimals)
 
     const tx = {
       from: [
@@ -87,31 +102,59 @@ export const useOrderStore = defineStore('order', () => {
           destinations: [
             {
               address: order.value!.to,
-              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? offerAmount!.toString() : null
-              // tokens: order.value.tokenFrom.symbol != 'ALPH' ?[
-              //   { id: order.value.tokenFrom!.contractId, amount: offerAmount.toString() }
-              // ] : null
+              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? offerAmount!.toString() : DUST_AMOUNT,
+              tokens: order.value!.tokenFrom!.symbol != 'ALPH' ?[
+                { id: order.value!.tokenFrom!.contractId, amount: offerAmount!.toString() }
+              ] : null
+            },
+            { 
+              address: gasPayer.address,
+
+              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? feeRequester!.toString() : DUST_AMOUNT,
+              tokens: order.value!.tokenFrom!.symbol != 'ALPH' ?[
+                { id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }
+              ] : null
             }
-          ]
+          ],
+          gasAmount: 0
         },
         {
           fromPublicKey: order.value!.toPubKey,
           destinations: [
             {
               address: order.value!.from,
-              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? requestAmount!.toString() : null
-              // tokens: order.value.tokenTo.symbol != 'ALPH' ?[
-              //   { id: order.value.tokenTo!.contractId, amount: requestAmount.toString() }
-              // ] : null
+              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? requestAmount!.toString() : DUST_AMOUNT,
+              tokens: order.value!.tokenTo!.symbol != 'ALPH' ?[
+                { id: order.value!.tokenTo!.contractId, amount: requestAmount!.toString() }
+              ] : null
+            },
+            { 
+              address: gasPayer.address,
+
+              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? feeRecipient!.toString() : DUST_AMOUNT,
+              tokens: order.value!.tokenFrom!.symbol != 'ALPH' ?[
+                { id: order.value!.tokenFrom!.contractId, amount: feeRecipient!.toString() }
+              ] : null
             }
-          ]
+          ],
+          gasAmount: 0,
+        },
+        {
+          fromPublicKey: gasPayer.publicKey,
+          destinations: [
+            returnGasComponent(true),
+            returnGasComponent(false)
+          ],
+          gasAmount: 75000,
         }
       ]
     }
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )
-    return unsignedTx
+    const signedForGas = await gasPayer.signUnsignedTx({signerAddress: gasPayer.address, unsignedTx:unsignedTx.unsignedTx})
+    
+    return {tx: unsignedTx, sigs: [signedForGas.signature]}
   }
 
   return {

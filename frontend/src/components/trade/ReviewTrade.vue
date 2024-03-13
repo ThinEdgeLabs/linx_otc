@@ -10,6 +10,12 @@ import AgreeToTerms from '../AgreeToTerms.vue'
 import { useAccountStore } from '@/stores'
 import { shortenString } from '@/functions/stringUtils'
 import { useLoginStore } from '@/stores/login'
+import { emit } from 'process'
+
+defineEmits<{
+  (e: 'update:approve'): void
+  (f: 'update:cancel'): void
+}>()
 
 const account = useAccountStore()
 const login = useLoginStore()
@@ -56,8 +62,8 @@ async function changeWallet() {
     </div>
     <div class="flex flex-row items-center justify-between">
       <div class="flex flex-row space-x-[20px]" v-if="account.account?.address === props.tradeOffer.to">
-        <CustomButton :title="'Confirm order'" />
-        <CustomButton :title="'Decline'" :open="true" :delete="true" />
+        <CustomButton :title="'Confirm order'" @click="$emit('update:approve')" />
+        <CustomButton :title="'Decline'" :open="true" :delete="true" @click="$emit('update:cancel')" />
       </div>
       <div class="flex flex-col space-y-[20px]" v-else>
         <CustomButton :title="'Connect Wallet'" :class="'w-[228px]'" @click="changeWallet()" />

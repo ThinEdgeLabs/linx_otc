@@ -201,6 +201,13 @@ export const testnetTokens: Token[] = [
     logoUri: '/images/tokens/nologo.png'
   },
   {
+    symbol: 'TST-1',
+    name: 'TestToken-1',
+    contractId: '2e18c64cc2d8aa88b7f0d9de7254f4f5283ec4ce1e94434b9a97c03266406901',
+    decimals: 18,
+    logoUri: '/images/tokens/nologo.png'
+  },
+  {
     symbol: 'TETH',
     name: 'Test ETH',
     contractId: '4d765e05a5f08c39ab441c10fea45310cbd7b8c7bc7b4cd4e93d4531fdf2b601',
