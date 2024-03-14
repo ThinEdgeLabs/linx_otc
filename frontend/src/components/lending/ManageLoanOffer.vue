@@ -166,7 +166,7 @@ const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken)
 
       <div class="flex flex-col space-y-[15px]">
         <HorizontalDivider />
-        <LoanPreviewLabel :title="'P2P Fee'" :amount="'0.7 %'" />
+        <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
         <HorizontalDivider />
         <LoanPreviewLabel
           :title="'You receive'"
