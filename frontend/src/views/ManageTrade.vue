@@ -58,7 +58,7 @@ async function signAndSend() {
 
     const result = await account.signer!.nodeProvider?.multisig.postMultisigSubmit({
       unsignedTx: tradeData.value!.tx.unsignedTx,
-      signatures: tradeData.value!.sigs
+      signatures: tradeData.value!.sigs as Array<string>
     })
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
