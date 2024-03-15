@@ -6,7 +6,6 @@ import { feeAddress, tradeFee } from '@/config'
 import { useNodeStore } from './node'
 import { useAccountStore } from './account'
 import { node } from '@alephium/web3'
-import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { useGasPayerStore } from './gasPayer'
 
 export interface Order {
