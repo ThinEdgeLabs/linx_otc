@@ -8,6 +8,10 @@ import SelectWalletModal from '@/components/WalletSelect.vue'
 import FooterComponent from './components/FooterComponent.vue'
 import { useExtensionStore } from './stores/extension'
 import { useAccountStore } from './stores'
+import { usePopUpStore } from './stores/popup'
+import PopUpView from './views/PopUpView.vue'
+
+const popUpStore = usePopUpStore()
 
 onMounted(async () => {
   const wcStore = useWalletConnectStore()
@@ -16,7 +20,31 @@ onMounted(async () => {
   if (!store.account?.isConnected) {
     useExtensionStore().silentConnectExtension()
   }
+
+  // Check if user acknowledged popup about dapp
+  const hasApproved = localStorage.getItem('approveTerms')
+  if (!hasApproved || hasApproved === 'false') {
+    popUpStore.setPopUp({
+      title: 'Welcome to LinxOTC',
+      type: 'warning',
+      message: [
+        'Please be aware that LinxOTC is in a BETA stage. This means there can be bugs, errors and, eventhough we strive to deliver a safe DApp, contracts could potentially become compromised which can result in losing all your funds.',
+        'For lending and borrowing, the contracts are on group 0, please connect a wallet with the address on Group 0',
+        '\bLinxOTC is currently on TESTNET',
+        '\bUse this DApp at your own risk'
+      ],
+      showTerms: true,
+      onAcknowledged: acknowledgedTerms,
+      leftButtonTitle: 'Agree and Continue',
+      rightButtonTitle: 'Cancel'
+    })
+  }
 })
+
+function acknowledgedTerms() {
+  localStorage.setItem('approveTerms', 'testnet')
+  popUpStore.closePopUp()
+}
 </script>
 
 <template>
@@ -26,8 +54,9 @@ onMounted(async () => {
     <header>
       <LinxMenu />
     </header>
-    <RouterView />
+    <RouterView :class="popUpStore.popUp ? 'fixed' : ''" />
     <FooterComponent />
     <SelectWalletModal />
+    <PopUpView v-if="popUpStore.popUp" />
   </main>
 </template>
