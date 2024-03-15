@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import PercentageButton from './PercentageButton.vue'
+import { ref } from 'vue'
+import ValidationError from '../ValidationError.vue'
 
 const loanOrderStore = useLoanOrderStore()
+const errorMessage = ref<string | undefined>(undefined)
 
 function setAmount(amount: number) {
   loanOrderStore.setInterest(amount)
@@ -12,7 +15,7 @@ function setAmount(amount: number) {
 <template>
   <div class="w-full flex flex-col space-y-[10px]">
     <p class="text-[14px] font-extrabold text-core-light">Amount of interest</p>
-    <div class="flex flex-row w-full rounded-lg bg-white text-center p-[10px]">
+    <div class="flex flex-row w-full rounded-lg bg-white text-center p-[10px] h-[60px]">
       <div v-if="loanOrderStore.order?.loanToken" class="w-full flex flex-row justify-between items-center">
         <div class="w-full flex flex-row items-center space-x-[10px]">
           <img
@@ -40,5 +43,6 @@ function setAmount(amount: number) {
         <div>Choose Token</div>
       </div>
     </div>
+    <ValidationError :message="errorMessage" />
   </div>
 </template>

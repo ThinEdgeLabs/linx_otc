@@ -14,10 +14,12 @@ import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import type { Status } from '../ApproveWallet.vue'
 import { domainURL } from '@/config'
+import { usePopUpStore } from '@/stores/popup'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()
 const tradeStore = useOrderStore()
+const popUpStore = usePopUpStore()
 
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
@@ -30,34 +32,71 @@ function reset() {
 }
 
 async function createTrade() {
-  try {
-    status.value = 'approve'
-    const trade = await tradeStore.createOrder()
-    const unsignedTx = {
-      signerAddress: tradeStore.order!.from,
-      unsignedTx: trade.unsignedTx
-    }
-
+  if (
+    tradeStore.order?.amountFrom &&
+    tradeStore.order.amountTo &&
+    tradeStore.order.to &&
+    tradeStore.order.tokenFrom &&
+    tradeStore.order.tokenTo
+  ) {
     try {
-      const sig = await account.signer!.signUnsignedTx(unsignedTx)
-      const encodedTx = btoa(
-        JSON.stringify({
-          data: tradeStore.order,
-          tx: trade,
-          sigs: [sig.signature]
-        })
-      )
-      tradeLink.value = `${domainURL}/trading/${encodedTx}`
-      status.value = 'signed'
+      status.value = 'approve'
+      const trade = await tradeStore.createOrder()
+      const unsignedTx = {
+        signerAddress: tradeStore.order!.from,
+        unsignedTx: trade.unsignedTx
+      }
+
+      try {
+        const sig = await account.signer!.signUnsignedTx(unsignedTx)
+        const encodedTx = btoa(
+          JSON.stringify({
+            data: tradeStore.order,
+            tx: trade,
+            sigs: [sig.signature]
+          })
+        )
+        tradeLink.value = `${domainURL}/trading/${encodedTx}`
+        status.value = 'signed'
+      } catch (e) {
+        console.log(e)
+        status.value = 'denied'
+      }
+      // Create the request and open wallet
     } catch (e) {
-      console.log(e)
+      console.error(e)
       status.value = 'denied'
     }
-    // Create the request and open wallet
-  } catch (e) {
-    console.error(e)
-    status.value = 'denied'
+  } else {
+    popUpStore.setPopUp({
+      title: "Can't complete the trade offer",
+      onAcknowledged: popUpStore.closePopUp,
+      leftButtonTitle: 'OK',
+      type: 'warning',
+      message: createErrorMessage(),
+      showTerms: false
+    })
   }
+}
+
+function createErrorMessage(): Array<string> {
+  const errorList = []
+  if (tradeStore.order?.tokenFrom === undefined) {
+    errorList.push('Please select a token to send.')
+  }
+  if (!tradeStore.order?.amountFrom) {
+    errorList.push('Please set an amount to send.')
+  }
+  if (tradeStore.order?.tokenTo === undefined) {
+    errorList.push('Please select the token you want to receive.')
+  }
+  if (!tradeStore.order?.amountTo) {
+    errorList.push('Please set an amount you want to receive.')
+  }
+  if (!tradeStore.order?.to) {
+    errorList.push('Please enter the public key of the counterparty')
+  }
+  return errorList
 }
 </script>
 

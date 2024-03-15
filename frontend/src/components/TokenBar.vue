@@ -10,11 +10,14 @@ import { onMounted } from 'vue'
 import type { Token } from '@/types/token'
 import { useBalance } from '@/composables/balance'
 import { ALPH_TOKEN_ID, convertAmountWithDecimals, prettifyExactAmount } from '@alephium/web3'
+import ValidationError from './ValidationError.vue'
 
 const props = defineProps<{
   isSender: boolean
   offerType: 'trade' | 'loan'
 }>()
+
+const errorMessage = ref<string | undefined>(undefined)
 
 onMounted(() => {
   watchEffect(() => {
@@ -85,11 +88,16 @@ function toggleDropDown() {
 }
 
 function onAmountChange(value: number) {
+  errorMessage.value = undefined
   const amount = convertAmountWithDecimals(value, selectedToken.value!.decimals)
-  if (!amount) throw new Error('Invalid amount')
+  if (!amount) {
+    errorMessage.value = 'Invalid Amount'
+    return
+  }
 
-  if (amount > BigInt(selectedToken.value!.balance!.balance)) {
-    throw new Error('Insufficient Balance')
+  if (amount > BigInt(selectedToken.value!.balance!.balance) && props.isSender) {
+    errorMessage.value = 'Insufficient Balance'
+    return
   }
 
   if (props.offerType === 'trade') {
@@ -147,7 +155,7 @@ function onMaxButtonClick() {
     <div class="relative w-full">
       <div
         @click="!selectedToken ? toggleDropDown() : null"
-        class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core"
+        class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core min-h-[60px]"
         :class="dropdownOpen ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white z-10' : 'rounded-lg z-0'"
       >
         <div class="flex flex-row space-x-[10px] items-center w-full">
@@ -193,5 +201,6 @@ function onMaxButtonClick() {
         </ul>
       </div>
     </div>
+    <ValidationError :message="errorMessage" />
   </section>
 </template>

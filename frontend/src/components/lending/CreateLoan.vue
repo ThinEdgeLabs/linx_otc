@@ -19,10 +19,12 @@ import { waitTxConfirmed } from '@alephium/cli'
 import { useNodeStore } from '@/stores/node'
 import type { Status } from '@/components/ApproveWallet.vue'
 import { convertAmountWithDecimals, type SignerProvider } from '@alephium/web3'
+import { usePopUpStore } from '@/stores/popup'
 
 const loanOfferStore = useLoanOrderStore()
 const accountStore = useAccountStore()
 const { nodeProvider } = useNodeStore()
+const popUpStore = usePopUpStore()
 
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
@@ -34,44 +36,93 @@ function reset() {
 }
 
 async function createLoan() {
-  const config = getMarketplaceConfig()
-  const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
-  marketplace.contractId = config.marketplaceContractId
+  if (
+    loanOfferStore.order?.borrowerRating &&
+    loanOfferStore.order.collateralAmount &&
+    loanOfferStore.order?.collateralToken &&
+    loanOfferStore.order.duration &&
+    loanOfferStore.order.interest &&
+    loanOfferStore.order.loanAmount &&
+    loanOfferStore.order.loanToken
+  ) {
+    const config = getMarketplaceConfig()
+    const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+    marketplace.contractId = config.marketplaceContractId
 
-  const lendingTokenId = loanOfferStore.order!.loanToken!.contractId
-  const collateralTokenId = loanOfferStore.order!.collateralToken!.contractId
-  const loanTokenDecimals = loanOfferStore.order!.loanToken!.decimals
-  const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
-  const lendingAmount = convertAmountWithDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
-  const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
-  //TODO: Convert to basis points
-  const interestRate = BigInt(loanOfferStore.order!.interest)
-  const duration = BigInt(loanOfferStore.order!.duration)
+    const lendingTokenId = loanOfferStore.order!.loanToken!.contractId
+    const collateralTokenId = loanOfferStore.order!.collateralToken!.contractId
+    const loanTokenDecimals = loanOfferStore.order!.loanToken!.decimals
+    const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
+    const lendingAmount = convertAmountWithDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
+    const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
+    //TODO: Convert to basis points
+    const interestRate = BigInt(loanOfferStore.order!.interest)
+    const duration = BigInt(loanOfferStore.order!.duration)
 
-  try {
-    status.value = 'approve'
-    const result = await marketplace.createOffer(
-      accountStore.signer as SignerProvider,
-      lendingTokenId,
-      collateralTokenId,
-      lendingAmount!,
-      collateralAmount!,
-      interestRate,
-      duration
-    )
-    status.value = 'signed'
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
-    txId.value = result.txId
-    status.value = 'success'
-  } catch (err) {
-    console.log('err', err)
-    status.value = 'denied'
+    try {
+      status.value = 'approve'
+      const result = await marketplace.createOffer(
+        accountStore.signer as SignerProvider,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount!,
+        collateralAmount!,
+        interestRate,
+        duration
+      )
+      status.value = 'signed'
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
+      txId.value = result.txId
+      status.value = 'success'
+    } catch (err) {
+      console.log('err', err)
+      status.value = 'denied'
+    }
+  } else {
+    popUpStore.setPopUp({
+      title: "Can't complete the loan offer",
+      onAcknowledged: popUpStore.closePopUp,
+      leftButtonTitle: 'OK',
+      type: 'warning',
+      message: createErrorMessage(),
+      showTerms: false
+    })
   }
+}
+
+function createErrorMessage(): Array<string> {
+  const errorList = []
+  if (loanOfferStore.order?.loanToken === undefined) {
+    errorList.push('Please select a token to lend.')
+  }
+  if (!loanOfferStore.order?.loanAmount) {
+    errorList.push('Please set an amount to lend.')
+  }
+  if (loanOfferStore.order?.collateralToken === undefined) {
+    errorList.push('Please select a collateral token.')
+  }
+  if (!loanOfferStore.order?.collateralAmount) {
+    errorList.push('Please set a collateral amount.')
+  }
+  if (!loanOfferStore.order?.interest) {
+    errorList.push('Please set the amount of interest')
+  }
+  if (!loanOfferStore.order?.duration) {
+    errorList.push('Please select the duration of the loan')
+  }
+  if (loanOfferStore.order?.borrowerRating === undefined) {
+    errorList.push('Please select a minimum rating for the borrower')
+  }
+  return errorList
 }
 </script>
 <template>
-  <div v-if="!status" class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]">
+  <div
+    v-if="!status"
+    class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]"
+    :class="popUpStore.popUp ? 'fixed' : ''"
+  >
     <ComponentTitle
       :title="'Create new Loan Offer'"
       :description="'Some text about creating a new loan offer'"
@@ -124,7 +175,7 @@ async function createLoan() {
       <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
         <WalletButton v-if="!accountStore.account" :class="'w-full lg:w-[228px]'" />
         <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
-        <CustomButton :title="'Cancel'" :open="true" @click="reset" :class="'w-full lg:w-[228px]'" />
+        <CustomButton :title="'Cancel'" :open="true" :delete="true" @click="reset" :class="'w-full lg:w-[228px]'" />
       </div>
       <AgreeToTerms class="w-full" />
     </div>

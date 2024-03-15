@@ -7,6 +7,7 @@ import { addressFromPublicKey } from '@alephium/web3'
 import { useAccountStore } from '@/stores'
 import { usePopUpStore } from '@/stores/popup'
 import { ref } from 'vue'
+import ValidationError from './ValidationError.vue'
 
 const orderStore = useOrderStore()
 const account = useAccountStore()
@@ -95,8 +96,6 @@ async function handleAddress(pubKey: string) {
         class="text-[18px] text-accent-3 max-w-[20px]"
       />
     </div>
-    <div v-if="errorMessage && !props.isSender" class="text-danger">{{ errorMessage }}</div>
+    <ValidationError :message="errorMessage" />
   </section>
 </template>
-{ title: '', type: 'warning', message: [], showTerms: false, leftButtonTitle: '', rightButtonTitle: '' }{ title: '',
-type: 'warning', message: [], showTerms: false, leftButtonTitle: '', rightButtonTitle: '' }
