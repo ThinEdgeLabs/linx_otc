@@ -4,10 +4,9 @@ import OpenOfferBanner from './preview/OpenOfferBanner.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import LoanPreviewLabel from '@/components/lending/LoanPreviewLabel.vue'
 import CustomButton from '@/components/CustomButton.vue'
-import WarningModal from '@/components/WarningModal.vue'
-import { ref } from 'vue'
+import { usePopUpStore } from '@/stores/popup'
 
-defineEmits<{
+const emits = defineEmits<{
   (e: 'update:stepUp'): void
 }>()
 
@@ -18,10 +17,24 @@ const props = defineProps({
   }
 })
 
-const showWarning = ref(false)
+const popUpStore = usePopUpStore()
+
+function showWarningPopUp() {
+  popUpStore.setPopUp({
+    title: `You are about to delete ${props.activity.type} offer #${props.activity.id}`,
+    type: 'warning',
+    message: ['\bAfter deleting there is no more way back and the offer will be destroyed.'],
+    onAcknowledged: agreeDelete,
+    onCancel: popUpStore.closePopUp,
+    showTerms: false,
+    leftButtonTitle: 'Yes, Delete this',
+    rightButtonTitle: 'Cancel'
+  })
+}
 
 function agreeDelete() {
-  showWarning.value = false
+  popUpStore.closePopUp()
+  emits('update:stepUp')
 }
 </script>
 
@@ -50,19 +63,11 @@ function agreeDelete() {
       :class="'w-full'"
       :open="true"
       :delete="true"
-      @click="showWarning = true"
+      @click="showWarningPopUp()"
     />
     <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
       <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
       <button class="text-accent-3">Terms of Use</button>
     </div>
-    <WarningModal
-      v-if="showWarning"
-      :title="`You are about to delete ${props.activity.type} offer #${props.activity.id}`"
-      :description="'After deleting there is no more way back and the offer will be destroyed.'"
-      :button-title="'Yes delete this!'"
-      @update:cancel="showWarning = false"
-      @update:agree="(showWarning = false), $emit('update:stepUp')"
-    />
   </div>
 </template>

@@ -5,7 +5,6 @@ interface PopUp {
   type: 'warning' | 'acknowledge' | 'error'
   title: string
   message: Array<string>
-  subMessage?: string
   showTerms: boolean
   leftButtonTitle: string
   rightButtonTitle: string
