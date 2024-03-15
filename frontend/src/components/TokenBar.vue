@@ -58,29 +58,25 @@ const dropdownOpen = ref(false)
 const tokens = ref<Token[]>(getTokens())
 
 function selectToken(token: Token) {
-  if (token.symbol != 'NONE') {
-    dropdownOpen.value = false
-    selectedToken.value = token
-    if (props.offerType === 'trade') {
-      if (orderStore.order) {
-        if (props.isSender) {
-          orderStore.setFromToken(selectedToken.value)
-        } else {
-          orderStore.setToToken(selectedToken.value)
-        }
-      }
-    } else {
-      if (loanStore.order) {
-        if (props.isSender) {
-          loanStore.setLoanToken(selectedToken.value as Token)
-        } else {
-          loanStore.setCollateralToken(selectedToken.value as Token)
-        }
+  selectedToken.value = token
+  if (props.offerType === 'trade') {
+    if (orderStore.order) {
+      if (props.isSender) {
+        orderStore.setFromToken(selectedToken.value)
+      } else {
+        orderStore.setToToken(selectedToken.value)
       }
     }
   } else {
-    dropdownOpen.value = false
+    if (loanStore.order) {
+      if (props.isSender) {
+        loanStore.setLoanToken(selectedToken.value as Token)
+      } else {
+        loanStore.setCollateralToken(selectedToken.value as Token)
+      }
+    }
   }
+  dropdownOpen.value = false
 }
 
 function toggleDropDown() {
@@ -89,6 +85,8 @@ function toggleDropDown() {
 
 function onAmountChange(value: number) {
   errorMessage.value = undefined
+  if (value <= 0) return
+
   const amount = convertAmountWithDecimals(value, selectedToken.value!.decimals)
   if (!amount) {
     errorMessage.value = 'Invalid Amount'
@@ -127,14 +125,17 @@ function checkSelectedLoanTokens() {
 
 function onMaxButtonClick() {
   const token = toValue(selectedToken)
+  const maxAmount = Number(prettifyExactAmount(token!.balance!.balance, token!.decimals))
+
   if (props.offerType === 'trade') {
     if (props.isSender) {
-      orderStore.setFromAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+      orderStore.setFromAmount(maxAmount)
     } else {
-      orderStore.setAmountTo(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+      orderStore.setAmountTo(maxAmount)
     }
-  } else {
-    loanStore.setLoanAmount(Number(prettifyExactAmount(token!.balance!.balance, token!.decimals)))
+  }
+  if (props.offerType === 'loan') {
+    loanStore.setLoanAmount(maxAmount)
   }
 }
 </script>
