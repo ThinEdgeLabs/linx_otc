@@ -10,7 +10,6 @@ import AgreeToTerms from '../AgreeToTerms.vue'
 import { useAccountStore } from '@/stores'
 import { shortenString } from '@/functions/stringUtils'
 import { useLoginStore } from '@/stores/login'
-import { emit } from 'process'
 
 defineEmits<{
   (e: 'update:approve'): void

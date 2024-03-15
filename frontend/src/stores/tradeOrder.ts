@@ -7,6 +7,7 @@ import { useNodeStore } from './node'
 import { useAccountStore } from './account'
 import { node } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { useGasPayerStore } from './gasPayer'
 
 export interface Order {
   from: string
@@ -63,9 +64,10 @@ export const useOrderStore = defineStore('order', () => {
     order.value = undefined
   }
 
-  async function createOrder() {
+  async function createOrder(useGasPayer: boolean) {
     const node = useNodeStore()
     const account = useAccountStore()
+    const gasPayer = useGasPayerStore()
 
     const offerAmount = convertAmountWithDecimals(
       order.value!.amountFrom * (1 - tradeFee),
@@ -100,7 +102,8 @@ export const useOrderStore = defineStore('order', () => {
                   ? [{ id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }]
                   : null
             }
-          ]
+          ],
+          ...(useGasPayer && { gasAmount: 0 })
         },
         {
           fromPublicKey: order.value!.toPubKey,
@@ -121,10 +124,25 @@ export const useOrderStore = defineStore('order', () => {
                   ? [{ id: order.value!.tokenFrom!.contractId, amount: feeRecipient!.toString() }]
                   : null
             }
-          ]
+          ],
+          ...(useGasPayer && { gasAmount: 0 })
         }
       ]
     }
+    if (useGasPayer) {
+      tx.from.push({
+        fromPublicKey: gasPayer.gasPayer?.publicKey,
+        destinations: [
+          {
+            address: order.value!.from,
+            attoAlphAmount: DUST_AMOUNT,
+            tokens: null
+          }
+        ],
+        gasAmount: 50000
+      })
+    }
+    console.log(tx)
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )

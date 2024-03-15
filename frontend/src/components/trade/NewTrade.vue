@@ -13,8 +13,9 @@ import { useLoginStore } from '@/stores/login'
 import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import type { Status } from '../ApproveWallet.vue'
-import { domainURL } from '@/config'
+import { domainURL, useGasPayer } from '@/config'
 import { usePopUpStore } from '@/stores/popup'
+import { useGasPayerStore } from '@/stores/gasPayer'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()
@@ -41,19 +42,24 @@ async function createTrade() {
   ) {
     try {
       status.value = 'approve'
-      const trade = await tradeStore.createOrder()
+      const trade = await tradeStore.createOrder(useGasPayer)
       const unsignedTx = {
         signerAddress: tradeStore.order!.from,
         unsignedTx: trade.unsignedTx
       }
-
+      console.log(trade.unsignedTx)
+      const gasPayerStore = useGasPayerStore()
+      const gasSig = await gasPayerStore.gasPayer?.signUnsignedTx({
+        unsignedTx: trade.unsignedTx,
+        signerAddress: gasPayerStore.gasPayer.account!.address
+      })
       try {
         const sig = await account.signer!.signUnsignedTx(unsignedTx)
         const encodedTx = btoa(
           JSON.stringify({
             data: tradeStore.order,
             tx: trade,
-            sigs: [sig.signature]
+            sigs: [gasSig!.signature, sig.signature]
           })
         )
         tradeLink.value = `${domainURL}/trading/${encodedTx}`
