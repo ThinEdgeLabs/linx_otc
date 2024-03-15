@@ -10,8 +10,10 @@ import { useExtensionStore } from './stores/extension'
 import { useAccountStore } from './stores'
 import { usePopUpStore } from './stores/popup'
 import PopUpView from './views/PopUpView.vue'
+import { getMarketplaceConfig } from './config'
 
 const popUpStore = usePopUpStore()
+const deploymentNetwork = getMarketplaceConfig().network
 
 onMounted(async () => {
   const wcStore = useWalletConnectStore()
@@ -23,7 +25,7 @@ onMounted(async () => {
 
   // Check if user acknowledged popup about dapp
   const hasApproved = localStorage.getItem('approveTerms')
-  if (!hasApproved || hasApproved === 'false') {
+  if (!hasApproved || hasApproved != deploymentNetwork) {
     popUpStore.setPopUp({
       title: 'Welcome to LinxOTC',
       type: 'warning',
@@ -42,7 +44,7 @@ onMounted(async () => {
 })
 
 function acknowledgedTerms() {
-  localStorage.setItem('approveTerms', 'testnet')
+  localStorage.setItem('approveTerms', deploymentNetwork)
   popUpStore.closePopUp()
 }
 </script>
