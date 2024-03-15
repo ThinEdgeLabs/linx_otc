@@ -47,7 +47,6 @@ async function createTrade() {
         signerAddress: tradeStore.order!.from,
         unsignedTx: trade.unsignedTx
       }
-      console.log(trade.unsignedTx)
       const gasPayerStore = useGasPayerStore()
       const gasSig = await gasPayerStore.gasPayer?.signUnsignedTx({
         unsignedTx: trade.unsignedTx,
