@@ -4,8 +4,16 @@ import { useOrderStore } from '@/stores/tradeOrder'
 import { useNodeStore } from '@/stores/node'
 import TextInput from '@/components/TextInput.vue'
 import { addressFromPublicKey } from '@alephium/web3'
+import { useAccountStore } from '@/stores'
+import { usePopUpStore } from '@/stores/popup'
+import { ref } from 'vue'
 
 const orderStore = useOrderStore()
+const account = useAccountStore()
+const popUpStore = usePopUpStore()
+
+const errorMessage = ref<string | undefined>(undefined)
+const inputValue = ref<string>('')
 
 const props = defineProps({
   isSender: {
@@ -22,19 +30,41 @@ function pasteAddress() {
 }
 
 async function handleAddress(pubKey: string) {
-  // TODO: fetch group for address
-  const nodeStore = useNodeStore()
-  const address = addressFromPublicKey(pubKey)
-  const group = await nodeStore.getGroupForAddress(address)
-  nodeStore.getBalance(address, props.isSender)
-  orderStore.setReceiver(address, group.group, pubKey)
+  if (pubKey.length === 66) {
+    const nodeStore = useNodeStore()
+    const address = addressFromPublicKey(pubKey)
+    const group = await nodeStore.getGroupForAddress(address)
+    if (group.group != account.account?.group) {
+      popUpStore.setPopUp({
+        title: 'Address Groups Error',
+        message: [
+          'P2P trades can only be created between addresses on the same group.',
+          `\bYour address is on Group ${account.account?.group}`,
+          `\bThe public key you entered is on Group ${group.group}`,
+          'You can move your balance to the group of the counterparty or ask the counterparty to move his/her funds.'
+        ],
+        onAcknowledged: () => popUpStore.closePopUp(),
+        type: 'warning',
+        showTerms: false,
+        leftButtonTitle: 'OK'
+      })
+      inputValue.value = ''
+      errorMessage.value = undefined
+      return
+    }
+    nodeStore.getBalance(address, props.isSender)
+    orderStore.setReceiver(address, group.group, pubKey)
+  } else {
+    inputValue.value = pubKey
+    errorMessage.value = 'A public key has 66 characters'
+  }
 }
 </script>
 
 <template>
   <section class="flex flex-col space-y-[10px] text-[14px]">
     <div class="font-extrabold text-core-light">
-      {{ props.isSender ? 'Your address' : 'Receiver Public Key' }}
+      {{ props.isSender ? 'Your address' : orderStore.order?.to ? 'Receiver address' : 'Receiver Public Key' }}
     </div>
     <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core">
       <div class="flex flex-row space-x-[10px] items-center w-full">
@@ -50,7 +80,7 @@ async function handleAddress(pubKey: string) {
         </div>
         <div v-else class="flex flex-row items-center justify-between w-full">
           <TextInput
-            :modelValue="orderStore.order?.to != undefined ? shortenString(orderStore.order!.to, 16) : ''"
+            :modelValue="orderStore.order?.to != undefined ? shortenString(orderStore.order!.to, 16) : inputValue"
             @update:modelValue="handleAddress($event)"
           />
           <p v-if="orderStore.order?.groupTo != undefined" class="w-full text-end pr-2">
@@ -65,5 +95,8 @@ async function handleAddress(pubKey: string) {
         class="text-[18px] text-accent-3 max-w-[20px]"
       />
     </div>
+    <div v-if="errorMessage && !props.isSender" class="text-danger">{{ errorMessage }}</div>
   </section>
 </template>
+{ title: '', type: 'warning', message: [], showTerms: false, leftButtonTitle: '', rightButtonTitle: '' }{ title: '',
+type: 'warning', message: [], showTerms: false, leftButtonTitle: '', rightButtonTitle: '' }

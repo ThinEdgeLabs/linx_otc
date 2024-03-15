@@ -7,7 +7,7 @@ interface PopUp {
   message: Array<string>
   showTerms: boolean
   leftButtonTitle: string
-  rightButtonTitle: string
+  rightButtonTitle?: string
   onCancel?: Function
   onAcknowledged?: Function
 }

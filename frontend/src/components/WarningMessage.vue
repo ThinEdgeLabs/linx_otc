@@ -31,7 +31,13 @@ const props = defineProps({
     <AgreeToTerms v-if="props.popUp.showTerms" :class="'text-[20px]'" />
     <div class="flex flex-row space-x-[30px] justify-center items-center">
       <CustomButton :title="props.popUp.leftButtonTitle" @click="props.popUp.onAcknowledged()" />
-      <CustomButton :title="props.popUp.rightButtonTitle" :delete="true" :open="true" />
+      <CustomButton
+        v-if="props.popUp.onCancel"
+        :title="props.popUp.rightButtonTitle"
+        :delete="true"
+        :open="true"
+        @click="props.popUp.onCancel()"
+      />
     </div>
   </section>
 </template>
