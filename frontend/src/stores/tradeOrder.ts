@@ -117,10 +117,10 @@ export const useOrderStore = defineStore('order', () => {
             },
             {
               address: feeAddress,
-              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? feeRecipient!.toString() : DUST_AMOUNT,
+              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? feeRecipient!.toString() : DUST_AMOUNT,
               tokens:
-                order.value!.tokenFrom!.symbol != 'ALPH'
-                  ? [{ id: order.value!.tokenFrom!.contractId, amount: feeRecipient!.toString() }]
+                order.value!.tokenTo!.symbol != 'ALPH'
+                  ? [{ id: order.value!.tokenTo!.contractId, amount: feeRecipient!.toString() }]
                   : null
             }
           ],
