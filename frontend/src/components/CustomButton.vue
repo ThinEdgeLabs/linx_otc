@@ -24,7 +24,9 @@ const props = defineProps({
   <button
     v-else
     class="flex flex-row px-4 py-2 w-[128px] border-2 rounded-[26px] text-[16px] hover:bg-none hover:bg-accent-2 hover:text-white justify-center items-center space-x-[10px]"
-    :class="props.delete ? 'border-danger text-danger' : 'text-accent-1 border-accent-1'"
+    :class="
+      props.delete ? 'border-danger text-danger hover:bg-danger' : 'text-accent-1 border-accent-1 hover:bg-accent-2'
+    "
   >
     <font-awesome-icon v-if="props.icon" :icon="['fal', `${props.icon}`]" />
     <p>{{ props.title }}</p>
