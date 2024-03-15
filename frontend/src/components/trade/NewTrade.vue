@@ -58,7 +58,7 @@ async function createTrade() {
           JSON.stringify({
             data: tradeStore.order,
             tx: trade,
-            sigs: [gasSig!.signature, sig.signature]
+            sigs: useGasPayer ? [gasSig!.signature, sig.signature] : [sig.signature]
           })
         )
         tradeLink.value = `${domainURL}/trading/${encodedTx}`

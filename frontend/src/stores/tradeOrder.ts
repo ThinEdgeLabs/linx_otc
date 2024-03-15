@@ -129,15 +129,9 @@ export const useOrderStore = defineStore('order', () => {
       ]
     }
     if (useGasPayer) {
-      tx.from.push({
+      tx.from.unshift({
         fromPublicKey: gasPayer.gasPayer?.publicKey,
-        destinations: [
-          {
-            address: order.value!.from,
-            attoAlphAmount: DUST_AMOUNT,
-            tokens: null
-          }
-        ],
+        destinations: [],
         gasAmount: 50000
       })
     }
