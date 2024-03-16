@@ -95,7 +95,7 @@ function onAmountChange(value: number) {
     return
   }
 
-  if (amount > BigInt(selectedToken.value!.balance!.balance) && props.isSender) {
+  if (props.isSender && amount > BigInt(selectedToken.value!.balance!.balance) && props.isSender) {
     errorMessage.value = 'Insufficient Balance'
     return
   }

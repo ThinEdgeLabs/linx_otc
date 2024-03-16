@@ -87,19 +87,19 @@ export const useOrderStore = defineStore('order', () => {
           destinations: [
             {
               address: order.value!.to,
-              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? offerAmount!.toString() : DUST_AMOUNT,
-              tokens:
-                order.value!.tokenFrom!.symbol != 'ALPH'
-                  ? [{ id: order.value!.tokenFrom!.contractId, amount: offerAmount!.toString() }]
-                  : null
+              ...(order.value!.tokenFrom!.symbol === 'ALPH' && { attoAlphAmount: offerAmount!.toString() }),
+              ...(order.value!.tokenFrom!.symbol != 'ALPH' && { attoAlphAmount: DUST_AMOUNT }),
+              ...(order.value!.tokenFrom!.symbol != 'ALPH' && {
+                tokens: [{ id: order.value!.tokenFrom!.contractId, amount: offerAmount!.toString() }]
+              })
             },
             {
               address: feeAddress,
-              attoAlphAmount: order.value!.tokenFrom!.symbol === 'ALPH' ? feeRequester!.toString() : DUST_AMOUNT,
-              tokens:
-                order.value!.tokenFrom!.symbol != 'ALPH'
-                  ? [{ id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }]
-                  : null
+              ...(order.value!.tokenFrom!.symbol === 'ALPH' && { attoAlphAmount: feeRequester!.toString() }),
+              ...(order.value!.tokenFrom!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
+              ...(order.value!.tokenFrom!.symbol != 'ALPH' && {
+                tokens: [{ id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }]
+              })
             }
           ],
           ...(useGasPayer && { gasAmount: 0 })
@@ -109,19 +109,19 @@ export const useOrderStore = defineStore('order', () => {
           destinations: [
             {
               address: order.value!.from,
-              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? requestAmount!.toString() : DUST_AMOUNT,
-              tokens:
-                order.value!.tokenTo!.symbol != 'ALPH'
-                  ? [{ id: order.value!.tokenTo!.contractId, amount: requestAmount!.toString() }]
-                  : null
+              ...(order.value!.tokenTo!.symbol === 'ALPH' && { attoAlphAmount: requestAmount!.toString() }),
+              ...(order.value!.tokenTo!.symbol != 'ALPH' && { attoAlphAmount: DUST_AMOUNT }),
+              ...(order.value!.tokenTo!.symbol != 'ALPH' && {
+                tokens: [{ id: order.value!.tokenTo!.contractId, amount: requestAmount!.toString() }]
+              })
             },
             {
               address: feeAddress,
-              attoAlphAmount: order.value!.tokenTo!.symbol === 'ALPH' ? feeRecipient!.toString() : DUST_AMOUNT,
-              tokens:
-                order.value!.tokenTo!.symbol != 'ALPH'
-                  ? [{ id: order.value!.tokenTo!.contractId, amount: feeRecipient!.toString() }]
-                  : null
+              ...(order.value!.tokenTo!.symbol === 'ALPH' && { attoAlphAmount: feeRecipient!.toString() }),
+              ...(order.value!.tokenTo!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
+              ...(order.value!.tokenTo!.symbol != 'ALPH' && {
+                tokens: [{ id: order.value!.tokenTo!.contractId, amount: feeRecipient!.toString() }]
+              })
             }
           ],
           ...(useGasPayer && { gasAmount: 0 })
@@ -131,10 +131,16 @@ export const useOrderStore = defineStore('order', () => {
     if (useGasPayer) {
       tx.from.unshift({
         fromPublicKey: gasPayer.gasPayer?.publicKey,
-        destinations: [],
-        gasAmount: 50000
+        destinations: [
+          {
+            address: gasPayer.gasPayer!.address,
+            attoAlphAmount: DUST_AMOUNT
+          }
+        ],
+        gasAmount: 75000
       })
     }
+    console.log(tx)
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )
