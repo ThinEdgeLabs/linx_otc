@@ -165,10 +165,12 @@ function onMaxButtonClick() {
             class="w-[32px] h-[32px] rounded-full"
           />
           <div v-if="selectedToken" class="flex flex-row items-center space-x-[10px] w-full">
-            <div @click="toggleDropDown()" class="flex flex-row space-x-[10px] items-center">
-              <p>{{ selectedToken.symbol }}</p>
-              <font-awesome-icon :icon="['fas', 'angle-down']" />
-              <div class="inline-block w-[0.5px] self-stretch bg-core-light opacity-100"></div>
+            <div @click="toggleDropDown()" class="flex flex-row min-w-[20%] items-center justify-between">
+              <p class="min-w-[50%]">{{ selectedToken.symbol }}</p>
+              <div class="flex flex-row space-x-[10px]">
+                <font-awesome-icon :icon="['fas', 'angle-down']" />
+                <div class="inline-block w-[0.5px] self-stretch bg-core-light opacity-100"></div>
+              </div>
             </div>
             <NumberInput
               :model-value="
