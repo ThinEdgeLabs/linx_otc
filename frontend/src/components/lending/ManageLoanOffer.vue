@@ -4,13 +4,17 @@ import HorizontalDivider from '../HorizontalDivider.vue'
 import LoanPreviewLabel from './LoanPreviewLabel.vue'
 import CustomButton from '../CustomButton.vue'
 import ComponentTitle from '../ComponentTitle.vue'
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import ApproveWallet, { type Status } from '../ApproveWallet.vue'
 import { calculateApr, convertBasisPointsToPercentage } from '@/functions/utils'
 import type { Loan } from '@/types'
-import { prettifyTokenAmount } from '@alephium/web3'
+import { SignerProvider, addressFromContractId, prettifyTokenAmount, web3 } from '@alephium/web3'
 import { getMarketplaceConfig } from '@/config'
 import { getTokens } from '@/config'
+import { LendingMarketplaceHelper } from '../../../../shared/lending-marketplace'
+import { waitTxConfirmed } from '@alephium/cli'
+import { useAccountStore } from '@/stores'
+import { LendingOfferInstance, type LendingOfferTypes } from '../../../../artifacts/ts'
 
 defineEmits<{
   (e: 'update:closeOffer'): void
@@ -21,14 +25,18 @@ const props = defineProps<{
 }>()
 
 const config = getMarketplaceConfig()
+web3.setCurrentNodeProvider(config.defaultNodeUrl)
+const accountStore = useAccountStore()
 
-function calculateReceivedAmount(loan: Loan) {
-  return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
-}
-
-const step = ref(0)
+const state = ref<LendingOfferTypes.State | undefined>()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
+
+const isLender = computed(() => accountStore.account?.address && accountStore.account?.address === props.loan.lender)
+const isBorrower = computed(
+  () => accountStore.account?.address && accountStore.account?.address === state.value ?.fields.borrower
+)
+const isActive = computed(() => state.value?.fields.borrower !== state.value?.fields.lender)
 
 const collateralToken = getTokens().find((e) => e.contractId === props.loan.collateralToken) ?? {
   symbol: 'unknown',
@@ -36,12 +44,77 @@ const collateralToken = getTokens().find((e) => e.contractId === props.loan.coll
   decimals: 18,
   logoUri: '/images/tokens/nologo.png'
 }
-
 const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken) ?? {
   symbol: 'unknown',
   name: 'unknown',
   decimals: 18,
   logoUri: '/images/tokens/nologo.png'
+}
+
+onMounted(async () => {
+  const instance = new LendingOfferInstance(addressFromContractId(props.loan.loanId))
+  state.value = await instance.fetchState()
+  console.log(state.value)
+})
+
+function calculateReceivedAmount(loan: Loan) {
+  return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
+}
+
+async function borrow() {
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  try {
+    status.value = 'approve'
+    const result = await marketplace.takeOffer(
+      accountStore.signer as SignerProvider,
+      props.loan.loanId,
+      props.loan.collateralToken,
+      props.loan.collateralAmount
+    )
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+    txId.value = result.txId
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
+  }
+}
+
+async function cancel() {
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  try {
+    status.value = 'approve'
+    const result = await marketplace.cancelOffer(accountStore.signer as SignerProvider, props.loan.loanId)
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+    txId.value = result.txId
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
+  }
+}
+
+async function repay() {
+  //TODO
+  console.log('repay')
+}
+
+async function liquidate() {
+  //TODO
+  console.log('liquidate')
+}
+
+function reset() {
+  status.value = undefined
+  txId.value = undefined
 }
 </script>
 
@@ -53,7 +126,7 @@ const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken)
           <ComponentTitle
             :title="`Loan order ${shortenString(loan.loanId, 12)}`"
             :description="`Created on ${new Date(loan.created).toDateString()}`"
-            :status="!loan.borrower ? 'Open' : 'Active'"
+            :status="isActive ? 'Active' : 'Open'"
             @update:go-back="$emit('update:closeOffer')"
           />
           <div class="flex flex-col">
@@ -132,7 +205,7 @@ const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken)
     </div>
     <ApproveWallet
       v-else
-      @update:cancel="step--"
+      @update:cancel="reset"
       @update:finished="$emit('update:closeOffer')"
       :status="status"
       :tx-id="txId"
@@ -176,7 +249,17 @@ const loanToken = getTokens().find((e) => e.contractId === props.loan.loanToken)
         <HorizontalDivider />
         <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
       </div>
-      <CustomButton :title="'Accept & Borrow now'" :class="'w-full'" @click="step++" />
+
+      <CustomButton
+        v-if="!isActive && !isLender"
+        :disabled="!accountStore.account?.isConnected"
+        :title="'Borrow'"
+        :class="'w-full'"
+        @click="borrow"
+      />
+      <CustomButton v-if="!isActive && isLender" :title="'Cancel offer'" :class="'w-full'" @click="cancel" />
+      <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
+
       <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
         <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
         <button class="text-accent-3">Terms of Use</button>
