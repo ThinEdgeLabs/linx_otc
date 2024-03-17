@@ -1,9 +1,9 @@
 import { useAccountStore } from '@/stores/account'
 import { node } from '@alephium/web3'
 import { storeToRefs } from 'pinia'
-import { ref, watchEffect } from 'vue'
+import { MaybeRef, ref, toValue, watchEffect } from 'vue'
 
-export function useBalance(address?: string) {
+export function useBalance(address?: MaybeRef<string>) {
   const isLoading = ref<boolean>(false)
   const error = ref<any>(undefined)
   const balance = ref<node.Balance | undefined>()
@@ -23,7 +23,7 @@ export function useBalance(address?: string) {
 
     isLoading.value = true
     nodeProvider?.value.addresses
-      .getAddressesAddressBalance(address ?? account?.value.address)
+      .getAddressesAddressBalance(toValue(address) ?? account?.value.address)
       .then(async (data) => {
         balance.value = data
       })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, toValue, watchEffect } from 'vue'
+import { ref, toRef, toValue, watchEffect } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import TokenDropdownItem from '@/components/TokenDropdownItem.vue'
 import NumberInput from '@/components/NumberInput.vue'
@@ -13,6 +13,7 @@ import { ALPH_TOKEN_ID, convertAmountWithDecimals, prettifyExactAmount } from '@
 import ValidationError from './ValidationError.vue'
 
 const props = defineProps<{
+  accountAddress?: string,
   isSender: boolean
   offerType: 'trade' | 'loan'
 }>()
@@ -23,20 +24,29 @@ onMounted(() => {
   watchEffect(() => {
     if (!toValue(isLoading)) {
       if (toValue(balance)) {
-        const alph: Token | undefined = tokens.value.find((e) => e.contractId === ALPH_TOKEN_ID)
-        alph!.balance = {
+        const tokensList = getTokens()
+        const tokensWithBalance = []
+        const alph: Token | undefined = tokensList.find((e) => e.contractId === ALPH_TOKEN_ID)
+        const alphToken = { ...alph } as Token
+        alphToken.balance = {
           balance: balance.value!.balance,
           balanceHint: balance.value!.balanceHint
         }
+        tokensWithBalance.push(alphToken)
         balance.value!.tokenBalances?.forEach((tokenBalance) => {
-          const token = tokens.value.find((e) => e.contractId === tokenBalance.id)
+          const token = tokensList.find((e) => e.contractId === tokenBalance.id)
           if (token) {
-            token.balance = {
+            const tokenWithBalance = { ...token} as Token
+            tokenWithBalance.balance = {
               balance: tokenBalance.amount,
               balanceHint: ` ${prettifyExactAmount(tokenBalance.amount, token.decimals)!} ${token.symbol}`
             }
+            tokensWithBalance.push(tokenWithBalance)
+          } else {
+            tokensWithBalance.push()
           }
         })
+        tokens.value = tokensWithBalance
       } else {
         // Reset any previously set balances
         tokens.value.forEach((token) => {
@@ -51,11 +61,11 @@ onMounted(() => {
 const orderStore = useOrderStore()
 const loanStore = useLoanOrderStore()
 
-const { balance, isLoading } = useBalance()
+const { balance, isLoading } = useBalance(toRef(() => props.accountAddress as string))
 
 const selectedToken = ref<Token | undefined>()
 const dropdownOpen = ref(false)
-const tokens = ref<Token[]>(getTokens())
+const tokens = ref<Token[]>([])
 
 function selectToken(token: Token) {
   selectedToken.value = token
@@ -194,10 +204,9 @@ function onMaxButtonClick() {
       <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
         <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
-            v-for="token in props.offerType === 'loan' && !props.isSender ? getTokens() : tokens"
+            v-for="token in tokens"
             v-bind:key="token.name"
             :token="token"
-            :is-offer="props.isSender"
             :is-selected="token === selectedToken"
             @click="selectToken(token)"
           />

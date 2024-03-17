@@ -120,7 +120,7 @@ function createErrorMessage(): Array<string> {
     </div>
     <div class="flex flex-col lg:flex-row w-full lg:space-x-[30px] space-y-[30px] lg:space-y-0">
       <TokenBar :is-sender="true" :offer-type="'trade'" :class="'lg:basis-1/2'" />
-      <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" />
+      <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" :account-address="tradeStore.order?.to" />
     </div>
     <HorizontalDividerVue />
     <CustomButton

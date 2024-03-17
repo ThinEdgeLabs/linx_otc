@@ -4,7 +4,6 @@ import type { Token } from '@/types'
 const props = defineProps<{
   token: Token
   isSelected: Boolean
-  isOffer: Boolean
 }>()
 </script>
 
@@ -18,7 +17,6 @@ const props = defineProps<{
       </div>
     </div>
     <div
-      v-if="props.isOffer"
       class="flex flex-row text-end items-center space-x-[10px] text-[14px] font-semibold text-menu"
     >
       <p>{{ token.balance?.balanceHint }}</p>
