@@ -5,6 +5,7 @@ import { useAccountStore } from '@/stores/account'
 import { shortenString } from '@/functions/stringUtils'
 import HorizontalDivider from '../HorizontalDivider.vue'
 import LoanPreviewLabel from './LoanPreviewLabel.vue'
+import { getTokens } from '@/config'
 
 const loanOrder = useLoanOrderStore()
 const accountStore = useAccountStore()
@@ -12,6 +13,20 @@ const accountStore = useAccountStore()
 function getAnnualisedInterest() {
   return (loanOrder.order!.interest / loanOrder.order!.loanAmount / loanOrder.order!.duration) * 365
 }
+
+const collateralToken = getTokens().find((e) => e.contractId === loanOrder.order?.collateralToken?.contractId) ?? {
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
+}
+const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loanToken?.contractId) ?? {
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
+}
+
 </script>
 
 <template>
@@ -21,7 +36,7 @@ function getAnnualisedInterest() {
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img
-            :src="`./images/tokens/${loanOrder.order!.loanToken?.symbol}.png`"
+            :src="`${loanToken.logoUri}`"
             class="w-[40px] h-[40px] rounded-full"
           />
           <div class="flex flex-col text-start justify-center">
@@ -44,7 +59,7 @@ function getAnnualisedInterest() {
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-start items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img
-            :src="`./images/tokens/${loanOrder.order!.collateralToken?.symbol}.png`"
+            :src="`${collateralToken.logoUri}`"
             class="w-[40px] h-[40px] rounded-full"
           />
           <div class="flex flex-col text-start justify-center">
