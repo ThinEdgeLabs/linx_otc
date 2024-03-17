@@ -34,7 +34,7 @@ const txId = ref<string | undefined>(undefined)
 
 const isLender = computed(() => accountStore.account?.address && accountStore.account?.address === props.loan.lender)
 const isBorrower = computed(
-  () => accountStore.account?.address && accountStore.account?.address === state.value ?.fields.borrower
+  () => accountStore.account?.address && accountStore.account?.address === state.value?.fields.borrower
 )
 const isActive = computed(() => state.value?.fields.borrower !== state.value?.fields.lender)
 
