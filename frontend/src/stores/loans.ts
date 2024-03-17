@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { Loan } from '@/types'
 import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '@/config'
-import { addressFromContractId, decodeEvent } from '@alephium/web3'
+import { addressFromContractId, binToHex, contractIdFromAddress, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 
 export const useLoanStore = defineStore('loans', () => {
@@ -13,11 +13,35 @@ export const useLoanStore = defineStore('loans', () => {
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
 
-  async function fetchLoans() {
-    const store = useAccountStore()
-    const config = getMarketplaceConfig()
-    const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
+  const store = useAccountStore()
+  const config = getMarketplaceConfig()
+  const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
 
+  async function getSubcontractsAddresses() {
+    const page = 1
+    const limit = 20
+    async function go(page: number, limit: number, subcontracts: string[]) {
+      const result = await store.explorerProvider.contracts.getContractsContractAddressSubContracts(
+        marketplaceAddress,
+        { page, limit }
+      )
+      if (result.subContracts?.length === 0 || !result.subContracts) {
+        return subcontracts
+      } else {
+        subcontracts = [...subcontracts, ...result.subContracts!]
+        if (result.subContracts?.length < limit) {
+          return subcontracts
+        } else {
+          return go(page + 1, limit, subcontracts)
+        }
+      }
+    }
+    return go(page, limit, [])
+  }
+
+  async function getMarketplaceEvents() {
+    const start = 0
+    const limit = 20
     async function go(start: number, limit: number, events: any[]) {
       const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
         start,
@@ -30,14 +54,21 @@ export const useLoanStore = defineStore('loans', () => {
         return go(contractEvents.nextStart, limit, events)
       }
     }
+    return go(start, limit, [])
+  }
 
+  async function fetchLoans() {
     isLoading.value = true
-    const events = await go(0, 20, [])
+    const result = await getSubcontractsAddresses()
+    const subcontracts = new Map<string, number>(result.map((e) => [binToHex(contractIdFromAddress(e)), 1]))
+    const events = await getMarketplaceEvents()
     loans.value = events
       .map((event) =>
         decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
       )
-      .filter((event) => event.name === 'OfferCreated')
+      .filter(
+        (event) => event.name === 'OfferCreated' && subcontracts.has(event.fields['lendingOfferContractId'] as string)
+      )
       .map((event) => {
         return {
           loanId: event.fields['lendingOfferContractId'] as string,
