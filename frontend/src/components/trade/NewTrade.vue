@@ -119,8 +119,8 @@ function createErrorMessage(): Array<string> {
       <AddressBar :is-sender="false" :class="'lg:basis-1/2'" />
     </div>
     <div class="flex flex-col lg:flex-row w-full lg:space-x-[30px] space-y-[30px] lg:space-y-0">
-      <TokenBar :is-sender="true" :offer-type="'trade'" :class="'lg:basis-1/2'" />
-      <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" :account-address="tradeStore.order?.to" />
+      <TokenBar :is-sender="true" :offer-type="'trade'" :class="'lg:basis-1/2'" :validate-input="true" />
+      <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" :account-address="tradeStore.order?.to" :validate-input="true" />
     </div>
     <HorizontalDividerVue />
     <CustomButton

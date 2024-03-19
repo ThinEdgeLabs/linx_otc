@@ -15,7 +15,8 @@ import ValidationError from './ValidationError.vue'
 const props = defineProps<{
   accountAddress?: string,
   isSender: boolean
-  offerType: 'trade' | 'loan'
+  offerType: 'trade' | 'loan',
+  validateInput: boolean
 }>()
 
 const errorMessage = ref<string | undefined>(undefined)
@@ -103,7 +104,7 @@ function onAmountChange(value: number) {
     return
   }
 
-  if (props.isSender && amount > BigInt(selectedToken.value!.balance!.balance) && props.isSender) {
+  if (props.validateInput && amount > BigInt(selectedToken.value!.balance!.balance)) {
     errorMessage.value = 'Insufficient Balance'
     return
   }

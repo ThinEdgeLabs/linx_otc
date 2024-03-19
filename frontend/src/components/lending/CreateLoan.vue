@@ -129,11 +129,11 @@ function createErrorMessage(): Array<string> {
       @update:go-back="reset"
     />
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-      <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" />
+      <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" :validate-input="true" />
       <InterestField />
     </div>
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-      <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" />
+      <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" :validate-input="false" />
       <div class="w-full flex flex-row space-x-[30px]">
         <DurationSelect />
         <RatingSelect />
