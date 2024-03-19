@@ -7,6 +7,7 @@ import {
   contractIdFromAddress,
   binToHex,
   ContractState,
+  DUST_AMOUNT,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
@@ -37,7 +38,8 @@ describe('LendingMarketplace', () => {
           lendingOfferTemplateId: randomContractId(),
           admin: testAddress,
           totalLendingOffers: 0n,
-          fee: 100n
+          fee: 100n,
+          lendingEnabled: true
         },
         inputAssets: [{ address: testAddress, asset: { alphAmount: 10n ** 18n } }],
         testArgs: { newAdmin: signer.address }
@@ -101,6 +103,45 @@ describe('LendingMarketplace', () => {
         existingContracts: fixture.dependencies,
         inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
         testArgs: { newFee: 300n }
+      })
+      await expectAssertionError(
+        testResult,
+        fixture.address,
+        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+      )
+    })
+  })
+
+  describe('updateLendingEnabled', () => {
+    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
+    let admin: PrivateKeyWallet
+
+    beforeAll(async () => {
+      [admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
+      fixture = createLendingMarketplace(admin.address)
+    })
+
+    it('updates the lending enabled flag', async () => {
+      expect(fixture.selfState.fields.lendingEnabled).toEqual(true)
+      const testResult = await LendingMarketplace.tests.updateLendingEnabled({
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH }}],
+        testArgs: { enabled: false }
+      })
+      const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
+      expect(marketplaceState.fields.lendingEnabled).toEqual(false)
+    })
+
+    it('fails if not admin', async () => {
+      const notAdmin = testAddress
+      const testResult = LendingMarketplace.tests.updateLendingEnabled({
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH }}],
+        testArgs: { enabled: false }
       })
       await expectAssertionError(
         testResult,
@@ -231,6 +272,29 @@ describe('LendingMarketplace', () => {
       await expect(
         testResult,
       ).rejects.toThrow(Error)
+    })
+    it('fails if lending is disabled', async () => {
+      const fixture = createLendingMarketplace(admin.address, undefined, false)
+      const testResult = LendingMarketplace.tests.createLendingOffer({
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: 1n << 255n }] }
+          }
+        ],
+        testArgs: {
+          lendingTokenId,
+          collateralTokenId,
+          lendingAmount: 1n << 255n,
+          collateralAmount,
+          interestRate,
+          duration: 365n
+        }
+      })
+      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.LendingDisabled))
     })
   })
 })

@@ -34,6 +34,7 @@ export namespace LendingMarketplaceTypes {
     admin: Address;
     totalLendingOffers: bigint;
     fee: bigint;
+    lendingEnabled: boolean;
   };
 
   export type State = ContractState<Fields>;
@@ -127,7 +128,10 @@ class Factory extends ContractFactory<
   }
 
   eventIndex = { AdminUpdated: 0, OfferCreated: 1 };
-  consts = { Day: BigInt(86400), ErrorCodes: { AdminAllowedOnly: BigInt(0) } };
+  consts = {
+    Day: BigInt(86400),
+    ErrorCodes: { AdminAllowedOnly: BigInt(0), LendingDisabled: BigInt(1) },
+  };
 
   at(address: string): LendingMarketplaceInstance {
     return new LendingMarketplaceInstance(address);
@@ -227,6 +231,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "updateFee", params);
     },
+    updateLendingEnabled: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { enabled: boolean }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "updateLendingEnabled", params);
+    },
   };
 }
 
@@ -235,7 +247,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "3137e27436a104baa8c0e3ca3ca8b4bde124f077ee371a036964e1a4db16f589"
+    "3eb7954cff75b41776d8e1b1ef354fe3422b8b0702c648854fcaed4e6dc544b7"
   )
 );
 

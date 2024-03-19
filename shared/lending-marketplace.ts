@@ -28,7 +28,8 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         lendingOfferTemplateId: lendingOfferDeployTx.contractInstance.contractId,
         admin: adminAddress,
         totalLendingOffers: 0n,
-        fee: 100n
+        fee: 100n,
+        lendingEnabled: true
       }
     })
 

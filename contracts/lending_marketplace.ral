@@ -2,7 +2,8 @@ Contract LendingMarketplace(
   lendingOfferTemplateId: ByteVec,
   mut admin: Address,
   mut totalLendingOffers: U256,
-  mut fee: U256
+  mut fee: U256,
+  mut lendingEnabled: Bool
 ) extends LendingMarketplaceUtils() {
 
   event AdminUpdated(
@@ -23,6 +24,7 @@ Contract LendingMarketplace(
 
   enum ErrorCodes {
     AdminAllowedOnly = 0
+    LendingDisabled = 1
   }
 
   pub fn getAdmin() -> Address {
@@ -46,6 +48,7 @@ Contract LendingMarketplace(
     interestRate: U256,
     duration: U256
   ) -> (Address) {
+    assert!(lendingEnabled == true, ErrorCodes.LendingDisabled)
     let lender = callerAddress!()
 
     // Checking for overflow
@@ -76,5 +79,11 @@ Contract LendingMarketplace(
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
 
     fee = newFee
+  }
+
+  @using(updateFields = true)
+  pub fn updateLendingEnabled(enabled: Bool) -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    lendingEnabled = enabled
   }
 }

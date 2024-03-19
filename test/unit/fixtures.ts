@@ -53,7 +53,8 @@ export function createLendingOffer(
 
 export function createLendingMarketplace(
   admin: string,
-  contractId?: string
+  contractId?: string,
+  lendingEnabled?: boolean
 ) {
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
   const lendingOfferTemplate = createLendingOffer()
@@ -62,7 +63,8 @@ export function createLendingMarketplace(
       lendingOfferTemplateId: lendingOfferTemplate.contractId,
       admin,
       totalLendingOffers: 0n,
-      fee: 100n
+      fee: 100n,
+      lendingEnabled: lendingEnabled ?? true
     },
     undefined,
     address
