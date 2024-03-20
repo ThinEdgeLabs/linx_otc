@@ -29,7 +29,7 @@ const menuItems = [
   },
   {
     title: 'Docs',
-    destination: '/'
+    destination: '/gitbook'
   },
   {
     title: 'FAQ',
