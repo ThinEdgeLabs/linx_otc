@@ -42,7 +42,7 @@ const menuItems = [
 ]
 
 function goToDocs() {
-  window.open('https://linx-labs.gitbook.io/linxotc/', '_blank')
+  window.open('https://linx-labs.gitbook.io/linxotc-testnet/', '_blank')
 }
 </script>
 
