@@ -28,6 +28,10 @@ const menuItems = [
     destination: '/activity'
   },
   {
+    title: 'Docs',
+    destination: '/'
+  },
+  {
     title: 'FAQ',
     destination: '/faq'
   },
@@ -36,6 +40,10 @@ const menuItems = [
     destination: '/contact'
   }
 ]
+
+function goToDocs() {
+  window.open('https://linx-labs.gitbook.io/linxotc-testnet/', '_blank')
+}
 </script>
 
 <template>
@@ -75,7 +83,7 @@ const menuItems = [
         class="flex flex-col lg:flex-row justify-center pl-[40px] space-y-[30px] pt-[30px] lg:pt-0 lg:pl-0 lg:space-x-[40px] lg:space-y-0 z-20"
       >
         <MenuItem
-          @click="(selectedMenuItem = item.title), (showSideBar = false)"
+          @click="item.title === 'Docs' ? goToDocs() : (selectedMenuItem = item.title), (showSideBar = false)"
           v-for="item in menuItems"
           v-bind:key="menuItems.indexOf(item)"
           :title="item.title"
