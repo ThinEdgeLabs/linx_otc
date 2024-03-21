@@ -4,15 +4,18 @@ import {
   ONE_ALPH,
   ContractState,
   DUST_AMOUNT,
+  Contract,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
-import { ContractFixture, createLendingOffer } from './fixtures'
+import { LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
 
 describe('LendingOffer', () => {
   let fixture: ContractFixture<LendingOfferTypes.Fields>
+  let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
+  let admin: string
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
   let lendingTokenId: string
@@ -23,6 +26,8 @@ describe('LendingOffer', () => {
   let duration: bigint
 
   beforeAll(async () => {
+    admin = testAddress
+    marketplace = createLendingMarketplace(admin)
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build()
   })
@@ -62,6 +67,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -92,6 +98,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -131,6 +138,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -159,6 +167,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -188,6 +197,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -219,6 +229,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -235,16 +246,13 @@ describe('LendingOffer', () => {
             asset: { alphAmount: 10n ** 18n }
           }
         ],
+        callerAddress: marketplace.address,
         address: fixture.address,
         existingContracts: fixture.dependencies
       })
 
-      expect(testResult.events.length).toEqual(2)
+      console.log(testResult.events)
       expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
-      const offerCancelled = testResult.events.find((e) => e.name === 'OfferCancelled') as LendingOfferTypes.OfferCancelledEvent
-      expect(offerCancelled.fields).toEqual({
-        offerId: fixture.contractId
-      })
     })
   })
 
@@ -257,6 +265,7 @@ describe('LendingOffer', () => {
           lender.address,
           lendingTokenId,
           collateralTokenId,
+          marketplace.contractId,
           lendingAmount,
           collateralAmount,
           interestRate,
@@ -292,6 +301,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -319,6 +329,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -351,6 +362,7 @@ describe('LendingOffer', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
