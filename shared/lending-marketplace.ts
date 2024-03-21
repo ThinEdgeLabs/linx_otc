@@ -12,6 +12,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         lender: ZERO_ADDRESS,
         lendingTokenId: randomContractId(),
         collateralTokenId: randomContractId(),
+        marketplaceContractId: this.contractId!,
         lendingAmount: 0n,
         collateralAmount: 0n,
         interestRate: 0n,

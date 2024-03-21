@@ -2,6 +2,7 @@ Contract LendingOffer(
   lender: Address,
   lendingTokenId: ByteVec,
   collateralTokenId: ByteVec,
+  marketplaceContractId: ByteVec,
   lendingAmount: U256,
   collateralAmount: U256,
   interestRate: U256, // in basis points
@@ -11,11 +12,11 @@ Contract LendingOffer(
 ) extends LendingMarketplaceUtils() {
 
   event OfferTaken(borrower: Address, offerId: ByteVec)
-  event OfferCancelled(offerId: ByteVec)
   event LoanLiquidated(offerId: ByteVec)
   event LoanPaidBack(offerId: ByteVec)
 
   enum ErrorCodes {
+    MarketplaceAllowedOnly = 0
     OfferAlreadyTaken = 1
     BorrowerAllowedOnly = 2
     IncorrectCollateralAmount = 3
@@ -78,11 +79,7 @@ Contract LendingOffer(
 
   @using(assetsInContract = true)
   pub fn cancel() -> () {
-    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
-
-    emit OfferCancelled(selfContractId!())
-
+    checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
     destroySelf!(lender)
   }
 

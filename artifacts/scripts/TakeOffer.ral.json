@@ -1,5 +1,5 @@
 {
-  "version": "v2.10.1",
+  "version": "v2.11.0",
   "name": "TakeOffer",
   "bytecodeTemplate": "010103000200130c0d{0}010617000c0d{0}01081701b416001601a316010d0c{0}010d",
   "fieldsSig": {

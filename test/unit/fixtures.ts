@@ -1,4 +1,4 @@
-import { ContractState, Fields, addressFromContractId, number256ToBigint } from '@alephium/web3'
+import { ContractState, Fields, ZERO_ADDRESS, addressFromContractId } from '@alephium/web3'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer } from '../../artifacts/ts'
 import { randomContractAddress, testAddress } from '@alephium/web3-test'
 
@@ -24,6 +24,7 @@ export function createLendingOffer(
   lender?: string,
   lendingTokenId?: string,
   collateralTokenId?: string,
+  marketplaceContractId?: string,
   lendingAmount?: bigint,
   collateralAmount?: bigint,
   interestRate?: bigint,
@@ -38,6 +39,7 @@ export function createLendingOffer(
       lender: lender ?? testAddress,
       lendingTokenId: lendingTokenId ?? '',
       collateralTokenId: collateralTokenId ?? '',
+      marketplaceContractId: marketplaceContractId ?? ZERO_ADDRESS,
       lendingAmount: lendingAmount ?? 1000n,
       collateralAmount: collateralAmount ?? 2000n,
       interestRate: interestRate ?? 2000n,

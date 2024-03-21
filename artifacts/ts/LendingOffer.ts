@@ -33,6 +33,7 @@ export namespace LendingOfferTypes {
     lender: Address;
     lendingTokenId: HexString;
     collateralTokenId: HexString;
+    marketplaceContractId: HexString;
     lendingAmount: bigint;
     collateralAmount: bigint;
     interestRate: bigint;
@@ -47,7 +48,6 @@ export namespace LendingOfferTypes {
     borrower: Address;
     offerId: HexString;
   }>;
-  export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
   export type LoanLiquidatedEvent = ContractEvent<{ offerId: HexString }>;
   export type LoanPaidBackEvent = ContractEvent<{ offerId: HexString }>;
 
@@ -137,15 +137,11 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingOfferTypes.Fields;
   }
 
-  eventIndex = {
-    OfferTaken: 0,
-    OfferCancelled: 1,
-    LoanLiquidated: 2,
-    LoanPaidBack: 3,
-  };
+  eventIndex = { OfferTaken: 0, LoanLiquidated: 1, LoanPaidBack: 2 };
   consts = {
     Day: BigInt(86400),
     ErrorCodes: {
+      MarketplaceAllowedOnly: BigInt(0),
       OfferAlreadyTaken: BigInt(1),
       BorrowerAllowedOnly: BigInt(2),
       IncorrectCollateralAmount: BigInt(3),
@@ -310,7 +306,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "8f2dd2d044ed24cdcfe29d48501ab4fdec4456342b44a9f1eef7f6036254cb48"
+    "e8f382d990ea8f30b8cc8342d53fd460df4b0ca53edf7ddc52c87c9a34a5125d"
   )
 );
 
@@ -337,19 +333,6 @@ export class LendingOfferInstance extends ContractInstance {
       this,
       options,
       "OfferTaken",
-      fromCount
-    );
-  }
-
-  subscribeOfferCancelledEvent(
-    options: EventSubscribeOptions<LendingOfferTypes.OfferCancelledEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      LendingOffer.contract,
-      this,
-      options,
-      "OfferCancelled",
       fromCount
     );
   }
@@ -383,7 +366,6 @@ export class LendingOfferInstance extends ContractInstance {
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingOfferTypes.OfferTakenEvent
-      | LendingOfferTypes.OfferCancelledEvent
       | LendingOfferTypes.LoanLiquidatedEvent
       | LendingOfferTypes.LoanPaidBackEvent
     >,

@@ -22,9 +22,12 @@ Contract LendingMarketplace(
     lendingOfferContractId: ByteVec
   )
 
+  event OfferCancelled(offerId: ByteVec)
+
   enum ErrorCodes {
     AdminAllowedOnly = 0
     LendingDisabled = 1
+    LenderAllowedOnly = 2
   }
 
   pub fn getAdmin() -> Address {
@@ -52,9 +55,9 @@ Contract LendingMarketplace(
     let lender = callerAddress!()
 
     // Checking for overflow
-    calculateTotalInterestPayment(lendingAmount, interestRate, duration)
+    let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, 0)
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, 0)
     let key = toByteVec!(totalLendingOffers)
     let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
@@ -64,6 +67,14 @@ Contract LendingMarketplace(
     emit OfferCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, lendingOfferContractId)
 
     return contractIdToAddress!(lendingOfferContractId)
+  }
+
+  pub fn cancelOffer(offerId: ByteVec) -> () {
+    let offer = LendingOffer(offerId)
+    let lender = offer.getLender()
+    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
+    offer.cancel()
+    emit OfferCancelled(offerId)
   }
 
   @using(updateFields = true)

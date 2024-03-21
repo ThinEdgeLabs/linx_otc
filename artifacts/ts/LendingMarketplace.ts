@@ -53,6 +53,7 @@ export namespace LendingMarketplaceTypes {
     lender: Address;
     lendingOfferContractId: HexString;
   }>;
+  export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -127,10 +128,14 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingMarketplaceTypes.Fields;
   }
 
-  eventIndex = { AdminUpdated: 0, OfferCreated: 1 };
+  eventIndex = { AdminUpdated: 0, OfferCreated: 1, OfferCancelled: 2 };
   consts = {
     Day: BigInt(86400),
-    ErrorCodes: { AdminAllowedOnly: BigInt(0), LendingDisabled: BigInt(1) },
+    ErrorCodes: {
+      AdminAllowedOnly: BigInt(0),
+      LendingDisabled: BigInt(1),
+      LenderAllowedOnly: BigInt(2),
+    },
   };
 
   at(address: string): LendingMarketplaceInstance {
@@ -215,6 +220,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<Address>> => {
       return testMethod(this, "createLendingOffer", params);
     },
+    cancelOffer: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { offerId: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "cancelOffer", params);
+    },
     updateAdmin: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
@@ -247,7 +260,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "3eb7954cff75b41776d8e1b1ef354fe3422b8b0702c648854fcaed4e6dc544b7"
+    "bb8794dbb6cb2b280d2459a0e7fd8560ea220372df8b1b488733f8186eef2712"
   )
 );
 
@@ -291,10 +304,24 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeOfferCancelledEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.OfferCancelledEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "OfferCancelled",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
       | LendingMarketplaceTypes.OfferCreatedEvent
+      | LendingMarketplaceTypes.OfferCancelledEvent
     >,
     fromCount?: number
   ): EventSubscription {
