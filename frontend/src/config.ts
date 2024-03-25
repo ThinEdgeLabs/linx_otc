@@ -4,7 +4,7 @@ import { ALPH_TOKEN_ID, type NetworkId, type Number256 } from '@alephium/web3'
 import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
-export const tradeFee = 0.007
+export const tradeFee = 0.005
 export const domainURL = 'localhost:5173'
 export const feeAddress = '1Dc6yUeHw9x4VJiS4B8HSvJKCSCmAbELv2Anz53Q3QMLL'
 export const useGasPayer = true

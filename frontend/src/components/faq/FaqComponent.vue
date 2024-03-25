@@ -28,10 +28,10 @@ const props = defineProps({
         :question="'What is a P2P Loan?'"
         :answer="'It is a direct loan between 2 people, registered in an unique smart contract. The lender determines the conditions of the loan and receives back his loan + interest after the counterparty paid back the loan and collects the collateral, before the loan expires. If the loan expires, the lender can withdrawl the collateral that the borrower had to put up to take the loan.'"
       />
-      <FaqItem
+      <!-- <FaqItem
         :question="'What is the borrower rating?'"
         :answer="'Every new borrower starts with a 0 rating. For every loan that the borrower pay\'s back succesfully, the rating get\'s increased. In case the borrower let the loan expire, the rating will be reset to 0. As a lender you can choose to only loan to borrowers with a specific minimum rating to decrease the risk of not getting your loan + interest paid.'"
-      />
+      /> -->
       <FaqItem
         :question="'How can I find people to create a trade or loan?'"
         :answer="'In the Linx Labs discord server there is a special chat channel for discussing loans and trades. Here you can discuss offers and once you found a counterparty you can create the transaction on LinxOTC. You can also just post an offer on the LinxOTC platform and wait for someone to accept it.'"
@@ -42,7 +42,7 @@ const props = defineProps({
       />
       <FaqItem
         :question="'What are the risks as a lender?'"
-        :answer="'As a lender you ask for collateral, in the case that the borrower does not pay back the loan before it expires. The value of the collateral can change over time and at some might become less valuable than the given loan. It is important to keep this in consideration while setting the duration and required amount of collateral for your loan.'"
+        :answer="'As a lender you ask for collateral, in the case that the borrower does not pay back the loan before it expires. The value of the collateral can change over time and at some point might become less valuable than the given loan. It is important to keep this in consideration while setting the duration and required amount of collateral for your loan.'"
       />
       <FaqItem
         :question="'What are the risks as a borrower?'"
@@ -50,7 +50,7 @@ const props = defineProps({
       />
       <FaqItem
         :question="'Can a loan get liquidated?'"
-        :answer="'As there is price oracle used to track the value of the collateral, there is no way that a loan can get liquidated before the exiration date of the loan. After the expiration date the lender can liquidate the loan and take posession of the collateral.'"
+        :answer="'As there is no price oracle used to track the value of the collateral, there is no way that a loan can get liquidated before the exiration date of the loan. After the expiration date the lender can liquidate the loan and take posession of the collateral.'"
       />
       <FaqItem
         :question="'Can I use the app on a mobile phone?'"
@@ -66,7 +66,7 @@ const props = defineProps({
       />
       <FaqItem
         :question="'I have some idea\'s to improve LinxOTC where can I share them?'"
-        :answer="'We appreciate all the feedback we can get, feel free to come in chat in our Discord server or on Telegram.'"
+        :answer="'We appreciate all the feedback we can get, feel free to come and chat in our Discord server or on Telegram.'"
       />
     </div>
   </div>
