@@ -12,7 +12,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         lender: ZERO_ADDRESS,
         lendingTokenId: randomContractId(),
         collateralTokenId: randomContractId(),
-        marketplaceContractId: this.contractId!,
+        marketplaceContractId: ZERO_ADDRESS,
         lendingAmount: 0n,
         collateralAmount: 0n,
         interestRate: 0n,
@@ -70,7 +70,8 @@ export class LendingMarketplaceHelper extends DeployHelpers {
   async cancelOffer(signer: SignerProvider, offerId: string): Promise<ExecuteScriptResult> {
     return CancelOffer.execute(signer, {
       initialFields: {
-        offer: offerId
+        marketplace: this.contractId!,
+        offerId
       },
     })
   }

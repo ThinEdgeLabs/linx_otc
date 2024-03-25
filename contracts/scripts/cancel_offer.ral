@@ -1,3 +1,3 @@
-TxScript CancelOffer(offer: LendingOffer) {
-  offer.cancel()
+TxScript CancelOffer(marketplace: LendingMarketplace, offerId: ByteVec) {
+  marketplace.cancelOffer(offerId)
 }

@@ -80,6 +80,7 @@ Contract LendingOffer(
   @using(assetsInContract = true)
   pub fn cancel() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
+    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
     destroySelf!(lender)
   }
 

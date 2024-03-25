@@ -306,7 +306,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "e8f382d990ea8f30b8cc8342d53fd460df4b0ca53edf7ddc52c87c9a34a5125d"
+    "fa7cf0999c5e8ee9f084b02afcab5881c4bf76223d0718c36c76582573409c2e"
   )
 );
 

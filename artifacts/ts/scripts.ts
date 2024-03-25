@@ -16,9 +16,10 @@ import { default as CreateOfferScriptJson } from "../scripts/CreateOffer.ral.jso
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
 import { default as TakeOfferScriptJson } from "../scripts/TakeOffer.ral.json";
 
-export const CancelOffer = new ExecutableScript<{ offer: HexString }>(
-  Script.fromJson(CancelOfferScriptJson, "")
-);
+export const CancelOffer = new ExecutableScript<{
+  marketplace: HexString;
+  offerId: HexString;
+}>(Script.fromJson(CancelOfferScriptJson, ""));
 
 export const CreateOffer = new ExecutableScript<{
   lendingTokenId: HexString;

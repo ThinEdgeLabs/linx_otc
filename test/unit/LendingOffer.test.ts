@@ -406,7 +406,6 @@ describe('LendingOffer', () => {
       const lenderReceives = paybackResult.txOutputs.filter((o) => o.address === lender.address)
       expect(lenderReceives.map((o) => BigInt(o.alphAmount)).reduce((a, b) => a + b, 0n)).toEqual(ONE_ALPH)
       const lenderReceivesTokens = lenderReceives[0].tokens?.find((t) => t.id === lendingTokenId)
-      console.log(lenderReceivesTokens?.amount)
       expect(lenderReceivesTokens?.amount).toBeGreaterThanOrEqual(lendingAmount + interestPayment)
       const borrowerReceives = paybackResult.txOutputs.filter((o) => o.address === borrower.address)
       //TODO: check borrower receives collateral
