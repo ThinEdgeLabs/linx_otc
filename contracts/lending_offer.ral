@@ -13,12 +13,10 @@ Contract LendingOffer(
 
   event OfferTaken(borrower: Address, offerId: ByteVec)
   event LoanLiquidated(offerId: ByteVec)
-  event LoanPaidBack(offerId: ByteVec)
 
   enum ErrorCodes {
     MarketplaceAllowedOnly = 0
     OfferAlreadyTaken = 1
-    BorrowerAllowedOnly = 2
     IncorrectCollateralAmount = 3
     LenderAllowedOnly = 4
     OfferNotTaken = 5
@@ -86,13 +84,11 @@ Contract LendingOffer(
 
   @using(assetsInContract = true, preapprovedAssets = true)
   pub fn payback() -> () {
-    checkCaller!(callerAddress!() == borrower, ErrorCodes.BorrowerAllowedOnly)
+    checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
     let interest = calculateInterestPayment(blockTimeStampInSeconds(), loanTimeStamp, lendingAmount, interestRate, duration)
     transferToken!(borrower, lender, lendingTokenId, lendingAmount + interest)
     transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
-
-    emit LoanPaidBack(selfContractId!())
 
     destroySelf!(lender)
   }

@@ -23,11 +23,13 @@ Contract LendingMarketplace(
   )
 
   event OfferCancelled(offerId: ByteVec)
+  event LoanPaid(loanId: ByteVec)
 
   enum ErrorCodes {
     AdminAllowedOnly = 0
     LendingDisabled = 1
     LenderAllowedOnly = 2
+    BorrowerAllowedOnly = 3
   }
 
   pub fn getAdmin() -> Address {
@@ -75,6 +77,17 @@ Contract LendingMarketplace(
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     offer.cancel()
     emit OfferCancelled(offerId)
+  }
+
+  @using(preapprovedAssets = true)
+  pub fn paybackLoan(loanId: ByteVec) -> () {
+    let loan = LendingOffer(loanId)
+    let borrower = loan.getBorrower()
+    let lendingTokenId = loan.getLendingTokenId()
+    let loanAmount = loan.getLendingAmount()
+    checkCaller!(callerAddress!() == borrower, ErrorCodes.BorrowerAllowedOnly)
+    loan.payback{callerAddress!() -> lendingTokenId: loanAmount}()
+    emit LoanPaid(loanId)
   }
 
   @using(updateFields = true)

@@ -54,6 +54,7 @@ export namespace LendingMarketplaceTypes {
     lendingOfferContractId: HexString;
   }>;
   export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
+  export type LoanPaidEvent = ContractEvent<{ loanId: HexString }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -128,13 +129,19 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingMarketplaceTypes.Fields;
   }
 
-  eventIndex = { AdminUpdated: 0, OfferCreated: 1, OfferCancelled: 2 };
+  eventIndex = {
+    AdminUpdated: 0,
+    OfferCreated: 1,
+    OfferCancelled: 2,
+    LoanPaid: 3,
+  };
   consts = {
     Day: BigInt(86400),
     ErrorCodes: {
       AdminAllowedOnly: BigInt(0),
       LendingDisabled: BigInt(1),
       LenderAllowedOnly: BigInt(2),
+      BorrowerAllowedOnly: BigInt(3),
     },
   };
 
@@ -228,6 +235,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "cancelOffer", params);
     },
+    paybackLoan: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { loanId: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "paybackLoan", params);
+    },
     updateAdmin: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
@@ -260,7 +275,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "bb8794dbb6cb2b280d2459a0e7fd8560ea220372df8b1b488733f8186eef2712"
+    "aaaf1c5200a491c1e77d1c1318ef8eeaab4cccbfc5c75a0b1a896630cfc4672c"
   )
 );
 
@@ -317,11 +332,25 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeLoanPaidEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanPaidEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanPaid",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
       | LendingMarketplaceTypes.OfferCreatedEvent
       | LendingMarketplaceTypes.OfferCancelledEvent
+      | LendingMarketplaceTypes.LoanPaidEvent
     >,
     fromCount?: number
   ): EventSubscription {

@@ -49,7 +49,6 @@ export namespace LendingOfferTypes {
     offerId: HexString;
   }>;
   export type LoanLiquidatedEvent = ContractEvent<{ offerId: HexString }>;
-  export type LoanPaidBackEvent = ContractEvent<{ offerId: HexString }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -137,13 +136,12 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingOfferTypes.Fields;
   }
 
-  eventIndex = { OfferTaken: 0, LoanLiquidated: 1, LoanPaidBack: 2 };
+  eventIndex = { OfferTaken: 0, LoanLiquidated: 1 };
   consts = {
     Day: BigInt(86400),
     ErrorCodes: {
       MarketplaceAllowedOnly: BigInt(0),
       OfferAlreadyTaken: BigInt(1),
-      BorrowerAllowedOnly: BigInt(2),
       IncorrectCollateralAmount: BigInt(3),
       LenderAllowedOnly: BigInt(4),
       OfferNotTaken: BigInt(5),
@@ -306,7 +304,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "fa7cf0999c5e8ee9f084b02afcab5881c4bf76223d0718c36c76582573409c2e"
+    "4a5d77910a250e3c961cbbe4914807376ddb40ac153ecd6dfef21a54c4f35722"
   )
 );
 
@@ -350,24 +348,9 @@ export class LendingOfferInstance extends ContractInstance {
     );
   }
 
-  subscribeLoanPaidBackEvent(
-    options: EventSubscribeOptions<LendingOfferTypes.LoanPaidBackEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      LendingOffer.contract,
-      this,
-      options,
-      "LoanPaidBack",
-      fromCount
-    );
-  }
-
   subscribeAllEvents(
     options: EventSubscribeOptions<
-      | LendingOfferTypes.OfferTakenEvent
-      | LendingOfferTypes.LoanLiquidatedEvent
-      | LendingOfferTypes.LoanPaidBackEvent
+      LendingOfferTypes.OfferTakenEvent | LendingOfferTypes.LoanLiquidatedEvent
     >,
     fromCount?: number
   ): EventSubscription {

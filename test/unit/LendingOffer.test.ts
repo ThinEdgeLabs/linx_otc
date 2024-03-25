@@ -397,11 +397,11 @@ describe('LendingOffer', () => {
           }
         ],
         address: fixture.address,
+        callerAddress: marketplace.address,
         existingContracts: fixture.dependencies
       })
-      expect(paybackResult.events.length).toEqual(2)
+      expect(paybackResult.events.length).toEqual(1)
       expect(paybackResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
-      expect(paybackResult.events.find((e) => e.name === 'LoanPaidBack')).toBeDefined()
 
       const lenderReceives = paybackResult.txOutputs.filter((o) => o.address === lender.address)
       expect(lenderReceives.map((o) => BigInt(o.alphAmount)).reduce((a, b) => a + b, 0n)).toEqual(ONE_ALPH)
