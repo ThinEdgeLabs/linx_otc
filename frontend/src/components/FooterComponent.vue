@@ -17,10 +17,10 @@ function openInNewTab(destination: string) {
       <button class="w-[40px] h-[40px] rounded-full bg-accent-3" @click="openInNewTab('https://discord.gg/g434BaWTFb')">
         <img :src="'./images/discord.png'" />
       </button>
-      <button class="w-[40px] h-[40px] rounded-full bg-accent-3" @click="openInNewTab('https://t.me/linx_wallet_chat')">
+      <button class="w-[40px] h-[40px] rounded-full bg-accent-3" @click="openInNewTab('https://x.com/linx_labs?s=20')">
         <img :src="'./images/twitter.png'" />
       </button>
-      <button class="w-[40px] h-[40px] rounded-full bg-accent-3" @click="openInNewTab('https://x.com/linx_labs?s=20')">
+      <button class="w-[40px] h-[40px] rounded-full bg-accent-3" @click="openInNewTab('https://t.me/linx_wallet_chat')">
         <img :src="'./images/telegram.png'" />
       </button>
     </div>
