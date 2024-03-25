@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tradeFee } from '@/config'
 import SectionTitle from '../SectionTitle.vue'
 import { useAccountStore } from '@/stores/account'
 import { shortenString } from '@/functions/stringUtils'
@@ -14,7 +15,7 @@ const props = defineProps({
 const isSender = props.tradeOffer.from === accountStore.account?.address
 
 function calculateResult() {
-  return (isSender ? props.tradeOffer.amountTo : props.tradeOffer.amountFrom) * 0.993
+  return (isSender ? props.tradeOffer.amountTo : props.tradeOffer.amountFrom) * (1 - tradeFee)
 }
 </script>
 
@@ -68,7 +69,7 @@ function calculateResult() {
       </div>
     </div>
     <HorizontalDivider />
-    <LoanPreviewLabel :title="'P2P Fee'" :amount="'0.7'" :amount_description="'%'" />
+    <LoanPreviewLabel :title="'P2P Fee'" :amount="(tradeFee * 100).toFixed(2)" :amount_description="'%'" />
     <HorizontalDivider />
     <LoanPreviewLabel
       :title="'You will receive'"
