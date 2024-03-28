@@ -12,23 +12,23 @@ const props = defineProps({
 
 <template>
   <section
-    class="flex flex-col space-y-[60px] max-w-[90%] lg:max-w-[50%] rounded-lg bg-menu py-[60px] px-[30px] items-center text-center text-core-lightest"
+    class="flex flex-col space-y-[30px] lg:space-y-[60px] max-w-[90%] lg:max-w-[50%] rounded-lg bg-menu py-[30px] lg:py-[60px] px-[16px] lg:px-[30px] items-center text-center text-core-lightest"
   >
     <div class="flex flex-col space-y-[30px]">
-      <p class="text-[40px] font-extrabold text-core-lightest">{{ props.popUp.title }}</p>
-      <font-awesome-icon :icon="['fal', 'warning']" class="text-warning text-[40px]" />
+      <p class="text-[24px] lg:text-[40px] font-extrabold text-core-lightest">{{ props.popUp.title }}</p>
+      <font-awesome-icon :icon="['fal', 'warning']" class="text-warning text-[24px] lg:text-[40px]" />
 
       <p
         v-for="message in props.popUp.message"
         v-bind:key="message"
-        class="text-[20px]"
+        class="text-[14px] lg:text-[20px]"
         :class="message.includes('\b') ? 'font-extrabold text-core-lightest' : 'text-core-light'"
       >
-        {{ message }}
+        {{ message.replace('\b', '') }}
       </p>
     </div>
 
-    <AgreeToTerms v-if="props.popUp.showTerms" :class="'text-[20px]'" />
+    <AgreeToTerms v-if="props.popUp.showTerms" :class="'text-[14px] lg:text-[20px]'" />
     <div class="flex flex-row space-x-[30px] justify-center items-center">
       <CustomButton :title="props.popUp.leftButtonTitle" @click="props.popUp.onAcknowledged()" />
       <CustomButton

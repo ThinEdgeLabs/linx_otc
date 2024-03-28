@@ -24,6 +24,7 @@ onMounted(async () => {
   }
 
   // Check if user acknowledged popup about dapp
+  localStorage.removeItem('approveTerms')
   const hasApproved = localStorage.getItem('approveTerms')
   if (!hasApproved || hasApproved != deploymentNetwork) {
     popUpStore.setPopUp({
@@ -31,7 +32,6 @@ onMounted(async () => {
       type: 'warning',
       message: [
         'Please be aware that LinxOTC is in a BETA stage. This means there can be bugs, errors and, eventhough we strive to deliver a safe DApp, contracts could potentially become compromised which can result in losing all your funds.',
-        'For lending and borrowing, the contracts are on group 0, please connect a wallet with the address on Group 0',
         '\bLinxOTC is currently on TESTNET',
         '\bUse this DApp at your own risk'
       ],
