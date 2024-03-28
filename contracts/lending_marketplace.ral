@@ -85,8 +85,9 @@ Contract LendingMarketplace(
     let borrower = loan.getBorrower()
     let lendingTokenId = loan.getLendingTokenId()
     let loanAmount = loan.getLendingAmount()
-    checkCaller!(callerAddress!() == borrower, ErrorCodes.BorrowerAllowedOnly)
-    loan.payback{callerAddress!() -> lendingTokenId: loanAmount}()
+    let caller = callerAddress!()
+    checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
+    loan.payback{caller -> lendingTokenId: loanAmount}()
     emit LoanPaid(loanId)
   }
 
