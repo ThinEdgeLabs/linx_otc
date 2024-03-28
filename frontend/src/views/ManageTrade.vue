@@ -11,6 +11,7 @@ import ApproveWallet from '@/components/ApproveWallet.vue'
 import TradePreview from '@/components/trade/TradePreview.vue'
 import { useAccountStore } from '@/stores/account'
 import { waitTxConfirmed } from '@alephium/cli'
+import { fetchLink } from '@/functions/utils'
 
 interface TradeData {
   data: Order
@@ -32,17 +33,9 @@ const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const order = ref<Order | undefined>(undefined)
 const tradeData = ref<TradeData | undefined>(undefined)
+const fetchingData = ref<boolean>(true)
 
 const trade = route.params.trade
-
-try {
-  const encodedTrade = atob(trade as string)
-  const parsedTrade = JSON.parse(encodedTrade)
-  order.value = parsedTrade.data
-  tradeData.value = parsedTrade
-} catch (error) {
-  console.log('error', error)
-}
 
 async function signAndSend() {
   status.value = 'approve'
@@ -71,10 +64,25 @@ async function signAndSend() {
     alert(error)
   }
 }
+
+async function fetchData() {
+  if (fetchingData.value) {
+    try {
+      const encodedTrade = await fetchLink(trade as string)
+      const parsedTrade = JSON.parse(atob(encodedTrade))
+      order.value = parsedTrade.data
+      tradeData.value = parsedTrade
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  fetchingData.value = false
+}
 </script>
 
 <template>
-  <section class="flex flex-col w-full space-y-[40px] pt-[30px] leading-snug">
+  <section v-bind="fetchData()" class="flex flex-col w-full space-y-[40px] pt-[30px] leading-snug">
     <PageTitle
       :title="'Confirm P2P Order'"
       :description="'Check the trade offer you have received and confirm or reject the offer to continue.'"
@@ -86,7 +94,7 @@ async function signAndSend() {
       @update:approve="signAndSend"
     />
     <TransactionError
-      v-if="!order && !status"
+      v-if="!order && !status && !fetchingData"
       @update:cancel="router.push('/')"
       :only-show-back="true"
       :description="'Could not decode the P2P Swap order, please check the URL with the sender of the link.'"
@@ -97,6 +105,10 @@ async function signAndSend() {
     >
       <ApproveWallet :status="status" @update:retry="signAndSend" @update:cancel="router.push('/')" :tx-id="txId" />
       <TradePreview :trade-offer="order" />
+    </section>
+    <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
+      <p class="text-[30px] text-core-lightest font-extrabold">Decoding the transaction</p>
+      <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
   </section>
 </template>

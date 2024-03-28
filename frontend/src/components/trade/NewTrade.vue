@@ -16,6 +16,7 @@ import type { Status } from '../ApproveWallet.vue'
 import { domainURL, useGasPayer } from '@/config'
 import { usePopUpStore } from '@/stores/popup'
 import { useGasPayerStore } from '@/stores/gasPayer'
+import { hashLink, registerLink } from '@/functions/utils'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()
@@ -61,8 +62,14 @@ async function createTrade() {
             sigs: useGasPayer ? [gasSig!.signature, sig.signature] : [sig.signature]
           })
         )
-        tradeLink.value = `${domainURL}/trading/${encodedTx}`
-        status.value = 'signed'
+        const hash = hashLink(encodedTx)
+        const sendLink = await registerLink(hash, encodedTx)
+        if (sendLink) {
+          tradeLink.value = `${domainURL}/trading/${hash}`
+          status.value = 'signed'
+        } else {
+          throw Error('Could net register transaction')
+        }
       } catch (e) {
         console.log(e)
         status.value = 'denied'

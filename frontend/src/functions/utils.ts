@@ -1,4 +1,6 @@
 import type { Loan } from '@/types'
+import { binToHex } from '@alephium/web3'
+import blake from 'blakejs'
 
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -41,4 +43,48 @@ export function calculateApr(loan: Loan) {
 
 export function convertBasisPointsToPercentage(basisPoints: bigint | number) {
   return `${Number(basisPoints) / 100}%`
+}
+
+export function hashLink(link: string) {
+  const hash = binToHex(blake.blake2b(link, undefined, 32))
+  return hash
+}
+
+export function checkLink(link: string, hash: string) {
+  const newHash = binToHex(blake.blake2b(link, undefined, 32))
+  if (newHash != hash) {
+    throw Error("Hashes don't match, can't decode transaction")
+  }
+  return true
+}
+
+export async function registerLink(hash: string, encodedLink: string) {
+  const res = await fetch('https://us-central1-linx-wallet.cloudfunctions.net/registerTrade', {
+    method: 'POST',
+    body: JSON.stringify({
+      value: hash,
+      encodedLink: encodedLink
+    })
+  })
+  if (res.ok) {
+    console.log(res.text)
+  } else {
+    console.log('error request', res)
+  }
+  return true
+}
+
+export async function fetchLink(hash: string) {
+  const res = await fetch('https://us-central1-linx-wallet.cloudfunctions.net/fetchTrade', {
+    method: 'POST',
+    body: JSON.stringify({
+      value: hash
+    })
+  })
+  if (res.ok) {
+    const result = await res.json()
+    return result.encodedLink
+  } else {
+    throw Error(res.statusText)
+  }
 }
