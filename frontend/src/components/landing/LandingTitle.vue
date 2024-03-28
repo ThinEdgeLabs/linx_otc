@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import CustomButton from '@/components/CustomButton.vue'
-import { NetworkId } from '@alephium/web3'
 
 const props = defineProps({
   isTop: {
