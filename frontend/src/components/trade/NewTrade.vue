@@ -68,7 +68,7 @@ async function createTrade() {
           tradeLink.value = `${domainURL}/trading/${hash}`
           status.value = 'signed'
         } else {
-          throw Error('Could net register transaction')
+          throw Error('Could not register transaction')
         }
       } catch (e) {
         console.log(e)
