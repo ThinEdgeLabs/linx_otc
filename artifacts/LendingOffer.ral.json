@@ -1,8 +1,8 @@
 {
   "version": "v2.11.0",
   "name": "LendingOffer",
-  "bytecode": "0a111140384050406040694072407b4084408d4096409f40a840b140df40f541254153010000000108561343e82d0d13203b2e02010005070112160016012b1705160216032c1367102d1706160616052c138001518016042c2d02010003030109160213800151802c0c160016011602000102010002020106160016012c1367102d02010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0402010000000102ce0502010000000102ce0602010000000102ce0702010000000102a00002010000000102a0010201010101001ace00a000450d7b1600ce052f0f7bb4a1000000a101a000ce02ce05aca000ce01ce04ab05a000b15f01020000000cb3ce03410c7bce00a000450d7bce00b0010100010019b3ce03410c7b0000a001ce04ce06ce0700011700a000ce00ce01ce0416002aaaa000ce02ce05abce00b001020001001ab4ce0045107ba000ce0046117b000017001600a001ce0713800151802c2a3313067b06b15ece00b0",
-  "codeHash": "4a5d77910a250e3c961cbbe4914807376ddb40ac153ecd6dfef21a54c4f35722",
+  "bytecode": "0a111140384050406040694072407b4084408d4096409f40a840b140da40f04120414d010000000108561343e82d0d13203b2e02010005070112160016012b1705160216032c1367102d1706160616052c138001518016042c2d02010003030109160213800151802c0c160016011602000102010002020106160016012c1367102d02010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0402010000000102ce0502010000000102ce0602010000000102ce0702010000000102a00002010000000102a00102010101010016b3ce03410c7bce00a000450d7b1600a1000000a101a000ce02ce05aca000ce01ce04ab01020000000cb3ce03410c7bce00a000450d7bce00b0010100010019b3ce03410c7b0000a001ce04ce06ce0700011700a000ce00ce01ce0416002aaaa000ce02ce05abce00b001020001001ab4ce00450e7ba000ce00460f7b000017001600a001ce0713800151802c2a33107b05b15ece00b0",
+  "codeHash": "9f67c747945d9cf0365e768a3703e5cc77500c1f3bd836f965dc7d38ea47e37f",
   "fieldsSig": {
     "names": [
       "lender",
@@ -42,17 +42,6 @@
     ]
   },
   "eventsSig": [
-    {
-      "name": "OfferTaken",
-      "fieldNames": [
-        "borrower",
-        "offerId"
-      ],
-      "fieldTypes": [
-        "Address",
-        "ByteVec"
-      ]
-    },
     {
       "name": "LoanLiquidated",
       "fieldNames": [
@@ -265,10 +254,10 @@
       "useAssetsInContract": true,
       "isPublic": true,
       "paramNames": [
-        "collateral"
+        "caller"
       ],
       "paramTypes": [
-        "U256"
+        "Address"
       ],
       "paramIsMutable": [
         false
@@ -334,31 +323,24 @@
           }
         },
         {
-          "name": "IncorrectCollateralAmount",
-          "value": {
-            "type": "U256",
-            "value": "3"
-          }
-        },
-        {
           "name": "LenderAllowedOnly",
           "value": {
             "type": "U256",
-            "value": "4"
+            "value": "2"
           }
         },
         {
           "name": "OfferNotTaken",
           "value": {
             "type": "U256",
-            "value": "5"
+            "value": "3"
           }
         },
         {
           "name": "LoanNotOverdue",
           "value": {
             "type": "U256",
-            "value": "6"
+            "value": "4"
           }
         }
       ]

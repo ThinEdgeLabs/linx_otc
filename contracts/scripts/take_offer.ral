@@ -1,5 +1,6 @@
-TxScript TakeOffer(offer: LendingOffer) {
+TxScript Borrow(offerId: ByteVec, lendingMarketplace: LendingMarketplace) {
+  let offer = LendingOffer(offerId)
   let collateralTokenId = offer.getCollateralTokenId()
   let collateralAmount = offer.getCollateralAmount()
-  offer.take{ callerAddress!() -> collateralTokenId: collateralAmount }(collateralAmount)
+  lendingMarketplace.borrow{ callerAddress!() -> collateralTokenId: collateralAmount }(offerId)
 }

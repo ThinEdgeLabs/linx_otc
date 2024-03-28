@@ -44,10 +44,6 @@ export namespace LendingOfferTypes {
 
   export type State = ContractState<Fields>;
 
-  export type OfferTakenEvent = ContractEvent<{
-    borrower: Address;
-    offerId: HexString;
-  }>;
   export type LoanLiquidatedEvent = ContractEvent<{ offerId: HexString }>;
 
   export interface CallMethodTable {
@@ -136,16 +132,15 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingOfferTypes.Fields;
   }
 
-  eventIndex = { OfferTaken: 0, LoanLiquidated: 1 };
+  eventIndex = { LoanLiquidated: 0 };
   consts = {
     Day: BigInt(86400),
     ErrorCodes: {
       MarketplaceAllowedOnly: BigInt(0),
       OfferAlreadyTaken: BigInt(1),
-      IncorrectCollateralAmount: BigInt(3),
-      LenderAllowedOnly: BigInt(4),
-      OfferNotTaken: BigInt(5),
-      LoanNotOverdue: BigInt(6),
+      LenderAllowedOnly: BigInt(2),
+      OfferNotTaken: BigInt(3),
+      LoanNotOverdue: BigInt(4),
     },
   };
 
@@ -265,10 +260,7 @@ class Factory extends ContractFactory<
       return testMethod(this, "getLoanTimeStamp", params);
     },
     take: async (
-      params: TestContractParams<
-        LendingOfferTypes.Fields,
-        { collateral: bigint }
-      >
+      params: TestContractParams<LendingOfferTypes.Fields, { caller: Address }>
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "take", params);
     },
@@ -304,7 +296,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "4a5d77910a250e3c961cbbe4914807376ddb40ac153ecd6dfef21a54c4f35722"
+    "9f67c747945d9cf0365e768a3703e5cc77500c1f3bd836f965dc7d38ea47e37f"
   )
 );
 
@@ -322,19 +314,6 @@ export class LendingOfferInstance extends ContractInstance {
     return getContractEventsCurrentCount(this.address);
   }
 
-  subscribeOfferTakenEvent(
-    options: EventSubscribeOptions<LendingOfferTypes.OfferTakenEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      LendingOffer.contract,
-      this,
-      options,
-      "OfferTaken",
-      fromCount
-    );
-  }
-
   subscribeLoanLiquidatedEvent(
     options: EventSubscribeOptions<LendingOfferTypes.LoanLiquidatedEvent>,
     fromCount?: number
@@ -344,20 +323,6 @@ export class LendingOfferInstance extends ContractInstance {
       this,
       options,
       "LoanLiquidated",
-      fromCount
-    );
-  }
-
-  subscribeAllEvents(
-    options: EventSubscribeOptions<
-      LendingOfferTypes.OfferTakenEvent | LendingOfferTypes.LoanLiquidatedEvent
-    >,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvents(
-      LendingOffer.contract,
-      this,
-      options,
       fromCount
     );
   }

@@ -55,6 +55,10 @@ export namespace LendingMarketplaceTypes {
   }>;
   export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
   export type LoanPaidEvent = ContractEvent<{ loanId: HexString }>;
+  export type LoanStartedEvent = ContractEvent<{
+    loanId: HexString;
+    borrower: Address;
+  }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -134,6 +138,7 @@ class Factory extends ContractFactory<
     OfferCreated: 1,
     OfferCancelled: 2,
     LoanPaid: 3,
+    LoanStarted: 4,
   };
   consts = {
     Day: BigInt(86400),
@@ -142,6 +147,7 @@ class Factory extends ContractFactory<
       LendingDisabled: BigInt(1),
       LenderAllowedOnly: BigInt(2),
       BorrowerAllowedOnly: BigInt(3),
+      LenderNotAllowed: BigInt(4),
     },
   };
 
@@ -227,6 +233,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<Address>> => {
       return testMethod(this, "createLendingOffer", params);
     },
+    borrow: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { offerId: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "borrow", params);
+    },
     cancelOffer: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
@@ -275,7 +289,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "71f6f1597708e1630c785b7d9a5b11373acf3fe3e5814f0baaa9734b0a224816"
+    "81c2c51921df26acb92330d004c861c12145fe2178bf0923cbbb5f1a7cbd1f2b"
   )
 );
 
@@ -345,12 +359,26 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeLoanStartedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanStartedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanStarted",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
       | LendingMarketplaceTypes.OfferCreatedEvent
       | LendingMarketplaceTypes.OfferCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
+      | LendingMarketplaceTypes.LoanStartedEvent
     >,
     fromCount?: number
   ): EventSubscription {

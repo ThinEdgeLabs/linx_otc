@@ -408,6 +408,118 @@ describe('LendingMarketplace', () => {
     })
   })
 
+  describe('borrow', () => {
+    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
+    let admin: PrivateKeyWallet
+    let lender: PrivateKeyWallet
+    let borrower: PrivateKeyWallet
+
+    beforeAll(async () => {
+      [admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+      marketplace = createLendingMarketplace(admin.address)
+    })
+
+    it('fails if borrower is the lender', async () => {
+        const offer = createLendingOffer(lender.address, lendingTokenId,
+          collateralTokenId,
+          marketplace.contractId,
+          lendingAmount,
+          collateralAmount,
+          interestRate,
+          duration,
+          borrower.address,
+          undefined,
+          undefined,
+          undefined,
+          marketplace
+        )
+
+        const testResult = LendingMarketplace.tests.borrow({
+          initialFields: marketplace.selfState.fields,
+          address: marketplace.address,
+          existingContracts: offer.states(),
+          inputAssets: [
+            {
+              address: lender.address,
+              asset: { alphAmount: ONE_ALPH }
+            }
+          ],
+          testArgs: {
+            offerId: offer.contractId
+          }
+        })
+        await expectAssertionError(
+          testResult,
+          marketplace.address,
+          Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
+        )
+    })
+
+    it('fails if the offer does not exist', async () => {
+      const offerId = randomContractId()
+      const testResult = LendingMarketplace.tests.borrow({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: marketplace.dependencies,
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: ONE_ALPH }
+          }
+        ],
+        testArgs: {
+          offerId
+        }
+      })
+      const error = `[API Error] - VM execution error: Contract ${addressFromContractId(offerId)} does not exist`
+      expect(testResult).rejects.toThrowError(error)
+    })
+
+    it('borrower receives tokens, collateral is locked, emits LoanStarted event', async () => {
+      const offer = createLendingOffer(lender.address, lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender.address,
+        undefined,
+        undefined,
+        { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }]},
+        marketplace
+      )
+
+      const testResult = await LendingMarketplace.tests.borrow({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: offer.states(),
+        inputAssets: [
+          {
+            address: borrower.address,
+            asset: { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] }
+          }
+        ],
+        testArgs: {
+          offerId: offer.contractId
+        }
+      })
+      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanStarted') as LendingMarketplaceTypes.LoanStartedEvent
+      expect(loanStartedEvent.fields.loanId).toEqual(offer.contractId)
+      expect(loanStartedEvent.fields.borrower).toEqual(borrower.address)
+      const contractBalance = testResult.txOutputs[0]
+      expect(contractBalance.tokens![0]).toEqual({
+        id: collateralTokenId,
+        amount: collateralAmount
+      })
+      const borrowerBalance = testResult.txOutputs[1]
+      expect(borrowerBalance.tokens![0]).toEqual({
+        id: lendingTokenId,
+        amount: lendingAmount
+      })
+    })
+  })
+
   describe('paybackLoan', () => {
     let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
     let admin: PrivateKeyWallet
@@ -452,6 +564,7 @@ describe('LendingMarketplace', () => {
       const testResult = await LendingMarketplace.tests.paybackLoan({
         initialFields: marketplace.selfState.fields,
         address: marketplace.address,
+        //blockTimeStamp: NOW,
         existingContracts: offer.states(),
         inputAssets: [
           {

@@ -11,10 +11,15 @@ import {
   SignerProvider,
   HexString,
 } from "@alephium/web3";
+import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
 import { default as CancelOfferScriptJson } from "../scripts/CancelOffer.ral.json";
 import { default as CreateOfferScriptJson } from "../scripts/CreateOffer.ral.json";
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
-import { default as TakeOfferScriptJson } from "../scripts/TakeOffer.ral.json";
+
+export const Borrow = new ExecutableScript<{
+  offerId: HexString;
+  lendingMarketplace: HexString;
+}>(Script.fromJson(BorrowScriptJson, ""));
 
 export const CancelOffer = new ExecutableScript<{
   marketplace: HexString;
@@ -36,7 +41,3 @@ export const GetToken = new ExecutableScript<{
   sender: Address;
   amount: bigint;
 }>(Script.fromJson(GetTokenScriptJson, ""));
-
-export const TakeOffer = new ExecutableScript<{ offer: HexString }>(
-  Script.fromJson(TakeOfferScriptJson, "")
-);

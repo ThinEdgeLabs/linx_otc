@@ -4,7 +4,6 @@ import {
   ONE_ALPH,
   ContractState,
   DUST_AMOUNT,
-  Contract,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
@@ -115,17 +114,12 @@ describe('LendingOffer', () => {
             asset: { alphAmount: 10n ** 18n, tokens: [{ id: collateralTokenId, amount: collateralAmount * 2n }] }
           }
         ],
-        testArgs: { collateral: collateralAmount },
+        callerAddress: marketplace.address,
+        testArgs: { caller: borrower.address },
         address: fixture.address,
         existingContracts: fixture.dependencies
       })
 
-      expect(testResult.events.length).toEqual(1)
-      const offerTakenEvent = testResult.events[0] as LendingOfferTypes.OfferTakenEvent
-      expect(offerTakenEvent.fields).toEqual({
-        borrower: borrower.address,
-        offerId: fixture.contractId
-      })
       const state = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
@@ -155,41 +149,12 @@ describe('LendingOffer', () => {
             asset: { alphAmount: 10n ** 18n, tokens: [{ id: collateralTokenId, amount: providedCollateral }] }
           }
         ],
-        testArgs: { collateral: providedCollateral },
+        testArgs: { caller: borrower.address },
+        callerAddress: marketplace.address,
         address: fixture.address,
         existingContracts: fixture.dependencies
       })
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.IncorrectCollateralAmount))
-    })
-
-    it('fails if the borrower provides more collateral', async () => {
-      fixture = createLendingOffer(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        marketplace.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        lender.address
-      )
-      const providedCollateral = collateralAmount * 2n
-      const testResult = LendingOffer.tests.take({
-        initialFields: fixture.selfState.fields,
-        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
-        inputAssets: [
-          {
-            address: borrower.address,
-            asset: { alphAmount: 10n ** 18n, tokens: [{ id: collateralTokenId, amount: providedCollateral }] }
-          }
-        ],
-        testArgs: { collateral: providedCollateral },
-        address: fixture.address,
-        existingContracts: fixture.dependencies
-      })
-
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.IncorrectCollateralAmount))
+      expect(testResult).rejects.toThrowError()
     })
 
     it('fails if the offer is already taken', async () => {
@@ -213,7 +178,8 @@ describe('LendingOffer', () => {
             asset: { alphAmount: 10n ** 18n, tokens: [{ id: collateralTokenId, amount: collateralAmount }] }
           }
         ],
-        testArgs: { collateral: collateralAmount },
+        testArgs: { caller: borrower.address },
+        callerAddress: marketplace.address,
         address: fixture.address,
         existingContracts: fixture.dependencies
       })

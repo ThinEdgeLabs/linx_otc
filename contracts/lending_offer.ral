@@ -11,16 +11,14 @@ Contract LendingOffer(
   mut loanTimeStamp: U256 // in seconds
 ) extends LendingMarketplaceUtils() {
 
-  event OfferTaken(borrower: Address, offerId: ByteVec)
   event LoanLiquidated(offerId: ByteVec)
 
   enum ErrorCodes {
     MarketplaceAllowedOnly = 0
     OfferAlreadyTaken = 1
-    IncorrectCollateralAmount = 3
-    LenderAllowedOnly = 4
-    OfferNotTaken = 5
-    LoanNotOverdue = 6
+    LenderAllowedOnly = 2
+    OfferNotTaken = 3
+    LoanNotOverdue = 4
   }
 
   pub fn getLender() -> Address {
@@ -59,20 +57,18 @@ Contract LendingOffer(
     return loanTimeStamp
   }
 
-  @using(assetsInContract = true, preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
-  pub fn take(collateral: U256) -> () {
+  @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
+  pub fn take(caller: Address) -> () {
+    checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
     assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
-    assert!(collateral == collateralAmount, ErrorCodes.IncorrectCollateralAmount)
 
     // TODO: Pay the fee to the marketplace
 
-    borrower = callerAddress!()
+    borrower = caller
     loanTimeStamp = blockTimeStampInSeconds()
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, lendingAmount)
-
-    emit OfferTaken(borrower, selfContractId!())
   }
 
   @using(assetsInContract = true)

@@ -1,6 +1,6 @@
 import { DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ONE_ALPH, SignerProvider, ZERO_ADDRESS  } from '@alephium/web3'
 import { DeployHelpers } from './deploy-helpers'
-import { CancelOffer, CreateOffer, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, TakeOffer} from '../artifacts/ts'
+import { CancelOffer, CreateOffer, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, Borrow} from '../artifacts/ts'
 import { randomContractId } from './utils'
 
 export class LendingMarketplaceHelper extends DeployHelpers {
@@ -77,9 +77,10 @@ export class LendingMarketplaceHelper extends DeployHelpers {
   }
 
   async takeOffer(signer: SignerProvider, offerId: string, collateralTokenId: string, collateralAmount: bigint): Promise<ExecuteScriptResult> {
-    return TakeOffer.execute(signer, {
+    return Borrow.execute(signer, {
       initialFields: {
-        offer: offerId,
+        offerId,
+        lendingMarketplace: this.contractId!
       },
       tokens: [
         {

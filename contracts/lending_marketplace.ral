@@ -24,12 +24,14 @@ Contract LendingMarketplace(
 
   event OfferCancelled(offerId: ByteVec)
   event LoanPaid(loanId: ByteVec)
+  event LoanStarted(loanId: ByteVec, borrower: Address)
 
   enum ErrorCodes {
     AdminAllowedOnly = 0
     LendingDisabled = 1
     LenderAllowedOnly = 2
     BorrowerAllowedOnly = 3
+    LenderNotAllowed = 4
   }
 
   pub fn getAdmin() -> Address {
@@ -69,6 +71,18 @@ Contract LendingMarketplace(
     emit OfferCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, lendingOfferContractId)
 
     return contractIdToAddress!(lendingOfferContractId)
+  }
+
+  @using(preapprovedAssets = true)
+  pub fn borrow(offerId: ByteVec) -> () {
+    let offer = LendingOffer(offerId)
+    let lender = offer.getLender()
+    let collateralTokenId = offer.getCollateralTokenId()
+    let collateralAmount = offer.getCollateralAmount()
+    checkCaller!(callerAddress!() != lender, ErrorCodes.LenderNotAllowed)
+    let borrower = callerAddress!()
+    offer.take{borrower -> collateralTokenId: collateralAmount}(borrower)
+    emit LoanStarted(offerId, borrower)
   }
 
   pub fn cancelOffer(offerId: ByteVec) -> () {
