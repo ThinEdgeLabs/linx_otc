@@ -11,18 +11,18 @@ const showSideBar = ref(false)
 const loginStore = useLoginStore()
 
 const menuItems = [
-  {
-    title: 'Dashboard',
-    destination: '/dashboard'
-  },
+  // {
+  //   title: 'Dashboard',
+  //   destination: '/dashboard'
+  // },
   {
     title: 'P2P Trade',
     destination: '/trading'
   },
-  {
-    title: 'P2P Lending',
-    destination: '/lending'
-  },
+  // {
+  //   title: 'P2P Lending',
+  //   destination: '/lending'
+  // },
   // {
   //   title: 'My Activity',
   //   destination: '/activity'

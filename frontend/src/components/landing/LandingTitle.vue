@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CustomButton from '@/components/CustomButton.vue'
+import { NetworkId } from '@alephium/web3'
 
 const props = defineProps({
   isTop: {
@@ -21,7 +22,7 @@ const props = defineProps({
     <p class="text-[18px] text-core-light">
       LinxOTC makes uses of the atomic swap feature on Alephium to enable p2p trading.
     </p>
-    <RouterLink :to="'/dashboard'">
+    <RouterLink :to="'/trading'">
       <CustomButton :title="'Open App'" :class="'w-[194px]'" />
     </RouterLink>
   </section>

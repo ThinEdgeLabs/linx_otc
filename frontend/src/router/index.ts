@@ -14,11 +14,11 @@ const router = createRouter({
       name: 'home',
       component: HomeView
     },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardView
-    },
+    // {
+    //   path: '/dashboard',
+    //   name: 'dashboard',
+    //   component: DashboardView
+    // },
     {
       path: '/trading',
       name: 'trading',
@@ -29,21 +29,21 @@ const router = createRouter({
       name: 'complete_trade',
       component: ManageTrade
     },
-    {
-      path: '/lending',
-      name: 'lending',
-      component: LendingView
-    },
+    // {
+    //   path: '/lending',
+    //   name: 'lending',
+    //   component: LendingView
+    // },
     {
       path: '/faq',
       name: 'faq',
       component: FaqView
     },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('@/views/AboutView.vue')
-    },
+    // {
+    //   path: '/about',
+    //   name: 'about',
+    //   component: () => import('@/views/AboutView.vue')
+    // },
     {
       path: '/contact',
       name: 'contact',
