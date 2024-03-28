@@ -13,7 +13,7 @@ import SectionTitle from '@/components/SectionTitle.vue'
       <ContactCard
         :title="'Discord'"
         :icon="'discord'"
-        :description="'Come chat on discord and meet other LinxOTC users check out groups of other Linx products.'"
+        :description="'Come chat on discord and meet other LinxOTC users.'"
         :button-description="'Join us on Discord'"
         :destination="'https://discord.gg/g434BaWTFb'"
       />
