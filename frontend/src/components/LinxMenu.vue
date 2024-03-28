@@ -92,7 +92,7 @@ function goToDocs() {
         ></MenuItem>
       </div>
       <div class="w-full pr-[30px] lg:pr-0 lg:w-auto">
-        <WalletButton :class="'w-full lg:w-[228px] py-[10px]'" @click="showSideBar = false" />
+        <WalletButton :class="'w-full lg:max-w-[228px] py-[10px]'" @click="showSideBar = false" />
       </div>
     </nav>
     <HorizontalDivider :class="'relative invisible lg:visible -mt-[3px] z-10'" />

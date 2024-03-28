@@ -140,7 +140,6 @@ export const useOrderStore = defineStore('order', () => {
         gasAmount: 75000
       })
     }
-    console.log(tx)
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )

@@ -69,7 +69,15 @@ async function createTrade() {
       }
       // Create the request and open wallet
     } catch (e) {
-      console.error(e)
+      console.error('error', e)
+      popUpStore.setPopUp({
+        title: 'Oops, something went wrong!',
+        onAcknowledged: popUpStore.closePopUp,
+        leftButtonTitle: 'OK',
+        type: 'warning',
+        message: apiErrorHandler(e as string),
+        showTerms: false
+      })
       status.value = 'denied'
     }
   } else {
@@ -81,6 +89,16 @@ async function createTrade() {
       message: createErrorMessage(),
       showTerms: false
     })
+  }
+}
+
+function apiErrorHandler(error: string): Array<string> {
+  if (error.toString().includes('Not enough balance')) {
+    return [
+      'Not enough ALPH balance. Each account in the trade needs at least 0.002 ALPH in their wallet to complete the trade'
+    ]
+  } else {
+    return ['Unknow error, please contact us on Discord and share this error:', error.toString()]
   }
 }
 
@@ -120,7 +138,13 @@ function createErrorMessage(): Array<string> {
     </div>
     <div class="flex flex-col lg:flex-row w-full lg:space-x-[30px] space-y-[30px] lg:space-y-0">
       <TokenBar :is-sender="true" :offer-type="'trade'" :class="'lg:basis-1/2'" :validate-input="true" />
-      <TokenBar :is-sender="false" :offer-type="'trade'" :class="'lg:basis-1/2'" :account-address="tradeStore.order?.to" :validate-input="true" />
+      <TokenBar
+        :is-sender="false"
+        :offer-type="'trade'"
+        :class="'lg:basis-1/2'"
+        :account-address="tradeStore.order?.to"
+        :validate-input="true"
+      />
     </div>
     <HorizontalDividerVue />
     <CustomButton
