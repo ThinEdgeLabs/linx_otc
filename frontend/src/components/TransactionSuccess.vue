@@ -2,6 +2,7 @@
 import { copyToClipboard } from '@/functions/utils'
 import CustomButton from './CustomButton.vue'
 import { onMounted, ref } from 'vue'
+import { getMarketplaceConfig } from '@/config'
 
 const emits = defineEmits<{
   (e: 'update:finished'): void
@@ -37,6 +38,14 @@ async function copy() {
   await copyToClipboard(props.txId)
 }
 
+function goToExplorer(link: string) {
+  const mpConfig = getMarketplaceConfig()
+  window.open(
+    `https://${mpConfig.network === 'testnet' ? 'testnet' : 'explorer'}.alephium.org/transactions/${link}`,
+    '_blank'
+  )
+}
+
 onMounted(() => startTimer())
 </script>
 
@@ -51,15 +60,12 @@ onMounted(() => startTimer())
       <p class="text-[22px] font-extrabold text-core-lightest">{{ props.title }}</p>
       <p class="text-[16px] text-core-light">{{ props.description }}</p>
     </div>
-    <button
+    <a
       class="w-full lg:w-[60%] bg-core-lightest rounded-lg py-[20px] text-center text-core-darkest text-[14px] font-extrabold"
-      @click="
-        {
-        }
-      "
+      @click="goToExplorer(props.txId)"
     >
       {{ props.txId }}
-    </button>
+    </a>
     <div
       class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px] items-center justify-center"
     >
