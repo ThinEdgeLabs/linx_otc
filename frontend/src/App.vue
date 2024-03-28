@@ -24,7 +24,6 @@ onMounted(async () => {
   }
 
   // Check if user acknowledged popup about dapp
-  localStorage.removeItem('approveTerms')
   const hasApproved = localStorage.getItem('approveTerms')
   if (!hasApproved || hasApproved != deploymentNetwork) {
     popUpStore.setPopUp({
