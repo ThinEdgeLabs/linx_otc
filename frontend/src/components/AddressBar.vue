@@ -32,6 +32,7 @@ function pasteAddress() {
 
 async function handleAddress(pubKey: string) {
   if (pubKey.length === 66) {
+    errorMessage.value = undefined
     const nodeStore = useNodeStore()
     const address = addressFromPublicKey(pubKey)
     const group = await nodeStore.getGroupForAddress(address)
