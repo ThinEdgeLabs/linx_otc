@@ -16,7 +16,7 @@ import type { Status } from '../ApproveWallet.vue'
 import { domainURL, useGasPayer } from '@/config'
 import { usePopUpStore } from '@/stores/popup'
 import { useGasPayerStore } from '@/stores/gasPayer'
-import { hashLink, registerLink } from '@/functions/utils'
+import { registerLink } from '@/functions/utils'
 
 const account = useAccountStore()
 const loginStore = useLoginStore()

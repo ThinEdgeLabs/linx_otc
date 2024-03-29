@@ -35,6 +35,11 @@ async function handleAddress(pubKey: string) {
     errorMessage.value = undefined
     const nodeStore = useNodeStore()
     const address = addressFromPublicKey(pubKey)
+    if (address === account.account?.address) {
+      errorMessage.value = 'You cannot trade with yourself'
+      inputValue.value = ''
+      return
+    }
     const group = await nodeStore.getGroupForAddress(address)
     if (group.group != account.account?.group) {
       popUpStore.setPopUp({
@@ -58,17 +63,27 @@ async function handleAddress(pubKey: string) {
     orderStore.setReceiver(address, group.group, pubKey)
   } else {
     inputValue.value = pubKey
-    errorMessage.value = 'A public key has 66 characters'
+    errorMessage.value = 'Invalid PublicKey'
   }
 }
 </script>
 
 <template>
   <section class="flex flex-col space-y-[10px] text-[14px]">
-    <div class="font-extrabold text-core-light">
-      {{ props.isSender ? 'Your address' : orderStore.order?.to ? 'Receiver address' : 'Receiver Public Key' }}
+    <div class="flex flex-row space-x-[10px] items-center">
+      <div class="font-extrabold text-core-light">
+        {{ props.isSender ? 'Your address' : orderStore.order?.to ? 'Receiver address' : 'Receiver Public Key' }}
+      </div>
+      <a
+        v-if="!props.isSender && !orderStore.order?.to"
+        href="https://linx-labs.gitbook.io/linxotc-testnet/v/find-your-public-key"
+        target="_blank"
+        class="text-accent-3 text-[10px]"
+        >How to find the publickey</a
+      >
     </div>
-    <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core">
+
+    <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core max-h-[52px]">
       <div class="flex flex-row space-x-[10px] items-center w-full">
         <img src="@/assets/alph.png" class="w-[32px] h-[32px] rounded-full" />
 

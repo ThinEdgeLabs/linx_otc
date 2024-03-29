@@ -67,7 +67,7 @@ onMounted(() => startTimer())
       {{ props.txId }}
     </a>
     <div
-      class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px] items-center justify-center"
+      class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[10px] items-center justify-center"
     >
       <CustomButton :title="'Copy'" :icon="'copy'" @click="copy()" :class="'w-full lg:w-[228px]'" />
       <CustomButton

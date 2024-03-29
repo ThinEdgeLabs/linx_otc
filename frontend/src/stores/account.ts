@@ -61,8 +61,9 @@ export const useAccountStore = defineStore('account', () => {
       wcStore.disconnectWalletConnect()
     }
     const orderStore = useOrderStore()
-    orderStore.resetOrder()
     account.value = undefined
+    orderStore.resetOrder()
+    
   }
 
   return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect }

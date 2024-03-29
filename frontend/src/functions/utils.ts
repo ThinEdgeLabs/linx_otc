@@ -67,9 +67,10 @@ export async function registerLink(hash: string, encodedLink: string) {
     })
   })
   if (res.ok) {
-    console.log(res.text)
+    return true
   } else {
     console.log('error request', res)
+    return false
   }
   return true
 }

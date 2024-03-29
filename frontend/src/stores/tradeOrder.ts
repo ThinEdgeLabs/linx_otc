@@ -22,6 +22,7 @@ export interface Order {
 
 export const useOrderStore = defineStore('order', () => {
   const order = ref<Order | undefined>()
+  const account = useAccountStore()
 
   function setFromToken(token: Token) {
     order.value!.tokenFrom = token
@@ -55,12 +56,16 @@ export const useOrderStore = defineStore('order', () => {
       tokenFrom: undefined,
       amountFrom: 0.0,
       tokenTo: undefined,
-      amountTo: 0.0
+      amountTo: 0.0,
     }
   }
 
   function resetOrder() {
-    order.value = undefined
+    if (account.account) {
+      startNewOrder(account.account!.address, account.account.group )
+    } else {
+      order.value = undefined
+    }
   }
 
   async function createOrder(useGasPayer: boolean) {
@@ -145,7 +150,6 @@ export const useOrderStore = defineStore('order', () => {
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )
-
     return unsignedTx
   }
 

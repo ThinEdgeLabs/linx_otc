@@ -81,6 +81,11 @@ const percentageFilled = computed(() => {
     >
       {{ shortenString(props.link!, 48) }}
     </div>
-    <CustomButton :title="'Copy link'" :icon="'copy'" @click="copyToClipboard(props.link!)" />
+    <div
+      class="flex flex-col lg:flex-row items-center lg:justify-between space-y-[30px] lg:space-y-0 space-x-0 lg:space-x-[30px]"
+    >
+      <CustomButton :title="'Copy link'" :icon="'copy'" @click="copyToClipboard(props.link!)" />
+      <CustomButton :title="'Close'" :open="true" @click="$emit('update:finished')" />
+    </div>
   </section>
 </template>

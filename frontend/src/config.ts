@@ -6,6 +6,7 @@ import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005
 export const domainURL = 'https://testnet.linxotc.com'
+//export const domainURL = 'localhost:5173'
 export const feeAddresses = [{
   group: 0,
   address: '1B1yNSA9FwLjUQggGzNvdUGUFq6iBvxyuzk5DGFjaWBfx'

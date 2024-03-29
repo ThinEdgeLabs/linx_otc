@@ -11,11 +11,12 @@ import type { Token } from '@/types/token'
 import { useBalance } from '@/composables/balance'
 import { ALPH_TOKEN_ID, convertAmountWithDecimals, prettifyExactAmount } from '@alephium/web3'
 import ValidationError from './ValidationError.vue'
+import { useAccountStore } from '@/stores/account'
 
 const props = defineProps<{
-  accountAddress?: string,
+  accountAddress?: string
   isSender: boolean
-  offerType: 'trade' | 'loan',
+  offerType: 'trade' | 'loan'
   validateInput: boolean
 }>()
 
@@ -37,7 +38,7 @@ onMounted(() => {
         balance.value!.tokenBalances?.forEach((tokenBalance) => {
           const token = tokensList.find((e) => e.contractId === tokenBalance.id)
           if (token) {
-            const tokenWithBalance = { ...token} as Token
+            const tokenWithBalance = { ...token } as Token
             tokenWithBalance.balance = {
               balance: tokenBalance.amount,
               balanceHint: ` ${prettifyExactAmount(tokenBalance.amount, token.decimals)!} ${token.symbol}`
@@ -61,6 +62,7 @@ onMounted(() => {
 
 const orderStore = useOrderStore()
 const loanStore = useLoanOrderStore()
+const accountStore = useAccountStore()
 
 const { balance, isLoading } = useBalance(toRef(() => props.accountAddress as string))
 
@@ -91,12 +93,17 @@ function selectToken(token: Token) {
 }
 
 function toggleDropDown() {
-  dropdownOpen.value = !dropdownOpen.value
+  if ((!props.isSender && props.accountAddress) || (props.isSender && accountStore.account)) {
+    dropdownOpen.value = !dropdownOpen.value
+  }
 }
 
 function onAmountChange(value: number) {
   errorMessage.value = undefined
-  if (value <= 0) return
+  if (value <= 0) {
+    errorMessage.value = 'Invalid Amount'
+    return
+  }
 
   const amount = convertAmountWithDecimals(value, selectedToken.value!.decimals)
   if (!amount) {
@@ -167,7 +174,7 @@ function onMaxButtonClick() {
     <div class="relative w-full">
       <div
         @click="!selectedToken ? toggleDropDown() : null"
-        class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core min-h-[60px]"
+        class="flex flex-row w-full p-[10px] bg-white justify-between items-center text-core max-h-[52px]"
         :class="dropdownOpen ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white z-10' : 'rounded-lg z-0'"
       >
         <div class="flex flex-row space-x-[10px] items-center w-full">
