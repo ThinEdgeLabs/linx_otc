@@ -6,8 +6,20 @@ import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005
 export const domainURL = 'https://testnet.linxotc.com'
-export const feeAddress = '1Dc6yUeHw9x4VJiS4B8HSvJKCSCmAbELv2Anz53Q3QMLL'
-export const useGasPayer = true
+export const feeAddresses = [{
+  group: 0,
+  address: '1B1yNSA9FwLjUQggGzNvdUGUFq6iBvxyuzk5DGFjaWBfx'
+},{
+  group: 1,
+  address: '17siH7XPUdLr5PgituLjmn5eZqLVsuAcDoUB122u7bZZ8'
+},{
+  group: 2,
+  address: '15P5NoWK5rbyDa1EjFYcJx3JfVPZ59oX5yTRnKpXmUJqd'
+},{
+  group: 3,
+  address: '15zZTAK8idRqxT2HC8HRSC3hCDDKvh4oY6jtxKsJBGGzb'
+}]
+export const useGasPayer = false
 
 export const mainnetTokens: Token[] = [
   {

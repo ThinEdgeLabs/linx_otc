@@ -62,7 +62,9 @@ async function createTrade() {
             sigs: useGasPayer ? [gasSig!.signature, sig.signature] : [sig.signature]
           })
         )
-        const hash = hashLink(encodedTx)
+        //const hash = hashLink(encodedTx)
+        //instead of hashing the data, use txid
+        const hash = trade.txId
         const sendLink = await registerLink(hash, encodedTx)
         if (sendLink) {
           tradeLink.value = `${domainURL}/trading/${hash}`

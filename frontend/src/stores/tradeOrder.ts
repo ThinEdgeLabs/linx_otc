@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Token } from '@/types'
 import { DUST_AMOUNT, convertAmountWithDecimals } from '@alephium/web3'
-import { feeAddress, tradeFee } from '@/config'
+import { feeAddresses, tradeFee } from '@/config'
 import { useNodeStore } from './node'
 import { useAccountStore } from './account'
 import { node } from '@alephium/web3'
@@ -67,6 +67,8 @@ export const useOrderStore = defineStore('order', () => {
     const node = useNodeStore()
     const account = useAccountStore()
     const gasPayer = useGasPayerStore()
+
+    const feeAddress = feeAddresses.find((f) => f.group === order.value!.groupFrom)!.address
 
     const offerAmount = convertAmountWithDecimals(
       order.value!.amountFrom * (1 - tradeFee),
@@ -140,7 +142,6 @@ export const useOrderStore = defineStore('order', () => {
         gasAmount: 75000
       })
     }
-    console.log(tx)
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )
