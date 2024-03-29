@@ -11,14 +11,11 @@ Contract LendingOffer(
   mut loanTimeStamp: U256 // in seconds
 ) extends LendingMarketplaceUtils() {
 
-  event LoanLiquidated(offerId: ByteVec)
-
   enum ErrorCodes {
     MarketplaceAllowedOnly = 0
-    OfferAlreadyTaken = 1
-    LenderAllowedOnly = 2
-    OfferNotTaken = 3
-    LoanNotOverdue = 4
+    LoanIsActive = 1
+    LoanNotActive = 2
+    LoanNotOverdue = 3
   }
 
   pub fn getLender() -> Address {
@@ -60,7 +57,7 @@ Contract LendingOffer(
   @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
   pub fn take(caller: Address) -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
+    assert!(lender == borrower, ErrorCodes.LoanIsActive)
 
     // TODO: Pay the fee to the marketplace
 
@@ -74,7 +71,7 @@ Contract LendingOffer(
   @using(assetsInContract = true)
   pub fn cancel() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.OfferAlreadyTaken)
+    assert!(lender == borrower, ErrorCodes.LoanIsActive)
     destroySelf!(lender)
   }
 
@@ -91,13 +88,11 @@ Contract LendingOffer(
 
   @using(assetsInContract = true)
   pub fn liquidate() -> () {
-    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
-    assert!(borrower != lender, ErrorCodes.OfferNotTaken)
+    checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
+    assert!(borrower != lender, ErrorCodes.LoanNotActive)
 
     let currentBlockTimeStamp = blockTimeStampInSeconds()
     assert!(currentBlockTimeStamp > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
-
-    emit LoanLiquidated(selfContractId!())
 
     destroySelf!(lender)
   }

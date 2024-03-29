@@ -44,8 +44,6 @@ export namespace LendingOfferTypes {
 
   export type State = ContractState<Fields>;
 
-  export type LoanLiquidatedEvent = ContractEvent<{ offerId: HexString }>;
-
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
       params: Omit<CallContractParams<{}>, "args">;
@@ -132,15 +130,13 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as LendingOfferTypes.Fields;
   }
 
-  eventIndex = { LoanLiquidated: 0 };
   consts = {
     Day: BigInt(86400),
     ErrorCodes: {
       MarketplaceAllowedOnly: BigInt(0),
-      OfferAlreadyTaken: BigInt(1),
-      LenderAllowedOnly: BigInt(2),
-      OfferNotTaken: BigInt(3),
-      LoanNotOverdue: BigInt(4),
+      LoanIsActive: BigInt(1),
+      LoanNotActive: BigInt(2),
+      LoanNotOverdue: BigInt(3),
     },
   };
 
@@ -296,7 +292,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "9f67c747945d9cf0365e768a3703e5cc77500c1f3bd836f965dc7d38ea47e37f"
+    "53cb9c1d912b1fac5af6701042f95ba8dfea0713adc856a0b8a42a1b60409b93"
   )
 );
 
@@ -308,23 +304,6 @@ export class LendingOfferInstance extends ContractInstance {
 
   async fetchState(): Promise<LendingOfferTypes.State> {
     return fetchContractState(LendingOffer, this);
-  }
-
-  async getContractEventsCurrentCount(): Promise<number> {
-    return getContractEventsCurrentCount(this.address);
-  }
-
-  subscribeLoanLiquidatedEvent(
-    options: EventSubscribeOptions<LendingOfferTypes.LoanLiquidatedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      LendingOffer.contract,
-      this,
-      options,
-      "LoanLiquidated",
-      fromCount
-    );
   }
 
   methods = {

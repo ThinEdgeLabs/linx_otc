@@ -59,6 +59,7 @@ export namespace LendingMarketplaceTypes {
     loanId: HexString;
     borrower: Address;
   }>;
+  export type LoanLiquidatedEvent = ContractEvent<{ loanId: HexString }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -139,6 +140,7 @@ class Factory extends ContractFactory<
     OfferCancelled: 2,
     LoanPaid: 3,
     LoanStarted: 4,
+    LoanLiquidated: 5,
   };
   consts = {
     Day: BigInt(86400),
@@ -257,6 +259,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "paybackLoan", params);
     },
+    liquidateLoan: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { loanId: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "liquidateLoan", params);
+    },
     updateAdmin: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
@@ -289,7 +299,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "81c2c51921df26acb92330d004c861c12145fe2178bf0923cbbb5f1a7cbd1f2b"
+    "7302abf93fddebbacb50451fdb3b7dfb779a0dcd5305c055e30a8e72eb9f7697"
   )
 );
 
@@ -372,6 +382,19 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeLoanLiquidatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanLiquidatedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanLiquidated",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
@@ -379,6 +402,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
       | LendingMarketplaceTypes.OfferCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
       | LendingMarketplaceTypes.LoanStartedEvent
+      | LendingMarketplaceTypes.LoanLiquidatedEvent
     >,
     fromCount?: number
   ): EventSubscription {

@@ -184,7 +184,7 @@ describe('LendingOffer', () => {
         existingContracts: fixture.dependencies
       })
 
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.OfferAlreadyTaken))
+      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanIsActive))
     })
   })
 
@@ -249,15 +249,12 @@ describe('LendingOffer', () => {
             }
           ],
           address: fixture.address,
+          callerAddress: marketplace.address,
           existingContracts: fixture.dependencies
         })
 
-        expect(testResult.events.length).toEqual(2)
+        expect(testResult.events.length).toEqual(1)
         expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
-        const offerCancelled = testResult.events.find((e) => e.name === 'LoanLiquidated') as LendingOfferTypes.LoanLiquidatedEvent
-        expect(offerCancelled.fields).toEqual({
-          offerId: fixture.contractId
-        })
         const receivedCollateral = testResult.txOutputs[0].tokens?.find((t) => t.id === collateralTokenId)
         expect(receivedCollateral?.amount).toEqual(collateralAmount)
     })
@@ -285,12 +282,13 @@ describe('LendingOffer', () => {
           }
         ],
         address: fixture.address,
+        callerAddress: marketplace.address,
         existingContracts: fixture.dependencies
       })
       expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanNotOverdue))
     })
 
-    it('fails if not lender', async () => {
+    it('fails if loan is not active', async () => {
       fixture = createLendingOffer(
         lender.address,
         lendingTokenId,
@@ -300,22 +298,22 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower.address
+        lender.address
       )
-      const loanTimeStamp = NOW - ONE_DAY * Number(duration) - 1 // loan is overdue
       const testResult = LendingOffer.tests.liquidate({
-        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
           {
-            address: borrower.address, // borrower tries to liquidate
+            address: lender.address,
             asset: { alphAmount: 10n ** 18n }
           }
         ],
         address: fixture.address,
+        callerAddress: marketplace.address,
         existingContracts: fixture.dependencies
       })
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LenderAllowedOnly))
+      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanNotActive))
     })
   })
 

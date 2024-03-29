@@ -637,4 +637,105 @@ describe('LendingMarketplace', () => {
       await expect(testResult).rejects.toThrowError(errorMessage)
     })
   })
+
+  describe('paybackLoan', () => {
+    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
+    let admin: PrivateKeyWallet
+    let lender: PrivateKeyWallet
+    let borrower: PrivateKeyWallet
+
+    beforeAll(async () => {
+      [admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+      marketplace = createLendingMarketplace(admin.address)
+    })
+
+    it('emits LoanLiquidated event', async () => {
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address,
+        undefined,
+        undefined,
+        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
+        marketplace
+      )
+
+      const testResult = await LendingMarketplace.tests.liquidateLoan({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: offer.states(),
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: ONE_ALPH }
+          }
+        ],
+        testArgs: {
+          loanId: offer.contractId
+        }
+      })
+
+      const event = testResult.events.find((e) => e.name == 'LoanLiquidated') as LendingMarketplaceTypes.LoanLiquidatedEvent
+      expect(event.fields.loanId).toEqual(offer.contractId)
+    })
+
+    it('fails if caller is not lender', async () => {
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address,
+        undefined,
+        undefined,
+        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
+        marketplace
+      )
+
+      const testResult = LendingMarketplace.tests.liquidateLoan({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: offer.states(),
+        inputAssets: [
+          {
+            address: testAddress,
+            asset: { alphAmount: ONE_ALPH }
+          }
+        ],
+        testArgs: {
+          loanId: offer.contractId
+        }
+      })
+      expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
+    })
+
+    it('fails if loan does not exist', async () => {
+      const testResult = LendingMarketplace.tests.liquidateLoan({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: marketplace.dependencies,
+        inputAssets: [
+          {
+            address: testAddress,
+            asset: { alphAmount: ONE_ALPH }
+          }
+        ],
+        testArgs: {
+          loanId: randomContractId()
+        }
+      })
+
+      expect(testResult).rejects.toThrowError()
+    })
+  })
 })
