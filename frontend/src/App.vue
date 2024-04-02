@@ -52,7 +52,7 @@ function acknowledgedTerms() {
   <main
     class="relative font-sans antialiased text-base text-core bg-core-darkest min-h-screen px-[16px] lg:px-[10%]"
   >
-  <div class="container mx-auto h-screen flex flex-col">
+  <div class="container mx-auto min-h-screen flex flex-col">
     <header>
       <LinxMenu />
     </header>
