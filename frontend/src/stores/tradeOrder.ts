@@ -56,13 +56,13 @@ export const useOrderStore = defineStore('order', () => {
       tokenFrom: undefined,
       amountFrom: 0.0,
       tokenTo: undefined,
-      amountTo: 0.0,
+      amountTo: 0.0
     }
   }
 
   function resetOrder() {
     if (account.account) {
-      startNewOrder(account.account!.address, account.account.group )
+      startNewOrder(account.account!.address, account.account.group)
     } else {
       order.value = undefined
     }

@@ -16,9 +16,7 @@ const props = defineProps<{
         <p class="text-[12px] text-core-light font-semibold">{{ props.token.name }}</p>
       </div>
     </div>
-    <div
-      class="flex flex-row text-end items-center space-x-[10px] text-[14px] font-semibold text-menu"
-    >
+    <div class="flex flex-row text-end items-center space-x-[10px] text-[14px] font-semibold text-menu">
       <p>{{ token.balance?.balanceHint }}</p>
       <font-awesome-icon
         :icon="['fal', 'circle-check']"

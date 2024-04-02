@@ -63,7 +63,6 @@ export const useAccountStore = defineStore('account', () => {
     const orderStore = useOrderStore()
     account.value = undefined
     orderStore.resetOrder()
-    
   }
 
   return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect }
