@@ -70,7 +70,7 @@ async function handleAddress(pubKey: string) {
 
 <template>
   <section class="flex flex-col space-y-[10px] text-[14px]">
-    <div class="flex flex-row space-x-[10px] items-center">
+    <div class="flex flex-row space-x-[10px] justify-between">
       <div class="font-extrabold text-core-light">
         {{ props.isSender ? 'Your address' : orderStore.order?.to ? 'Receiver address' : 'Receiver Public Key' }}
       </div>

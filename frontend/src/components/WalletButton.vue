@@ -25,7 +25,7 @@ function toggleModal() {
     class="px-[15px] py-[10px] rounded-full border-2 border-accent-1 text-[14px] text-core-lightest font-semibold hover:bg-none hover:bg-accent-2"
   >
     <div class="flex space-x-[10px] items-center">
-      <img :src="`./images/tokens/ALPH-light.png`" class="w-[20px] h-[20px] rounded-full" />
+      <img :src="`/images/tokens/ALPH-light.png`" class="w-[20px] h-[20px] rounded-full" />
       <div>{{ shortenString(account.account.address, 16) }}</div>
     </div>
   </button>

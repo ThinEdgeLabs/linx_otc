@@ -23,7 +23,7 @@ const props = defineProps({
   </button>
   <button
     v-else
-    class="flex flex-row px-4 py-[10px] w-[128px] border-2 rounded-[26px] text-[16px] hover:text-white justify-center items-center space-x-[10px] h-[52px]"
+    class="flex flex-row px-4 py-[10px] w-[128px] border rounded-[26px] text-[16px] hover:text-white justify-center items-center space-x-[10px] h-[52px]"
     :class="
       props.delete
         ? 'border-danger text-danger hover:bg-danger'

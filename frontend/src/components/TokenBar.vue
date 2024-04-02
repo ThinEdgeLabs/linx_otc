@@ -180,7 +180,7 @@ function onMaxButtonClick() {
         <div class="flex flex-row space-x-[10px] items-center w-full">
           <img
             @click="toggleDropDown()"
-            :src="`${selectedToken?.logoUri ?? './images/tokens/NONE.png'}`"
+            :src="`${selectedToken?.logoUri ?? '/images/tokens/NONE.png'}`"
             class="w-[32px] h-[32px] rounded-full"
           />
           <div v-if="selectedToken" class="flex flex-row items-center space-x-[10px] w-full">
@@ -210,7 +210,7 @@ function onMaxButtonClick() {
         <font-awesome-icon v-if="!selectedToken" :icon="['fal', 'angle-down']" class="text-[18px] text-accent-3" />
       </div>
       <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
-        <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
+        <ul class="divide-y divide-grey-100 text-sm text-gray-700">
           <TokenDropdownItem
             v-for="token in tokens"
             v-bind:key="token.name"

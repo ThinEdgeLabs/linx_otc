@@ -16,7 +16,7 @@ const props = defineProps<{
     <div class="relative w-full">
       <div class="flex flex-row w-full p-[10px] bg-core-darkest justify-between items-center text-core rounded-lg z-0">
         <div class="flex flex-row space-x-[10px] items-center w-full">
-          <img :src="`${props.token?.logoUri ?? './images/tokens/NONE.png'}`" class="w-[32px] h-[32px] rounded-full" />
+          <img :src="`${props.token?.logoUri ?? '/images/tokens/NONE.png'}`" class="w-[32px] h-[32px] rounded-full" />
           <div class="flex flex-row items-center space-x-[10px] w-full">
             <div class="flex flex-row space-x-[10px] items-center">
               <p>{{ token.symbol }}</p>

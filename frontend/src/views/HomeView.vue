@@ -13,7 +13,7 @@ import LandingTitle from '@/components/landing/LandingTitle.vue'
       <LandingTitle />
       <img
         class="w-full h-full object-cover lg:max-h-[800px] absolute top-0 left-0 lg:-z-1"
-        :src="'./images/landing.png'"
+        :src="'/images/landing.png'"
       />
     </div>
     <DashboardData :class="'z-10'" :is-landing-page="true" />

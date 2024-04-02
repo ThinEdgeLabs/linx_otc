@@ -50,14 +50,16 @@ function acknowledgedTerms() {
 
 <template>
   <main
-    class="relative font-sans antialiased text-base text-core bg-core-darkest w-full min-h-screen px-[16px] lg:px-[10%]"
+    class="relative font-sans antialiased text-base text-core bg-core-darkest min-h-screen px-[16px] lg:px-[10%]"
   >
+  <div class="container mx-auto h-screen flex flex-col">
     <header>
       <LinxMenu />
     </header>
-    <RouterView :class="popUpStore.popUp ? 'fixed' : ''" />
+    <RouterView :class="popUpStore.popUp ? 'fixed' : ''" class="mb-auto" />
     <FooterComponent />
     <SelectWalletModal />
     <PopUpView v-if="popUpStore.popUp" />
+  </div>
   </main>
 </template>

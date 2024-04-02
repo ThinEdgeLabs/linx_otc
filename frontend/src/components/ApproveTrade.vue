@@ -66,7 +66,7 @@ const percentageFilled = computed(() => {
   </section>
   <section
     v-if="status === 'signed'"
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center text-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:py-0 space-y-[30px] justify-center items-center text-center"
   >
     <div class="flex items-center justify-center rounded-full w-[60px] h-[60px] bg-ok">
       <font-awesome-icon :icon="['fal', 'check']" class="text-core-lightest text-[27px]" />

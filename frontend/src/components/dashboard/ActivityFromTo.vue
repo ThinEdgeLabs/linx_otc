@@ -17,7 +17,7 @@ const props = defineProps({
 
 <template>
   <div class="flex flex-row items-center space-x-[10px] w-full">
-    <img :src="`./images/tokens/${props.token}.png`" class="w-[40px] h-[40px] rounded-full" />
+    <img :src="`/images/tokens/${props.token}.png`" class="w-[40px] h-[40px] rounded-full" />
     <div class="flex flex-col text-start">
       <div class="text-[10px] text-core-light">{{ props.title.toUpperCase() }}</div>
       <div class="flex flex-row items-center space-x-[10px] text-[14px]">
