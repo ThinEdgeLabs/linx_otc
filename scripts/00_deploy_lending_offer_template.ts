@@ -12,6 +12,7 @@ const deployLendingOfferTemplate: DeployFunction<Settings> = async (
       lender: ZERO_ADDRESS,
       lendingTokenId: '',
       collateralTokenId: '',
+      marketplaceContractId: ZERO_ADDRESS,
       lendingAmount: 0n,
       collateralAmount: 0n,
       interestRate: 0n,
