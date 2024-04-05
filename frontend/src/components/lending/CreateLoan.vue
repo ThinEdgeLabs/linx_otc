@@ -124,8 +124,8 @@ function createErrorMessage(): Array<string> {
     :class="popUpStore.popUp ? 'fixed' : ''"
   >
     <ComponentTitle
-      :title="'Create new Loan Offer'"
-      :description="'Some text about creating a new loan offer'"
+      :title="'Create new loan offer'"
+      :description="'Create a new loan offer to lend your tokens to other users. You can set the accepted collateral, interest rate and the duration of the loan.'"
       @update:go-back="reset"
     />
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
@@ -133,10 +133,10 @@ function createErrorMessage(): Array<string> {
       <InterestField />
     </div>
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-      <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" :validate-input="false" />
+      <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" :validate-input="false" :hide-balance="true" />
       <div class="w-full flex flex-row space-x-[30px]">
         <DurationSelect />
-        <RatingSelect />
+        <!-- <RatingSelect /> -->
       </div>
     </div>
 

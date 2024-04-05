@@ -17,12 +17,18 @@ const props = defineProps<{
   accountAddress?: string
   isSender: boolean
   offerType: 'trade' | 'loan'
-  validateInput: boolean
+  validateInput: boolean,
+  hideBalance?: boolean
 }>()
 
 const errorMessage = ref<string | undefined>(undefined)
 
 onMounted(() => {
+  if (props.hideBalance) {
+    // If the balance is hidden, we just need to display the list of tokens
+    tokens.value = getTokens()
+    return
+  }
   watchEffect(() => {
     if (!toValue(isLoading)) {
       if (toValue(balance)) {
@@ -44,8 +50,6 @@ onMounted(() => {
               balanceHint: ` ${prettifyExactAmount(tokenBalance.amount, token.decimals)!} ${token.symbol}`
             }
             tokensWithBalance.push(tokenWithBalance)
-          } else {
-            tokensWithBalance.push()
           }
         })
         tokens.value = tokensWithBalance
@@ -93,7 +97,8 @@ function selectToken(token: Token) {
 }
 
 function toggleDropDown() {
-  if ((!props.isSender && props.accountAddress) || (props.isSender && accountStore.account)) {
+  // If the wallet is not connected, do not open an empty dropdown
+  if (accountStore.account) {
     dropdownOpen.value = !dropdownOpen.value
   }
 }
