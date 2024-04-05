@@ -21,7 +21,7 @@ function setDropDown(duration: number) {
 <template>
   <div class="flex flex-col w-full space-y-[10px]">
     <p class="text-[14px] font-bold text-core-light">Loan Duration</p>
-    <div class="relative">
+    <div class="relative cursor-pointer">
       <div
         @click="toggleDropDown()"
         class="flex flex-row items-center justify-between w-full p-[10px] bg-white text-core h-[60px]"
@@ -32,7 +32,7 @@ function setDropDown(duration: number) {
         <font-awesome-icon :icon="['fal', 'angle-down']" class="text-[18px] text-accent-1" />
       </div>
       <div v-if="dropdownOpen" class="absolute bg-white w-full rounded-b-lg h-48 overflow-auto z-10">
-        <ul class="py-2 divide-y divide-grey-100 text-sm text-gray-700">
+        <ul class="divide-y divide-grey-100 text-sm text-gray-700">
           <DropdownItem
             v-for="duration in durationOptions"
             v-bind:key="duration"

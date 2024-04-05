@@ -41,12 +41,18 @@ function changeView(newView: string) {
     >
       <LoanGridCard :loan="loan" :tokens="tokens" />
     </div>
+    <div v-if="loanStore.loans.length == 0">
+      <p class="text-[14px] text-core-lightest">No loans available</p>
+    </div>
   </div>
 
   <div class="hidden lg:flex">
     <div class="w-full rounded-lg bg-menu p-[30px] relative z-10">
       <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
       <LoanHeaders v-if="view === 'list'" />
+      <div v-if="loanStore.loans.length == 0">
+        <p class="text-center text-[14px] pt-4 text-core-lightest">No loans available</p>
+      </div>
       <div v-if="view === 'list'">
         <div class="space-y-4" v-for="loan in loanStore.loans" v-bind:key="loan.loanId">
           <LoanListCard :loan="loan" :tokens="tokens" @click="$emit('update:selectedLoan', loan)" />

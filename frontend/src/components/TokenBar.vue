@@ -164,7 +164,7 @@ function onMaxButtonClick() {
 </script>
 
 <template>
-  <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px]">
+  <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px] cursor-pointer">
     <div class="font-extrabold text-core-light">
       {{
         props.isSender
