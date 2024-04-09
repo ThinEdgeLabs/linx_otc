@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as LendingMarketplaceContractJson } from "../LendingMarketplace.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -160,14 +162,14 @@ class Factory extends ContractFactory<
   tests = {
     blockTimeStampInSeconds: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "blockTimeStampInSeconds", params);
     },
     calculateInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         {
           currentBlockTimeStamp: bigint;
@@ -177,51 +179,51 @@ class Factory extends ContractFactory<
           days: bigint;
         }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateInterestPayment", params);
     },
     calculateTotalInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { amount: bigint; interest: bigint; days: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateTotalInterestPayment", params);
     },
     calculateMarketplaceFee: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { amount: bigint; feeRate: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateMarketplaceFee", params);
     },
     getAdmin: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "getAdmin", params);
     },
     getTotalLendingOffers: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalLendingOffers", params);
     },
     getFee: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getFee", params);
     },
     createLendingOffer: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         {
           lendingTokenId: HexString;
@@ -232,63 +234,63 @@ class Factory extends ContractFactory<
           duration: bigint;
         }
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "createLendingOffer", params);
     },
     borrow: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { offerId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "borrow", params);
     },
     cancelOffer: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { offerId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "cancelOffer", params);
     },
     paybackLoan: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "paybackLoan", params);
     },
     liquidateLoan: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "liquidateLoan", params);
     },
     updateAdmin: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { newAdmin: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateAdmin", params);
     },
     updateFee: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { newFee: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateFee", params);
     },
     updateLendingEnabled: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { enabled: boolean }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateLendingEnabled", params);
     },
   };

@@ -1,0 +1,3 @@
+TxScript LiquidateLoan(marketplace: LendingMarketplace, loanId: ByteVec) {
+  marketplace.liquidateLoan(loanId)
+}
