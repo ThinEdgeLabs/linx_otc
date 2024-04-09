@@ -17,7 +17,7 @@ const props = defineProps<{
   accountAddress?: string
   isSender: boolean
   offerType: 'trade' | 'loan'
-  validateInput: boolean,
+  validateInput: boolean
   hideBalance?: boolean
 }>()
 

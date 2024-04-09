@@ -132,7 +132,13 @@ function createErrorMessage(): Array<string> {
       <InterestField />
     </div>
     <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-      <TokenBar :class="'w-full'" :is-sender="false" :offer-type="'loan'" :validate-input="false" :hide-balance="true" />
+      <TokenBar
+        :class="'w-full'"
+        :is-sender="false"
+        :offer-type="'loan'"
+        :validate-input="false"
+        :hide-balance="true"
+      />
       <div class="w-full flex flex-row space-x-[30px]">
         <DurationSelect />
         <!-- <RatingSelect /> -->

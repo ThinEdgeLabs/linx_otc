@@ -61,19 +61,16 @@ export const useLoanStore = defineStore('loans', () => {
   async function fetchLoans() {
     isLoading.value = true
     const events = await getMarketplaceEvents()
-    const decodedEvents = events
-      .map((event) =>
-        decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
-      )
-    const cancelled = decodedEvents.filter(e => e.name === 'OfferCancelled').map(e => e.fields['offerId'] as String)
-    const paid = decodedEvents.filter(e => e.name === 'LoanPaid').map(e => e.fields['loanId'] as String)
-    const liquidated = decodedEvents.filter(e => e.name === 'LoanLiquidated').map(e => e.fields['loanId'] as String)
+    const decodedEvents = events.map((event) =>
+      decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
+    )
+    const cancelled = decodedEvents.filter((e) => e.name === 'OfferCancelled').map((e) => e.fields['offerId'] as String)
+    const paid = decodedEvents.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
+    const liquidated = decodedEvents.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
     const closed = new Set([...cancelled, ...paid, ...liquidated])
 
     loans.value = decodedEvents
-      .filter(
-        (event) => event.name === 'OfferCreated'
-      )
+      .filter((event) => event.name === 'OfferCreated')
       .filter((event) => !closed.has(event.fields['lendingOfferContractId'] as String))
       .map((event) => {
         return {
