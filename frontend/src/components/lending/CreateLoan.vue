@@ -37,8 +37,7 @@ function reset() {
 
 async function createLoan() {
   if (
-    loanOfferStore.order?.borrowerRating &&
-    loanOfferStore.order.collateralAmount &&
+    loanOfferStore.order?.collateralAmount &&
     loanOfferStore.order?.collateralToken &&
     loanOfferStore.order.duration &&
     loanOfferStore.order.interest &&
