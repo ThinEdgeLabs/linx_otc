@@ -24,7 +24,7 @@ function setDropDown(duration: number) {
     <div class="relative">
       <div
         @click="toggleDropDown()"
-        class="flex flex-row items-center justify-between w-full p-[10px] bg-white text-core h-[60px] cursor-pointer"
+        class="flex flex-row items-center justify-between w-full p-[10px] bg-white text-core h-[52px] cursor-pointer"
         :class="dropdownOpen ? 'rounded-t-lg border-b-[1px] border-core-darkest bg-white' : 'rounded-lg z-0'"
       >
         <div v-if="!loanOrderStore.order?.duration" class="text-[14px] text-core">Choose</div>
