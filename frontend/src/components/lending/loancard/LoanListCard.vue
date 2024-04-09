@@ -62,7 +62,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
           </div>
           <div class="text-core-light">% APR</div>
         </div>
-        <div class="text-core-light text-[12px]">{{ props.loan.interest }} {{ loanToken.symbol }}</div>
+        <div class="text-core-light text-[12px]">{{ prettifyTokenAmount(props.loan.interest * props.loan.loanAmount / 10000n, loanToken.decimals) }} {{ loanToken.symbol }}</div>
       </div>
       <div class="w-[20%]">
         <CustomButton :title="'view'" :class="'invisible group-hover:visible px-0 w-full'" />

@@ -54,8 +54,8 @@ async function createLoan() {
     const collateralTokenDecimals = loanOfferStore.order!.collateralToken!.decimals
     const lendingAmount = convertAmountWithDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
     const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
-    //TODO: Convert to basis points
-    const interestRate = BigInt(loanOfferStore.order!.interest)
+    const interest = convertAmountWithDecimals(loanOfferStore.order!.interest, loanTokenDecimals)
+    const interestRate = interest! * 10n ** 18n / lendingAmount! * 10000n / 10n ** 18n // basis points
     const duration = BigInt(loanOfferStore.order!.duration)
 
     try {

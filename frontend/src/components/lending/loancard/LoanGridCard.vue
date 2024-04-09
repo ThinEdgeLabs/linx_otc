@@ -68,7 +68,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
       <div class="border border-r-2 border-core-darkest -mt-3 -mb-5" />
       <div class="w-full flex flex-col items-center justify-center">
         <p>{{ prettifyTokenAmount(calculateApr(props.loan), loanToken.decimals) }} % APR</p>
-        <p>{{ loan.interest }} {{ loanToken.symbol }}</p>
+        <p>{{ prettifyTokenAmount(props.loan.interest * props.loan.loanAmount / 10000n, loanToken.decimals) }} {{ loanToken.symbol }}</p>
       </div>
     </div>
   </div>
