@@ -65,7 +65,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
           <div>DAYS</div>
         </div>
       </div>
-      <div class="border border-r-2 border-core-darkest -mt-3 -mb-5" />
+      <div class="border border-r-2 border-core-darkest -mt-3 -mb-3" />
       <div class="w-full flex flex-col items-center justify-center">
         <p class="text-[10px] text-core-light">
           {{ prettifyTokenAmount((props.loan.interest * props.loan.loanAmount) / 10000n, loanToken.decimals) }}
@@ -80,7 +80,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
       </div>
     </div>
   </div>
-  <div class="hidden lg:pt-[30px] group-hover:flex">
+  <div class="hidden lg:pt-[20px] group-hover:flex">
     <CustomButton :title="'View'" @click="$emit('update:selectedLoan', loan)" class="w-full" />
   </div>
 </template>

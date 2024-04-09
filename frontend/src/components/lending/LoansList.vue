@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CustomButton from '../CustomButton.vue'
 import LoanFilters from './LoanFilters.vue'
 import LoanHeaders from './LoanHeaders.vue'
 import LoanGridCard from './loancard/LoanGridCard.vue'
@@ -62,13 +61,10 @@ function changeView(newView: string) {
         <div
           v-for="loan in loanStore.loans"
           v-bind:key="loan.loanId"
-          class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"
+          class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"
         >
           <div class="w-full">
             <LoanGridCard :loan="loan" :tokens="tokens" />
-            <!-- <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
-              <CustomButton :title="'View'" @click="$emit('update:selectedLoan', loan)" />
-            </div> -->
           </div>
         </div>
       </div>
