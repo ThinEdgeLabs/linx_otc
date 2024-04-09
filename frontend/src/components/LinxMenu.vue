@@ -19,10 +19,10 @@ const menuItems = [
     title: 'P2P Trade',
     destination: '/trading'
   },
-  // {
-  //   title: 'P2P Lending',
-  //   destination: '/lending'
-  // },
+  {
+    title: 'P2P Lending',
+    destination: '/lending'
+  },
   // {
   //   title: 'My Activity',
   //   destination: '/activity'

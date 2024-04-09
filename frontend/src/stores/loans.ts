@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { Loan } from '@/types'
 import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '@/config'
-import { addressFromContractId, binToHex, contractIdFromAddress, decodeEvent } from '@alephium/web3'
+import { addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 
 export const useLoanStore = defineStore('loans', () => {
@@ -17,6 +17,7 @@ export const useLoanStore = defineStore('loans', () => {
   const config = getMarketplaceConfig()
   const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function getSubcontractsAddresses() {
     const page = 1
     const limit = 20
@@ -59,16 +60,21 @@ export const useLoanStore = defineStore('loans', () => {
 
   async function fetchLoans() {
     isLoading.value = true
-    const result = await getSubcontractsAddresses()
-    const subcontracts = new Map<string, number>(result.map((e) => [binToHex(contractIdFromAddress(e)), 1]))
     const events = await getMarketplaceEvents()
-    loans.value = events
+    const decodedEvents = events
       .map((event) =>
         decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
       )
+    const cancelled = decodedEvents.filter(e => e.name === 'OfferCancelled').map(e => e.fields['offerId'] as String)
+    const paid = decodedEvents.filter(e => e.name === 'LoanPaid').map(e => e.fields['loanId'] as String)
+    const liquidated = decodedEvents.filter(e => e.name === 'LoanLiquidated').map(e => e.fields['loanId'] as String)
+    const closed = new Set([...cancelled, ...paid, ...liquidated])
+
+    loans.value = decodedEvents
       .filter(
-        (event) => event.name === 'OfferCreated' && subcontracts.has(event.fields['lendingOfferContractId'] as string)
+        (event) => event.name === 'OfferCreated'
       )
+      .filter((event) => !closed.has(event.fields['lendingOfferContractId'] as String))
       .map((event) => {
         return {
           loanId: event.fields['lendingOfferContractId'] as string,

@@ -29,11 +29,11 @@ const router = createRouter({
       name: 'complete_trade',
       component: ManageTrade
     },
-    // {
-    //   path: '/lending',
-    //   name: 'lending',
-    //   component: LendingView
-    // },
+    {
+      path: '/lending',
+      name: 'lending',
+      component: LendingView
+    },
     {
       path: '/faq',
       name: 'faq',
