@@ -29,10 +29,10 @@ const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loan
 </script>
 
 <template>
-  <section class="w-full flex flex-col bg-menu p-[30px] space-y-[20px] rounded-lg">
+  <section class="w-full lg:max-w-[489px] flex flex-col bg-menu p-[30px] space-y-[20px] rounded-lg leading-snug">
     <SectionTitle :title="`Preview loan order`" :description="'Some useles lorum ipsum'" />
     <div class="flex flex-col w-full">
-      <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center">
+      <div class="w-full bg-core-darkest p-[10px] rounded-lg flex flex-row justify-between items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
@@ -52,7 +52,7 @@ const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loan
         </div>
       </div>
       <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
-      <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-start items-center">
+      <div class="w-full bg-core-darkest p-[10px] rounded-lg flex flex-row justify-start items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img :src="`${collateralToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
           <div class="flex flex-col text-start justify-center">
