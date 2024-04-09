@@ -89,12 +89,12 @@ const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loan
     <LoanPreviewLabel :title="'P2P Fee'" :amount="'FREE'" />
     <HorizontalDivider />
     <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
-    <HorizontalDivider />
+    <!-- <HorizontalDivider />
     <LoanPreviewLabel
       :title="'Minumum Rating Borrower'"
       :amount="loanOrder.order!.borrowerRating.toString()"
       :amount_description="'STARS'"
-    />
+    /> -->
     <HorizontalDivider />
   </section>
 </template>
