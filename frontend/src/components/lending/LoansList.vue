@@ -37,7 +37,7 @@ function changeView(newView: string) {
       @click="$emit('update:selectedLoan', loan)"
       v-for="loan in loanStore.loans"
       v-bind:key="loan.loanId"
-      class="relative group p-[20px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
+      class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
     >
       <LoanGridCard :loan="loan" :tokens="tokens" />
     </div>
@@ -66,9 +66,9 @@ function changeView(newView: string) {
         >
           <div class="w-full">
             <LoanGridCard :loan="loan" :tokens="tokens" />
-            <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
+            <!-- <div :class="'absolute top-[20px] right-[20px] invisible group-hover:visible z-0'">
               <CustomButton :title="'View'" @click="$emit('update:selectedLoan', loan)" />
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
