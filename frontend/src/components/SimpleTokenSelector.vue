@@ -16,7 +16,7 @@ const openSelector = ref(false)
   <section class="relative">
     <div
       @click="openSelector = !openSelector"
-      class="w-full flex flex-row bg-divider p-[12px] justify-between items-center font-normal"
+      class="w-full flex flex-row bg-divider p-[12px] justify-between items-center font-normal cursor-pointer max-h-48 lg:max-h-64"
       :class="openSelector ? 'rounded-t-lg z-10' : 'rounded-lg -z-1'"
     >
       <div class="flex flex-row space-x-[10px] items-center">
@@ -34,16 +34,16 @@ const openSelector = ref(false)
     </div>
     <div
       v-if="openSelector"
-      class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-48 lg:h-64 overflow-auto z-10"
+      class="absolute w-full bg-divider rounded-b-lg overflow-auto z-10"
     >
       <div
         v-for="token in props.tokenList"
         v-bind:key="token.name"
         @click="setToken(token), (openSelector = !openSelector)"
-        class="w-full font-normal space-y-4"
+        class="w-full font-normal hover:bg-core-darker"
       >
         <HorizontalDivider :class="'bg-menu'" />
-        <div class="flex flex-row items-center space-x-[10px]">
+        <div class="flex flex-row items-center space-x-[10px] py-3 px-2 cursor-pointer">
           <img :src="`${token.logoUri}`" class="w-[32px] h-[32px] rounded-full" />
           <div>{{ token.name }}</div>
           <div v-if="token.symbol != 'NONE'">({{ token.symbol }})</div>

@@ -15,7 +15,7 @@ const durationList = [0, 1, 7, 14, 30, 60, 90]
   <section class="relative">
     <div
       @click="openSelector = !openSelector"
-      class="w-full flex flex-row bg-divider p-[12px] justify-between items-center font-normal"
+      class="w-full flex flex-row bg-divider p-[12px] justify-between items-center font-normal cursor-pointer"
       :class="openSelector ? 'rounded-t-lg z-10' : 'rounded-lg'"
     >
       <div class="text-[14px] text-core-lightest">
@@ -30,18 +30,20 @@ const durationList = [0, 1, 7, 14, 30, 60, 90]
     </div>
     <div
       v-if="openSelector"
-      class="absolute w-full bg-divider rounded-b-lg p-[12px] space-y-4 h-48 lg:h-64 overflow-auto z-10"
+      class="absolute w-full bg-divider rounded-b-lg max-h-48 lg:max-h-64 overflow-auto z-10"
     >
       <div
         v-for="duration in durationList"
         v-bind:key="duration"
         @click="setDuration(duration), (openSelector = !openSelector)"
-        class="w-full font-normal space-y-4"
+        class="w-full font-normal cursor-pointer hover:bg-core-darker"
       >
         <HorizontalDivider :class="'bg-menu'" />
-        <div v-if="duration > 1 && duration <= 90">More than {{ duration }} days</div>
-        <div v-if="duration === 1">7 days or less</div>
-        <div v-if="duration === 0">Any duration</div>
+        <div class="py-4 px-2 cursor-pointer">
+          <div v-if="duration > 1 && duration <= 90">More than {{ duration }} days</div>
+          <div v-if="duration === 1">7 days or less</div>
+          <div v-if="duration === 0">Any duration</div>
+        </div>
       </div>
     </div>
   </section>

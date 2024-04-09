@@ -30,7 +30,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
       Created on {{ new Date(props.loan.created).toDateString() }}
     </p>
   </div> -->
-  <div class="lg:pt-[30px] flex flex-row lg:flex-col">
+  <div class="lg:pt-[30px] flex flex-row lg:flex-col cursor-pointer">
     <div class="flex flex-row w-full items-center space-x-[15px]">
       <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col space-y-0 leading-snug">
