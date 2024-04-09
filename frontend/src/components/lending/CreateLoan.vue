@@ -55,7 +55,7 @@ async function createLoan() {
     const lendingAmount = convertAmountWithDecimals(loanOfferStore.order!.loanAmount, loanTokenDecimals)
     const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
     const interest = convertAmountWithDecimals(loanOfferStore.order!.interest, loanTokenDecimals)
-    const interestRate = interest! * 10n ** 18n / lendingAmount! * 10000n / 10n ** 18n // basis points
+    const interestRate = (((interest! * 10n ** 18n) / lendingAmount!) * 10000n) / 10n ** 18n // basis points
     const duration = BigInt(loanOfferStore.order!.duration)
 
     try {
@@ -182,7 +182,7 @@ function createErrorMessage(): Array<string> {
         <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
         <CustomButton :title="'Cancel'" :open="true" :delete="true" @click="reset" :class="'w-full lg:w-[228px]'" />
       </div>
-      <AgreeToTerms class="w-full" />
+      <AgreeToTerms class="w-full justify-end" />
     </div>
   </div>
   <div v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
