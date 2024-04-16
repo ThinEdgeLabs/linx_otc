@@ -6,11 +6,6 @@ import LoanListCard from './loancard/LoanListCard.vue'
 import { useLoanStore } from '@/stores/loans'
 import { ref } from 'vue'
 import { getTokens } from '@/config'
-import type { Loan } from '@/types'
-
-defineEmits<{
-  (e: 'update:selectedLoan', value: Loan): void
-}>()
 
 const loanStore = useLoanStore()
 const tokens = new Map(getTokens().map((token) => [token.contractId, token]))
@@ -33,7 +28,7 @@ function changeView(newView: string) {
       <LoanFilters :view="'list'" :change-view="changeView" :class="'z-10'" />
     </div>
     <div
-      @click="$emit('update:selectedLoan', loan)"
+      @click="$router.push(`/lending/${loan.loanId}`)"
       v-for="loan in loanStore.loans"
       v-bind:key="loan.loanId"
       class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
@@ -54,11 +49,12 @@ function changeView(newView: string) {
       </div>
       <div v-if="view === 'list'">
         <div class="space-y-4" v-for="loan in loanStore.loans" v-bind:key="loan.loanId">
-          <LoanListCard :loan="loan" :tokens="tokens" @click="$emit('update:selectedLoan', loan)" />
+          <LoanListCard :loan="loan" :tokens="tokens" @click="$router.push(`/lending/${loan.loanId}`)" />
         </div>
       </div>
       <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
         <div
+          @click="$router.push(`/lending/${loan.loanId}`)"
           v-for="loan in loanStore.loans"
           v-bind:key="loan.loanId"
           class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"

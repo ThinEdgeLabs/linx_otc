@@ -3,14 +3,16 @@ import CustomButton from '@/components/CustomButton.vue'
 import { useLoanStore } from '@/stores/loans'
 import { type Loan } from '@/types'
 import LoansList from '@/components/lending/LoansList.vue'
-import CreateLoan from '@/components/lending/CreateLoan.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
-import ManageLoanOffer from '@/components/lending/ManageLoanOffer.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import router from '@/router'
 
 const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
-const selectedLoan = ref<Loan>()
+
+onMounted(async () => {
+  loanStore.fetchLoans()
+})
 </script>
 
 <template>
@@ -20,21 +22,17 @@ const selectedLoan = ref<Loan>()
         <div class="flex flex-col leading-snug">
           <p class="text-[32px] font-extrabold text-white">
             P2P Loans
-            {{ loanOfferStore.order || selectedLoan ? '' : `(${loanStore.loans.length})` }}
+            {{ `(${loanStore.loans.length})` }}
           </p>
           <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
           <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
         </div>
         <CustomButton
-          v-if="!selectedLoan"
           :title="'Create New Loan'"
-          :class="loanOfferStore.order ? 'invisible' : 'visible h-[52px]'"
-          @click="loanOfferStore.startNewLoanOrder()"
+          @click="loanOfferStore.startNewLoanOrder(), router.push('/lending/create')"
         />
       </div>
     </div>
-    <LoansList v-if="!loanOfferStore.order && !selectedLoan" @update:selected-loan="selectedLoan = $event" />
-    <ManageLoanOffer v-if="selectedLoan" :loan="selectedLoan" @update:close-offer="selectedLoan = undefined" />
-    <CreateLoan v-if="loanOfferStore.order" />
+    <LoansList @update:selected-loan="router.push(`/lending/${$event.loanId}`)" />
   </section>
 </template>
