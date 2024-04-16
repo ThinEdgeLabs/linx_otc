@@ -7,11 +7,14 @@ import { useLoanOrderStore } from '@/stores/loanOrder'
 import { onMounted, ref } from 'vue'
 import router from '@/router'
 
+const fetchingData = ref<boolean>(true)
+
 const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
 
 onMounted(async () => {
-  loanStore.fetchLoans()
+  await loanStore.fetchLoans()
+  fetchingData.value = false
 })
 </script>
 
@@ -33,6 +36,10 @@ onMounted(async () => {
         />
       </div>
     </div>
-    <LoansList @update:selected-loan="router.push(`/lending/${$event.loanId}`)" />
+    <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
+      <p class="text-[30px] text-core-lightest font-extrabold">Getting Loans</p>
+      <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
+    </section>
+    <LoansList v-else @update:selected-loan="router.push(`/lending/${$event.loanId}`)" />
   </section>
 </template>

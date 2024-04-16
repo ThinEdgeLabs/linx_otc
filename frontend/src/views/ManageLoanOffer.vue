@@ -30,6 +30,7 @@ const accountStore = useAccountStore()
 const state = ref<LendingOfferTypes.State | undefined>()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
+const fetchingData = ref<boolean>(true)
 
 const isLender = ref<boolean>(false)
 const isBorrower = ref<boolean>(false)
@@ -75,6 +76,7 @@ async function loadLoan() {
       isBorrower.value = accountStore.account?.address === state.value?.fields.borrower
     }
   }
+  fetchingData.value = false
 }
 
 async function borrow() {
@@ -290,11 +292,13 @@ function reset() {
         </div>
       </div>
     </section>
-    <section
-      v-else
-      class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px] leading-snug"
-    >
-      Loan not found
+
+    <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
+      <p class="text-[30px] text-core-lightest font-extrabold">Getting Loan</p>
+      <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
+    </section>
+    <section v-else class="w-full justify-center items-center text-center">
+      <p class="text-[30px] text-core-lightest font-extrabold">Loan not found</p>
     </section>
   </div>
 </template>
