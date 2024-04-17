@@ -27,13 +27,14 @@ describe('LendingMarketplace', () => {
     const address = (await signer.getSelectedAccount()).address
 
     const balance = await balanceOf(lendingTokenId, address)
-    console.log(balance)
+    console.log(`Lender balance: ${balance}`)
 
     const lendingAmount = 1000n
     const collateralAmount = 2000n
     const interestRate = 100n
     const duration = 30n
     const lender = address
+    const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
     const { txId } = await marketplace.createOffer(signer, lendingTokenId, ALPH_TOKEN_ID, lendingAmount, collateralAmount, interestRate, duration)
     await waitTxConfirmed(provider, txId, 1, 1000)
 
@@ -67,7 +68,7 @@ describe('LendingMarketplace', () => {
       interestRate,
       duration,
       borrower: lender,
-      loanTimeStamp: 0n
+      loanTimeStamp
     })
     expect(lendingOfferState.asset.tokens).toEqual([
       { id: lendingTokenId, amount: lendingAmount },

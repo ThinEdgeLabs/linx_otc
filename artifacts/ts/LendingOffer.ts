@@ -97,6 +97,10 @@ export namespace LendingOfferTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
+    getInterest: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
     getDuration: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
@@ -233,6 +237,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getInterestRate", params);
     },
+    getInterest: async (
+      params: Omit<
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+      return testMethod(this, "getInterest", params);
+    },
     getDuration: async (
       params: Omit<
         TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
@@ -297,7 +309,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "53cb9c1d912b1fac5af6701042f95ba8dfea0713adc856a0b8a42a1b60409b93"
+    "fe1b7610dfc20a8a0532554a87952d2794a32e35735599032af7829eb656da1a"
   )
 );
 
@@ -426,6 +438,17 @@ export class LendingOfferInstance extends ContractInstance {
         LendingOffer,
         this,
         "getInterestRate",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getInterest: async (
+      params?: LendingOfferTypes.CallMethodParams<"getInterest">
+    ): Promise<LendingOfferTypes.CallMethodResult<"getInterest">> => {
+      return callMethod(
+        LendingOffer,
+        this,
+        "getInterest",
         params === undefined ? {} : params,
         getContractByCodeHash
       );

@@ -62,8 +62,8 @@ Contract LendingMarketplace(
     // Checking for overflow
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, 0)
     let key = toByteVec!(totalLendingOffers)
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, blockTimeStampInSeconds())
     let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )
@@ -100,9 +100,10 @@ Contract LendingMarketplace(
     let borrower = loan.getBorrower()
     let lendingTokenId = loan.getLendingTokenId()
     let loanAmount = loan.getLendingAmount()
+    let interest = loan.getInterest()
     let caller = callerAddress!()
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
-    loan.payback{caller -> lendingTokenId: loanAmount}()
+    loan.payback{caller -> lendingTokenId: loanAmount + interest}()
     emit LoanPaid(loanId)
   }
 

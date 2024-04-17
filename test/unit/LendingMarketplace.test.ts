@@ -174,6 +174,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('creates a lending offer', async () => {
+      const blockTimeStamp = Date.now()
       const testResult = await LendingMarketplace.tests.createLendingOffer({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
@@ -191,7 +192,8 @@ describe('LendingMarketplace', () => {
           collateralAmount,
           interestRate,
           duration
-        }
+        },
+        blockTimeStamp
       })
       expect(testResult.events.length).toEqual(2)
       const offerCreatedEvent = testResult.events.find((e) => e.name === 'OfferCreated') as LendingMarketplaceTypes.OfferCreatedEvent
@@ -217,7 +219,7 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         borrower: lender.address,
-        loanTimeStamp: 0n
+        loanTimeStamp: BigInt(Math.floor(blockTimeStamp / 1000))
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
@@ -546,30 +548,15 @@ describe('LendingMarketplace', () => {
         { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
         marketplace
       )
-      const loanTimeStamp = NOW
-      const result = await LendingOffer.tests.calculateInterestPayment({
-        initialFields: { ...offer.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
-        initialAsset: offer.selfState.asset,
-        address: offer.address,
-        existingContracts: offer.dependencies,
-        testArgs: {
-          currentBlockTimeStamp: BigInt(NOW),
-          loanTimestamp: BigInt(loanTimeStamp),
-          amount: offer.selfState.fields.lendingAmount,
-          interest: offer.selfState.fields.interestRate,
-          days: offer.selfState.fields.duration
-        }
-      })
-      const interestPayment = result.returns
+      const interest = (lendingAmount * interestRate * duration) / 10000n
       const testResult = await LendingMarketplace.tests.paybackLoan({
         initialFields: marketplace.selfState.fields,
         address: marketplace.address,
-        //blockTimeStamp: NOW,
         existingContracts: offer.states(),
         inputAssets: [
           {
             address: borrower.address,
-            asset: { alphAmount: ONE_ALPH, tokens: [ { id: lendingTokenId, amount: lendingAmount + interestPayment }] }
+            asset: { alphAmount: ONE_ALPH, tokens: [ { id: lendingTokenId, amount: lendingAmount + interest }] }
           }
         ],
         testArgs: {

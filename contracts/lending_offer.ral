@@ -8,7 +8,7 @@ Contract LendingOffer(
   interestRate: U256, // in basis points
   duration: U256, // in days
   mut borrower: Address,
-  mut loanTimeStamp: U256 // in seconds
+  loanTimeStamp: U256 // in seconds
 ) extends LendingMarketplaceUtils() {
 
   enum ErrorCodes {
@@ -42,6 +42,10 @@ Contract LendingOffer(
     return interestRate
   }
 
+  pub fn getInterest() -> U256 {
+    return lendingAmount * interestRate / 10000
+  }
+
   pub fn getDuration() -> U256 {
     return duration
   }
@@ -62,7 +66,6 @@ Contract LendingOffer(
     // TODO: Pay the fee to the marketplace
 
     borrower = caller
-    loanTimeStamp = blockTimeStampInSeconds()
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, lendingAmount)
@@ -79,7 +82,7 @@ Contract LendingOffer(
   pub fn payback() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
-    let interest = calculateInterestPayment(blockTimeStampInSeconds(), loanTimeStamp, lendingAmount, interestRate, duration)
+    let interest = getInterest()
     transferToken!(borrower, lender, lendingTokenId, lendingAmount + interest)
     transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
 
