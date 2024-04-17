@@ -38,6 +38,7 @@ export function createLendingOffer(
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
   const contractState = LendingOffer.stateForTest(
     {
+      id: 1n,
       lender: lender ?? testAddress,
       lendingTokenId: lendingTokenId ?? '',
       collateralTokenId: collateralTokenId ?? '',

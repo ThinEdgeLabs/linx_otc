@@ -9,6 +9,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
   async create(signer: SignerProvider = this.signer): Promise<DeployContractResult<LendingMarketplaceInstance>> {
     const lendingOfferDeployTx = await LendingOffer.deploy(signer, {
       initialFields: {
+        id: 0n,
         lender: ZERO_ADDRESS,
         lendingTokenId: randomContractId(),
         collateralTokenId: randomContractId(),

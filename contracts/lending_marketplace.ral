@@ -63,7 +63,8 @@ Contract LendingMarketplace(
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
     let key = toByteVec!(totalLendingOffers)
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, blockTimeStampInSeconds())
+    let id = totalLendingOffers
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, blockTimeStampInSeconds())
     let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )

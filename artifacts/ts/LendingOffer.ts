@@ -32,6 +32,7 @@ import { getContractByCodeHash } from "./contracts";
 // Custom types for the contract
 export namespace LendingOfferTypes {
   export type Fields = {
+    id: bigint;
     lender: Address;
     lendingTokenId: HexString;
     collateralTokenId: HexString;
@@ -71,6 +72,10 @@ export namespace LendingOfferTypes {
     };
     calculateMarketplaceFee: {
       params: CallContractParams<{ amount: bigint; feeRate: bigint }>;
+      result: CallContractResult<bigint>;
+    };
+    getId: {
+      params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
     getLender: {
@@ -188,6 +193,14 @@ class Factory extends ContractFactory<
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateMarketplaceFee", params);
+    },
+    getId: async (
+      params: Omit<
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+      return testMethod(this, "getId", params);
     },
     getLender: async (
       params: Omit<
@@ -309,7 +322,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "fe1b7610dfc20a8a0532554a87952d2794a32e35735599032af7829eb656da1a"
+    "4368076f0b8330d78e1cb2f6650f4e103d1f1cba6a5e4ca21e30625c4bc34c0a"
   )
 );
 
@@ -373,6 +386,17 @@ export class LendingOfferInstance extends ContractInstance {
         this,
         "calculateMarketplaceFee",
         params,
+        getContractByCodeHash
+      );
+    },
+    getId: async (
+      params?: LendingOfferTypes.CallMethodParams<"getId">
+    ): Promise<LendingOfferTypes.CallMethodResult<"getId">> => {
+      return callMethod(
+        LendingOffer,
+        this,
+        "getId",
+        params === undefined ? {} : params,
         getContractByCodeHash
       );
     },

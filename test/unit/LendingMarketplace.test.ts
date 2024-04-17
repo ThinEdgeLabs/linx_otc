@@ -9,7 +9,7 @@ import {
   ContractState,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf } from '../../shared/utils'
@@ -175,8 +175,9 @@ describe('LendingMarketplace', () => {
 
     it('creates a lending offer', async () => {
       const blockTimeStamp = Date.now()
+      const totalLoans = 1n
       const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: fixture.selfState.fields,
+        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -195,6 +196,7 @@ describe('LendingMarketplace', () => {
         },
         blockTimeStamp
       })
+
       expect(testResult.events.length).toEqual(2)
       const offerCreatedEvent = testResult.events.find((e) => e.name === 'OfferCreated') as LendingMarketplaceTypes.OfferCreatedEvent
       expect(offerCreatedEvent.fields).toEqual({
@@ -210,6 +212,7 @@ describe('LendingMarketplace', () => {
 
       const lendingOfferState = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
       expect(lendingOfferState.fields).toEqual({
+        id: totalLoans,
         lender: lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -223,12 +226,13 @@ describe('LendingMarketplace', () => {
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(1n)
+      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
     })
 
     it('lending offers counter is incremented by one', async () => {
+      const totalLoans = 1n
       const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: { ...fixture.selfState.fields, totalLendingOffers: 1n },
+        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -247,7 +251,7 @@ describe('LendingMarketplace', () => {
         }
       })
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(2n)
+      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
     })
 
     it('fails if the interest calculation overflows', async () => {

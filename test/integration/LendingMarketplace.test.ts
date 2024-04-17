@@ -59,6 +59,7 @@ describe('LendingMarketplace', () => {
     const lendingOffer = LendingOffer.at(addressFromContractId(offerId.toString()))
     const lendingOfferState = await lendingOffer.fetchState()
     expect(lendingOfferState.fields).toEqual({
+      id: 0n,
       lender,
       lendingTokenId,
       collateralTokenId: ALPH_TOKEN_ID,
