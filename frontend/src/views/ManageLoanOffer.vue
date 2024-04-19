@@ -10,24 +10,22 @@ import { calculateApr, convertBasisPointsToPercentage } from '../functions/utils
 import type { Loan, Token } from '../types'
 import { SignerProvider, addressFromContractId, prettifyTokenAmount, web3 } from '@alephium/web3'
 import { getMarketplaceConfig } from '../config'
-import { getTokens } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useAccountStore } from '../stores'
 import { LendingOfferInstance, type LendingOfferTypes } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
-import { useLoanStore } from '../stores/loans'
 import router from '@/router'
 
 const route = useRoute()
-const param = route.params.loan
+const contractId = route.params.loan as string
 const loan = ref<Loan | undefined>(undefined)
 
 const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
 const accountStore = useAccountStore()
 
-const state = ref<LendingOfferTypes.State | undefined>()
+const state = ref<LendingOfferTypes.Fields | undefined>()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const fetchingData = ref<boolean>(true)
@@ -35,7 +33,7 @@ const fetchingData = ref<boolean>(true)
 const isLender = ref<boolean>(false)
 const isBorrower = ref<boolean>(false)
 
-const isActive = computed(() => state.value?.fields.borrower !== state.value?.fields.lender)
+const isActive = computed(() => state.value?.borrower !== state.value?.lender)
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -51,10 +49,6 @@ const loanToken = ref<Token>(undefinedToken)
 
 onMounted(async () => {
   await loadLoan()
-  // What does this do? creates an error
-  // const instance = new LendingOfferInstance(addressFromContractId(loan.value!.loanId))
-  // state.value = await instance.fetchState()
-  // console.log(state.value)
 })
 
 function calculateReceivedAmount(loan: Loan) {
@@ -64,19 +58,29 @@ function calculateReceivedAmount(loan: Loan) {
 }
 
 async function loadLoan() {
-  const loanStore = useLoanStore()
-  await loanStore.fetchLoans()
-  const foundLoan = loanStore.loans.find((e) => e.loanId === param)
-  if (foundLoan) {
-    loan.value = foundLoan
-    collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
-    loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
-    if (accountStore.account?.address) {
-      isLender.value = accountStore.account?.address === loan.value.lender
-      isBorrower.value = accountStore.account?.address === state.value?.fields.borrower
+  try {
+    const instance = new LendingOfferInstance(addressFromContractId(contractId))
+    const state = await instance.fetchState()
+    loan.value = {
+      id: state.fields.id,
+      contractId,
+      collateralToken: state.fields.collateralTokenId,
+      collateralAmount: state.fields.collateralAmount,
+      loanToken: state.fields.lendingTokenId,
+      loanAmount: state.fields.lendingAmount,
+      interest: state.fields.interestRate,
+      duration: state.fields.duration,
+      created: Number(state.fields.loanTimeStamp) * 1000,
+      lender: state.fields.lender,
+      borrower: state.fields.borrower
     }
+    isLender.value = accountStore.account?.address === state.fields.lender
+    isBorrower.value = accountStore.account?.address === state.fields.borrower
+  } catch (err) {
+    console.log('err', err)
+  } finally {
+    fetchingData.value = false
   }
-  fetchingData.value = false
 }
 
 async function borrow() {
@@ -88,7 +92,7 @@ async function borrow() {
       status.value = 'approve'
       const result = await marketplace.takeOffer(
         accountStore.signer as SignerProvider,
-        loan.value.loanId,
+        loan.value.contractId,
         loan.value.collateralToken,
         loan.value.collateralAmount
       )
@@ -111,7 +115,7 @@ async function cancel() {
     marketplace.contractId = config.marketplaceContractId
     try {
       status.value = 'approve'
-      const result = await marketplace.cancelOffer(accountStore.signer as SignerProvider, loan.value.loanId)
+      const result = await marketplace.cancelOffer(accountStore.signer as SignerProvider, loan.value.contractId)
       status.value = 'signed'
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
@@ -150,7 +154,7 @@ function reset() {
         <div class="flex flex-col h-full justify-between">
           <div class="flex flex-col space-y-[30px]">
             <ComponentTitle
-              :title="`Loan order ${shortenString(loan.loanId, 12)}`"
+              :title="`Loan #${loan.id}`"
               :description="`Created on ${new Date(loan.created).toDateString()}`"
               :status="isActive ? 'Active' : 'Open'"
               @update:go-back="router.push('/lending')"

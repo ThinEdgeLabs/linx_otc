@@ -28,9 +28,9 @@ function changeView(newView: string) {
       <LoanFilters :view="'list'" :change-view="changeView" :class="'z-10'" />
     </div>
     <div
-      @click="$router.push(`/lending/${loan.loanId}`)"
+      @click="$router.push(`/lending/${loan.contractId}`)"
       v-for="loan in loanStore.loans"
-      v-bind:key="loan.loanId"
+      v-bind:key="loan.contractId"
       class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] hover:bg-core-darker lg:hover:bg-core-darkest -z-1"
     >
       <LoanGridCard :loan="loan" :tokens="tokens" />
@@ -48,15 +48,15 @@ function changeView(newView: string) {
         <p class="text-center text-[14px] pt-4 text-core-lightest">No loans available</p>
       </div>
       <div v-if="view === 'list'">
-        <div class="space-y-4" v-for="loan in loanStore.loans" v-bind:key="loan.loanId">
-          <LoanListCard :loan="loan" :tokens="tokens" @click="$router.push(`/lending/${loan.loanId}`)" />
+        <div class="space-y-4" v-for="loan in loanStore.loans" v-bind:key="loan.contractId">
+          <LoanListCard :loan="loan" :tokens="tokens" @click="$router.push(`/lending/${loan.contractId}`)" />
         </div>
       </div>
       <div v-else class="-z-10 relative w-full grid grid-cols-4 gap-[30px] pt-[60px]">
         <div
-          @click="$router.push(`/lending/${loan.loanId}`)"
+          @click="$router.push(`/lending/${loan.contractId}`)"
           v-for="loan in loanStore.loans"
-          v-bind:key="loan.loanId"
+          v-bind:key="loan.contractId"
           class="relative group px-[20px] pt-[20px] pb-[10px] bg-divider rounded-lg space-y-[20px] lg:hover:bg-core-darkest"
         >
           <div class="w-full">

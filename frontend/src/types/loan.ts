@@ -1,7 +1,8 @@
 import type { Token } from '.'
 
 export interface Loan {
-  loanId: string
+  id: bigint,
+  contractId: string
   lender: string
   borrower?: string
   loanToken: Token['symbol']

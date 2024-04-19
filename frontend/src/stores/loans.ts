@@ -74,7 +74,8 @@ export const useLoanStore = defineStore('loans', () => {
       .filter((event) => !closed.has(event.fields['lendingOfferContractId'] as String))
       .map((event) => {
         return {
-          loanId: event.fields['lendingOfferContractId'] as string,
+          id: event.fields['id'] as bigint,
+          contractId: event.fields['lendingOfferContractId'] as string,
           lender: event.fields['lender'] as string,
           borrower: undefined,
           loanToken: event.fields['lendingTokenId'] as string,
