@@ -61,6 +61,20 @@ function calculateReceivedAmount(loan: Loan) {
   //return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
 }
 
+function getDueDate(loan: Loan) {
+  const dueTimestamp = loan.created + Number(loan.duration) * 24 * 60 * 60 * 1000
+  const diff = dueTimestamp - Date.now()
+  const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+  const hours = Math.floor(diff / (60 * 60 * 1000)) % 24
+  if (days > 0) {
+    return `${days} days`
+  } else if (days === 0 && hours > 0) {
+    return `${hours} hours`
+  } else {
+    return 'Overdue'
+  }
+}
+
 async function loadLoan() {
   try {
     const instance = new LendingOfferInstance(addressFromContractId(contractId))
@@ -245,12 +259,11 @@ function reset() {
                     <font-awesome-icon :icon="['fal', 'calendar-days']" class="text-core-light text-[20px]" />
                   </div>
                   <div class="flex flex-col text-start justify-center">
-                    <p class="text-[10px] lg:text-[12px] text-core-light">DURATION</p>
+                    <p class="text-[10px] lg:text-[12px] text-core-light">DUE IN</p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
-                        {{ loan.duration }}
+                        {{ getDueDate(loan) }}
                       </p>
-                      <p class="text-core-light">DAYS</p>
                     </div>
                   </div>
                 </div>
