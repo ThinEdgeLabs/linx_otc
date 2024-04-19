@@ -36,7 +36,7 @@ const selectedActivity = ref<Activity>()
             :icon="'sack-dollar'"
             :title="'Create a P2P Loan'"
             :description="'Create your loan in seconds'"
-            :destination="'new-loan'"
+            :destination="'/lending/create'"
           />
           <DashboardButton
             :icon="'list'"

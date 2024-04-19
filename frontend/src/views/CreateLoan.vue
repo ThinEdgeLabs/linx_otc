@@ -9,7 +9,7 @@ import DurationSelect from '../components/lending/DurationSelect.vue'
 import RatingSelect from '../components/lending/RatingSelect.vue'
 import HorizontalDivider from '../components/HorizontalDivider.vue'
 import ApproveWallet from '../components/ApproveWallet.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import LoanPreview from '../components/lending/LoanPreview.vue'
 import ComponentTitle from '../components/ComponentTitle.vue'
 import AgreeToTerms from '../components/AgreeToTerms.vue'
@@ -33,8 +33,12 @@ const txId = ref<string | undefined>(undefined)
 function reset() {
   status.value = undefined
   txId.value = undefined
-  loanOfferStore.resetOrder()
+  loanOfferStore.reset()
 }
+
+onMounted(() => {
+  loanOfferStore.reset()
+})
 
 async function createLoan() {
   if (
@@ -57,6 +61,7 @@ async function createLoan() {
     const collateralAmount = convertAmountWithDecimals(loanOfferStore.order!.collateralAmount, collateralTokenDecimals)
     const interest = convertAmountWithDecimals(loanOfferStore.order!.interest, loanTokenDecimals)
     const interestRate = (((interest! * 10n ** 18n) / lendingAmount!) * 10000n) / 10n ** 18n // basis points
+
     const duration = BigInt(loanOfferStore.order!.duration)
 
     try {

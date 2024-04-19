@@ -14,7 +14,16 @@ interface LoanOrder {
 }
 
 export const useLoanOrderStore = defineStore('loanOrder', () => {
-  const order = ref<LoanOrder | undefined>()
+  const order = ref<LoanOrder>({
+    loanToken: undefined,
+    loanAmount: 0.0,
+    collateralToken: undefined,
+    collateralAmount: 0.0,
+    interest: 0.0,
+    duration: 0,
+    creationDate: Date.now(),
+    borrowerRating: 0
+  })
 
   function setLoanToken(token: Token) {
     order.value!.loanToken = token
@@ -44,7 +53,7 @@ export const useLoanOrderStore = defineStore('loanOrder', () => {
     order.value!.borrowerRating = amount
   }
 
-  function startNewLoanOrder() {
+  function reset() {
     order.value = {
       loanToken: undefined,
       loanAmount: 0.0,
@@ -57,20 +66,15 @@ export const useLoanOrderStore = defineStore('loanOrder', () => {
     }
   }
 
-  function resetOrder() {
-    order.value = undefined
-  }
-
   return {
     order,
     setLoanToken,
     setLoanAmount,
     setCollateralToken,
     setCollateralAmount,
-    startNewLoanOrder,
     setDuration,
     setRating,
     setInterest,
-    resetOrder
+    reset
   }
 })

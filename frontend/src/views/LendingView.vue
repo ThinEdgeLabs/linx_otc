@@ -32,7 +32,7 @@ onMounted(async () => {
         </div>
         <CustomButton
           :title="'Create New Loan'"
-          @click="loanOfferStore.startNewLoanOrder(), router.push('/lending/create')"
+          @click="router.push('/lending/create')"
         />
       </div>
     </div>
