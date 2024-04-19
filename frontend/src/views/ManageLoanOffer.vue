@@ -297,7 +297,7 @@ function reset() {
       <p class="text-[30px] text-core-lightest font-extrabold">Getting Loan</p>
       <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
-    <section v-else class="w-full justify-center items-center text-center">
+    <section v-if="!fetchingData && !loan" class="w-full justify-center items-center text-center">
       <p class="text-[30px] text-core-lightest font-extrabold">Loan not found</p>
     </section>
   </div>
