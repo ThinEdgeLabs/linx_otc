@@ -1,5 +1,5 @@
 {
-  "version": "v2.12.0",
+  "version": "v2.11.0",
   "name": "CreateOffer",
   "bytecodeTemplate": "0101030001001413c40de0b6b3a76400001700b47a1600a2{0}{2}a3{0}{1}{2}{3}{4}{5}13060d{6}010718",
   "fieldsSig": {

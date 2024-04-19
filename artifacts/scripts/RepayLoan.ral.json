@@ -1,5 +1,5 @@
 {
-  "version": "v2.12.0",
+  "version": "v2.11.0",
   "name": "RepayLoan",
   "bytecodeTemplate": "01010300000009b4{2}{3}a3{1}0d0c{0}010a",
   "fieldsSig": {
@@ -7,7 +7,7 @@
       "marketplace",
       "loanId",
       "borrowedTokenId",
-      "repayAmount"
+      "amount"
     ],
     "types": [
       "LendingMarketplace",

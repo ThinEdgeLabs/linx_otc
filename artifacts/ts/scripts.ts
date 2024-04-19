@@ -53,5 +53,5 @@ export const RepayLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
   borrowedTokenId: HexString;
-  repayAmount: bigint;
+  amount: bigint;
 }>(Script.fromJson(RepayLoanScriptJson, ""));

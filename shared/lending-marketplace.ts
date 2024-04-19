@@ -92,19 +92,20 @@ export class LendingMarketplaceHelper extends DeployHelpers {
     })
   }
 
-  async repayLoan(signer: SignerProvider, loanId: string, borrowedTokenId: string, repayAmount: bigint): Promise<ExecuteScriptResult> {
+  async repayLoan(signer: SignerProvider, loanId: string, borrowedTokenId: string, amount: bigint): Promise<ExecuteScriptResult> {
     return RepayLoan.execute(signer, {
       initialFields: {
         loanId,
         marketplace: this.contractId!,
         borrowedTokenId,
-        repayAmount
+        amount
       },
+      attoAlphAmount: DUST_AMOUNT,
       tokens: [
         {
           id: borrowedTokenId,
-          amount: repayAmount
-        }
+          amount
+        },
       ]
     })
   }

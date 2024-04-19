@@ -25,7 +25,6 @@ const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
 const accountStore = useAccountStore()
 
-const state = ref<LendingOfferTypes.Fields | undefined>()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const fetchingData = ref<boolean>(true)
@@ -33,7 +32,7 @@ const fetchingData = ref<boolean>(true)
 const isLender = ref<boolean>(false)
 const isBorrower = ref<boolean>(false)
 
-const isActive = computed(() => state.value?.borrower !== state.value?.lender)
+const isActive = computed(() => loan.value?.borrower !== loan.value?.lender)
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -44,7 +43,6 @@ const undefinedToken = {
 }
 
 const collateralToken = ref<Token>(undefinedToken)
-
 const loanToken = ref<Token>(undefinedToken)
 
 onMounted(async () => {
@@ -129,8 +127,25 @@ async function cancel() {
 }
 
 async function repay() {
-  //TODO
-  console.log('repay')
+  if (loan.value) {
+    const config = getMarketplaceConfig()
+    const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+    marketplace.contractId = config.marketplaceContractId
+    const instance = new LendingOfferInstance(addressFromContractId(contractId))
+    const interest = (await instance.methods.getInterest()).returns
+    try {
+      status.value = 'approve'
+      const result = await marketplace.repayLoan(accountStore.signer as SignerProvider, loan.value.contractId, loan.value.loanToken, loan.value.loanAmount + interest)
+      status.value = 'signed'
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+      txId.value = result.txId
+      status.value = 'success'
+    } catch (err) {
+      console.log('err', err)
+      status.value = 'denied'
+    }
+  }
 }
 
 async function liquidate() {
