@@ -13,7 +13,7 @@ import { getMarketplaceConfig, getTokens } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useAccountStore } from '../stores'
-import { LendingOfferInstance, type LendingOfferTypes } from '../../../artifacts/ts'
+import { LendingOfferInstance } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
@@ -33,6 +33,12 @@ const fetchingData = ref<boolean>(true)
 const isLender = computed(() => loan.value?.lender === account.value?.address)
 const isBorrower = computed(() => loan.value?.borrower === account.value?.address)
 const isActive = computed(() => loan.value?.borrower !== loan.value?.lender)
+const isOverdue = computed(() => {
+  if (loan.value) {
+    return (Number(loan.value.duration) * 24 * 60 * 60 * 1000 + loan.value.created) < Date.now()
+  }
+  return false
+})
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -149,8 +155,23 @@ async function repay() {
 }
 
 async function liquidate() {
-  //TODO
-  console.log('liquidate')
+  if (loan.value) {
+    const config = getMarketplaceConfig()
+    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
+    marketplace.contractId = config.marketplaceContractId
+    try {
+      status.value = 'approve'
+      const result = await marketplace.liquidateLoan(signer.value as SignerProvider, loan.value.contractId)
+      status.value = 'signed'
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+      txId.value = result.txId
+      status.value = 'success'
+    } catch (err) {
+      console.log('err', err)
+      status.value = 'denied'
+    }
+  }
 }
 
 function reset() {
@@ -305,6 +326,7 @@ function reset() {
         />
         <CustomButton v-if="!isActive && isLender" :title="'Cancel offer'" :class="'w-full'" @click="cancel" />
         <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
+        <CustomButton v-if="isOverdue && isLender" :title="'Liquidate'" :class="'w-full'" @click="liquidate" />
 
         <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
           <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
