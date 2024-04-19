@@ -204,7 +204,7 @@ function createErrorMessage(): Array<string> {
     <div v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <ApproveWallet
         @update:cancel="reset"
-        @update:finished="reset"
+        @update:finished="reset(), $router.push('/lending')"
         :status="status!"
         :tx-id="txId"
         @update:retry="createLoan"
