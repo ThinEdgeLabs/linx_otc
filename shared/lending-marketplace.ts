@@ -86,7 +86,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
       tokens: [
         {
           id: collateralTokenId,
-          amount: collateralAmount + DUST_AMOUNT
+          amount: collateralAmount
         }
       ]
     })
