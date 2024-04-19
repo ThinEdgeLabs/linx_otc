@@ -9,13 +9,14 @@ import ApproveWallet, { type Status } from '../components/ApproveWallet.vue'
 import { calculateApr, convertBasisPointsToPercentage } from '../functions/utils'
 import type { Loan, Token } from '../types'
 import { SignerProvider, addressFromContractId, prettifyTokenAmount, web3 } from '@alephium/web3'
-import { getMarketplaceConfig } from '../config'
+import { getMarketplaceConfig, getTokens } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useAccountStore } from '../stores'
 import { LendingOfferInstance, type LendingOfferTypes } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
 import router from '@/router'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const contractId = route.params.loan as string
@@ -23,15 +24,14 @@ const loan = ref<Loan | undefined>(undefined)
 
 const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
-const accountStore = useAccountStore()
+const { account, signer, nodeProvider } = storeToRefs(useAccountStore())
 
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const fetchingData = ref<boolean>(true)
 
-const isLender = ref<boolean>(false)
-const isBorrower = ref<boolean>(false)
-
+const isLender = computed(() => loan.value?.lender === account.value?.address)
+const isBorrower = computed(() => loan.value?.borrower === account.value?.address)
 const isActive = computed(() => loan.value?.borrower !== loan.value?.lender)
 
 const undefinedToken = {
@@ -72,8 +72,8 @@ async function loadLoan() {
       lender: state.fields.lender,
       borrower: state.fields.borrower
     }
-    isLender.value = accountStore.account?.address === state.fields.lender
-    isBorrower.value = accountStore.account?.address === state.fields.borrower
+    collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
+    loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
   } catch (err) {
     console.log('err', err)
   } finally {
@@ -84,19 +84,19 @@ async function loadLoan() {
 async function borrow() {
   if (loan.value) {
     const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
     marketplace.contractId = config.marketplaceContractId
     try {
       status.value = 'approve'
       const result = await marketplace.takeOffer(
-        accountStore.signer as SignerProvider,
+        signer.value as SignerProvider,
         loan.value.contractId,
         loan.value.collateralToken,
         loan.value.collateralAmount
       )
       status.value = 'signed'
       await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
       status.value = 'success'
     } catch (err) {
@@ -109,14 +109,14 @@ async function borrow() {
 async function cancel() {
   if (loan.value) {
     const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
     marketplace.contractId = config.marketplaceContractId
     try {
       status.value = 'approve'
-      const result = await marketplace.cancelOffer(accountStore.signer as SignerProvider, loan.value.contractId)
+      const result = await marketplace.cancelOffer(signer.value as SignerProvider, loan.value.contractId)
       status.value = 'signed'
       await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
       status.value = 'success'
     } catch (err) {
@@ -129,16 +129,16 @@ async function cancel() {
 async function repay() {
   if (loan.value) {
     const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(accountStore.signer as SignerProvider)
+    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
     marketplace.contractId = config.marketplaceContractId
     const instance = new LendingOfferInstance(addressFromContractId(contractId))
     const interest = (await instance.methods.getInterest()).returns
     try {
       status.value = 'approve'
-      const result = await marketplace.repayLoan(accountStore.signer as SignerProvider, loan.value.contractId, loan.value.loanToken, loan.value.loanAmount + interest)
+      const result = await marketplace.repayLoan(signer.value as SignerProvider, loan.value.contractId, loan.value.loanToken, loan.value.loanAmount + interest)
       status.value = 'signed'
       await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(accountStore.nodeProvider!, result.txId, 1, 1000)
+      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
       status.value = 'success'
     } catch (err) {
@@ -298,7 +298,7 @@ function reset() {
 
         <CustomButton
           v-if="!isActive && !isLender"
-          :disabled="!accountStore.account?.isConnected"
+          :disabled="!account?.isConnected"
           :title="'Borrow'"
           :class="'w-full'"
           @click="borrow"
