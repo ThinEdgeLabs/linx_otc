@@ -259,11 +259,22 @@ function reset() {
                     <font-awesome-icon :icon="['fal', 'calendar-days']" class="text-core-light text-[20px]" />
                   </div>
                   <div class="flex flex-col text-start justify-center">
-                    <p class="text-[10px] lg:text-[12px] text-core-light">DUE IN</p>
-                    <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
-                      <p class="font-extrabold text-core-lightest">
-                        {{ getDueDate(loan) }}
-                      </p>
+                    <div v-if="isActive">
+                      <p class="text-[10px] lg:text-[12px] text-core-light">DUE IN</p>
+                      <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
+                        <p class="font-extrabold text-core-lightest">
+                          {{ getDueDate(loan) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div v-else>
+                      <p class="text-[10px] lg:text-[12px] text-core-light">DURATION</p>
+                      <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
+                        <p class="font-extrabold text-core-lightest">
+                          {{ loan.duration }}
+                        </p>
+                        <p class="text-core-light">{{ loan.duration > 1 ? 'DAYS' : 'DAY' }}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
