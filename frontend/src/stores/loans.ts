@@ -92,17 +92,21 @@ export const useLoanStore = defineStore('loans', () => {
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
+    loans.value = _loans.value
     if (loanToken != undefined) {
-      loans.value = _loans.value.filter((e) => e.loanToken === loanToken)
-    } else if (collateralToken != undefined) {
-      loans.value = _loans.value.filter((e) => e.collateralToken === collateralToken)
-    } else if (durationDays != undefined) {
+      loans.value = loans.value.filter((e) => e.loanToken === loanToken)
+    }
+    if (collateralToken != undefined) {
+      loans.value = loans.value.filter((e) => e.collateralToken === collateralToken)
+    }
+    if (durationDays != undefined) {
       if (durationDays === 1) {
-        loans.value = _loans.value.filter((e) => e.duration <= 7)
+        loans.value = loans.value.filter((e) => e.duration <= 7)
       } else {
-        loans.value = _loans.value.filter((e) => e.duration > durationDays)
+        loans.value = loans.value.filter((e) => e.duration > durationDays)
       }
-    } else {
+    }
+    if (!loanToken && !collateralToken && !durationDays) {
       loans.value = _loans.value
     }
   }

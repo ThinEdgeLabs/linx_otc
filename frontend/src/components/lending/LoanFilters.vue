@@ -54,9 +54,9 @@ function setSelectedDuration(duration: number) {
 }
 
 function updateFilteredList() {
-  const loanToken = selectedLoanToken.value.symbol === 'NONE' ? undefined : selectedLoanToken.value.symbol
+  const loanToken = selectedLoanToken.value.symbol === 'NONE' ? undefined : selectedLoanToken.value.contractId
   const collateralToken =
-    selectedCollateralToken.value.symbol === 'NONE' ? undefined : selectedCollateralToken.value.symbol
+    selectedCollateralToken.value.symbol === 'NONE' ? undefined : selectedCollateralToken.value.contractId
   loanStore.filterLoans(loanToken, collateralToken, selectedDuration.value)
 }
 </script>
