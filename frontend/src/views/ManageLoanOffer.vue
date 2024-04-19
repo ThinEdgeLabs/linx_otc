@@ -231,6 +231,7 @@ function reset() {
       </div>
       <ApproveWallet
         v-else
+        @update:retry="isLender ? cancel() : isBorrower ? repay() : borrow()"
         @update:cancel="reset"
         @update:finished="$emit('update:closeOffer')"
         :status="status"
