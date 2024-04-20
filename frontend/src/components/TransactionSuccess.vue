@@ -51,7 +51,7 @@ onMounted(() => startTimer())
 
 <template>
   <section
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center cursor-pointer"
   >
     <div class="flex bg-ok w-[60px] h-[60px] rounded-full justify-center items-center">
       <font-awesome-icon :icon="['fal', 'check']" class="text-core-lightest text-[27px]" />
@@ -61,7 +61,7 @@ onMounted(() => startTimer())
       <p class="text-[16px] text-core-light">{{ props.description }}</p>
     </div>
     <a
-      class="w-full lg:w-[60%] bg-core-lightest rounded-lg py-[20px] text-center text-core-darkest text-[14px] font-extrabold"
+      class="bg-core-lightest rounded-lg py-[20px] px-4 text-center text-core-darkest text-[14px] font-extrabold"
       @click="goToExplorer(props.txId)"
     >
       {{ props.txId }}

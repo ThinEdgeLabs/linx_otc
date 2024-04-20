@@ -44,7 +44,7 @@ const percentageFilled = computed(() => {
   <TransactionSuccess
     v-if="status === 'success'"
     :title="`Your transaction was confirmed`"
-    :description="'Click the transaction ID to open in the explorer'"
+    :description="'Click the transaction ID to view it in explorer'"
     :tx-id="txId!"
     @update:finished="$emit('update:finished')"
   />
