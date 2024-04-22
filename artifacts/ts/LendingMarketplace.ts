@@ -45,7 +45,7 @@ export namespace LendingMarketplaceTypes {
     previous: Address;
     new: Address;
   }>;
-  export type OfferCreatedEvent = ContractEvent<{
+  export type LoanCreatedEvent = ContractEvent<{
     lendingTokenId: HexString;
     collateralTokenId: HexString;
     lendingAmount: bigint;
@@ -53,9 +53,9 @@ export namespace LendingMarketplaceTypes {
     interestRate: bigint;
     duration: bigint;
     lender: Address;
-    lendingOfferContractId: HexString;
+    loanId: HexString;
   }>;
-  export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
+  export type LoanCancelledEvent = ContractEvent<{ loanId: HexString }>;
   export type LoanPaidEvent = ContractEvent<{ loanId: HexString }>;
   export type LoanStartedEvent = ContractEvent<{
     loanId: HexString;
@@ -138,8 +138,8 @@ class Factory extends ContractFactory<
 
   eventIndex = {
     AdminUpdated: 0,
-    OfferCreated: 1,
-    OfferCancelled: 2,
+    LoanCreated: 1,
+    LoanCancelled: 2,
     LoanPaid: 3,
     LoanStarted: 4,
     LoanLiquidated: 5,
@@ -248,7 +248,7 @@ class Factory extends ContractFactory<
     cancelOffer: async (
       params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
-        { offerId: HexString }
+        { loanId: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "cancelOffer", params);
@@ -332,28 +332,28 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeOfferCreatedEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.OfferCreatedEvent>,
+  subscribeLoanCreatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "OfferCreated",
+      "LoanCreated",
       fromCount
     );
   }
 
-  subscribeOfferCancelledEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.OfferCancelledEvent>,
+  subscribeLoanCancelledEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanCancelledEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "OfferCancelled",
+      "LoanCancelled",
       fromCount
     );
   }
@@ -400,8 +400,8 @@ export class LendingMarketplaceInstance extends ContractInstance {
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
-      | LendingMarketplaceTypes.OfferCreatedEvent
-      | LendingMarketplaceTypes.OfferCancelledEvent
+      | LendingMarketplaceTypes.LoanCreatedEvent
+      | LendingMarketplaceTypes.LoanCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
       | LendingMarketplaceTypes.LoanStartedEvent
       | LendingMarketplaceTypes.LoanLiquidatedEvent

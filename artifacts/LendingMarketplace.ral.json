@@ -39,7 +39,7 @@
       ]
     },
     {
-      "name": "OfferCreated",
+      "name": "LoanCreated",
       "fieldNames": [
         "lendingTokenId",
         "collateralTokenId",
@@ -48,7 +48,7 @@
         "interestRate",
         "duration",
         "lender",
-        "lendingOfferContractId"
+        "loanId"
       ],
       "fieldTypes": [
         "ByteVec",
@@ -62,9 +62,9 @@
       ]
     },
     {
-      "name": "OfferCancelled",
+      "name": "LoanCancelled",
       "fieldNames": [
-        "offerId"
+        "loanId"
       ],
       "fieldTypes": [
         "ByteVec"
@@ -279,7 +279,7 @@
       "useAssetsInContract": false,
       "isPublic": true,
       "paramNames": [
-        "offerId"
+        "loanId"
       ],
       "paramTypes": [
         "ByteVec"
