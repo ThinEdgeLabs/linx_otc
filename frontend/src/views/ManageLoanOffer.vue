@@ -8,7 +8,7 @@ import { computed, onMounted, ref } from 'vue'
 import ApproveWallet, { type Status } from '../components/ApproveWallet.vue'
 import { calculateApr, convertBasisPointsToPercentage } from '../functions/utils'
 import type { Loan, Token } from '../types'
-import { SignerProvider, addressFromContractId, prettifyTokenAmount, web3 } from '@alephium/web3'
+import { SignerProvider, addressFromContractId, prettifyExactAmount, prettifyTokenAmount, web3 } from '@alephium/web3'
 import { getMarketplaceConfig, getTokens } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
@@ -59,9 +59,8 @@ onMounted(async () => {
 })
 
 function calculateReceivedAmount(loan: Loan) {
-  return loan.loanAmount
-  // TODO: Can't get the config.fee?
-  //return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
+  console.log((loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n)
+  return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
 }
 
 function getDueDate(loan: Loan) {
@@ -74,7 +73,7 @@ function getDueDate(loan: Loan) {
   } else if (days === 0 && hours > 0) {
     return `${hours} hours`
   } else {
-    return 'Overdue'
+    return 0
   }
 }
 
@@ -347,13 +346,13 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send'"
-            :amount="prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
             :amount_description="collateralToken.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
-            :amount="prettifyTokenAmount(calculateReceivedAmount(loan), loanToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(calculateReceivedAmount(loan), loanToken.decimals) ?? '0'"
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />
@@ -366,13 +365,13 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
-            :amount="prettifyTokenAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive (collateral)'"
-            :amount="prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
             :amount_description="collateralToken.symbol"
           />
           <HorizontalDivider />
@@ -383,7 +382,7 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
-            :amount="prettifyTokenAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />

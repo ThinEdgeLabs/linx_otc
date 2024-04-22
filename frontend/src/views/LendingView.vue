@@ -30,10 +30,7 @@ onMounted(async () => {
           <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
           <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
         </div>
-        <CustomButton
-          :title="'Create New Loan'"
-          @click="router.push('/lending/create')"
-        />
+        <CustomButton :title="'Create New Loan'" @click="router.push('/lending/create')" />
       </div>
     </div>
     <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">

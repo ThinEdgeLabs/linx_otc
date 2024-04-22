@@ -5,6 +5,7 @@ import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005
+export const lendingFee = 50n
 export const domainURL = 'https://testnet.linxotc.com'
 //export const domainURL = 'localhost:5173'
 export const feeAddresses = [
@@ -339,7 +340,6 @@ export interface MarketplaceConfig {
 
 export function getMarketplaceConfig(): MarketplaceConfig {
   const network = import.meta.env.VITE_NETWORK_ID
-  const settings = loadSettings(network as NetworkId)
   const deployments = loadDeployments(network as NetworkId)
   const marketPlace = deployments.contracts.LendingMarketplace.contractInstance
   const groupIndex = marketPlace.groupIndex
@@ -351,7 +351,7 @@ export function getMarketplaceConfig(): MarketplaceConfig {
     marketplaceContractId: marketPlace.contractId,
     marketplaceContractAddress: marketPlace.address,
     nftTemplateId: deployments.contracts.LendingOffer.contractInstance.contractId,
-    fee: settings.fee,
+    fee: lendingFee,
     defaultNodeUrl: getDefaultNodeUrl(),
     defaultExplorerUrl: getDefaultExplorerUrl()
   }
