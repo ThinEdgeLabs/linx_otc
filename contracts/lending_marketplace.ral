@@ -11,7 +11,7 @@ Contract LendingMarketplace(
     new: Address
   )
 
-  event OfferCreated(
+  event LoanCreated(
     lendingTokenId: ByteVec,
     collateralTokenId: ByteVec,
     lendingAmount: U256,
@@ -19,10 +19,10 @@ Contract LendingMarketplace(
     interestRate: U256,
     duration: U256,
     lender: Address,
-    lendingOfferContractId: ByteVec
+    loanId: ByteVec
   )
 
-  event OfferCancelled(offerId: ByteVec)
+  event LoanCancelled(loanId: ByteVec)
   event LoanPaid(loanId: ByteVec)
   event LoanStarted(loanId: ByteVec, borrower: Address)
   event LoanLiquidated(loanId: ByteVec)
@@ -65,14 +65,14 @@ Contract LendingMarketplace(
     let key = toByteVec!(totalLendingOffers)
     let id = totalLendingOffers
     let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, blockTimeStampInSeconds())
-    let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
+    let loanId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )
     totalLendingOffers = totalLendingOffers + 1
 
-    emit OfferCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, lendingOfferContractId)
+    emit LoanCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, loanId)
 
-    return contractIdToAddress!(lendingOfferContractId)
+    return contractIdToAddress!(loanId)
   }
 
   @using(preapprovedAssets = true)
@@ -87,12 +87,12 @@ Contract LendingMarketplace(
     emit LoanStarted(offerId, borrower)
   }
 
-  pub fn cancelOffer(offerId: ByteVec) -> () {
-    let offer = LendingOffer(offerId)
+  pub fn cancelOffer(loanId: ByteVec) -> () {
+    let offer = LendingOffer(loanId)
     let lender = offer.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     offer.cancel()
-    emit OfferCancelled(offerId)
+    emit LoanCancelled(loanId)
   }
 
   @using(preapprovedAssets = true)

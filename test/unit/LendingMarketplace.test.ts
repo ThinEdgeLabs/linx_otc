@@ -198,8 +198,8 @@ describe('LendingMarketplace', () => {
       })
 
       expect(testResult.events.length).toEqual(2)
-      const offerCreatedEvent = testResult.events.find((e) => e.name === 'OfferCreated') as LendingMarketplaceTypes.OfferCreatedEvent
-      expect(offerCreatedEvent.fields).toEqual({
+      const loanCreatedEvent = testResult.events.find((e) => e.name === 'LoanCreated') as LendingMarketplaceTypes.LoanCreatedEvent
+      expect(loanCreatedEvent.fields).toEqual({
         lendingTokenId,
         collateralTokenId,
         lendingAmount,
@@ -207,7 +207,7 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender: lender.address,
-        lendingOfferContractId: binToHex(contractIdFromAddress(testResult.returns))
+        loanId: binToHex(contractIdFromAddress(testResult.returns))
       })
 
       const lendingOfferState = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
@@ -340,11 +340,11 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         }
       })
-      const offerCancelledEvent = testResult.events.find((e) => e.name === 'OfferCancelled') as LendingMarketplaceTypes.OfferCancelledEvent
-      expect(offerCancelledEvent.fields.offerId).toEqual(offer.contractId)
+      const loanCancelledEvent = testResult.events.find((e) => e.name === 'LoanCancelled') as LendingMarketplaceTypes.LoanCancelledEvent
+      expect(loanCancelledEvent.fields.loanId).toEqual(offer.contractId)
       const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
       expect(contractDestroyedEvent?.fields['address']).toEqual(offer.address)
     })
@@ -375,7 +375,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         }
       })
       expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
@@ -407,7 +407,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: randomContractId()
+          loanId: randomContractId()
         }
       })
       await expect(testResult).rejects.toThrow(Error)
