@@ -35,10 +35,13 @@ const isBorrower = computed(() => loan.value?.borrower === account.value?.addres
 const isActive = computed(() => loan.value?.borrower !== loan.value?.lender)
 const isOverdue = computed(() => {
   if (loan.value) {
-    return (Number(loan.value.duration) * 24 * 60 * 60 * 1000 + loan.value.created) < Date.now()
+    return Number(loan.value.duration) * 24 * 60 * 60 * 1000 + loan.value.created < Date.now()
   }
   return false
 })
+const canBorrow = computed(() => !isActive.value && !isLender.value)
+const canRepay = computed(() => isActive.value && isBorrower.value)
+const canDelete = computed(() => !isActive.value && isLender.value)
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -155,7 +158,12 @@ async function repay() {
     const interest = (await instance.methods.getInterest()).returns
     try {
       status.value = 'approve'
-      const result = await marketplace.repayLoan(signer.value as SignerProvider, loan.value.contractId, loan.value.loanToken, loan.value.loanAmount + interest)
+      const result = await marketplace.repayLoan(
+        signer.value as SignerProvider,
+        loan.value.contractId,
+        loan.value.loanToken,
+        loan.value.loanAmount + interest
+      )
       status.value = 'signed'
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
@@ -301,12 +309,19 @@ function reset() {
         :status="status"
         :tx-id="txId"
       />
-      <div class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg space-y-[30px]">
+
+      <!-- Loan information -->
+      <div
+        class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg min-h-[500px] justify-items-stretch"
+      >
         <div class="flex flex-col">
           <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
           <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
-        <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg">
+
+        <div
+          class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px] mb-[30px]"
+        >
           <div class="flex flex-row space-x-[10px] items-center">
             <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
             <div class="flex flex-col text-start justify-center">
@@ -328,9 +343,13 @@ function reset() {
           </div>
         </div>
 
-        <div class="flex flex-col space-y-[15px]">
+        <div v-if="canBorrow" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
+          <LoanPreviewLabel
+            :title="'You send'"
+            :amount="prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
+            :amount_description="collateralToken.symbol"
+          />
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
@@ -338,25 +357,68 @@ function reset() {
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />
+          <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
+          <HorizontalDivider />
           <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <CustomButton
-          v-if="!isActive && !isLender"
-          :disabled="!account?.isConnected"
-          :title="'Borrow'"
-          :class="'w-full'"
-          @click="borrow"
-        />
-        <CustomButton v-if="!isActive && isLender" :title="'Cancel offer'" :class="'w-full'" @click="cancel" />
-        <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
-        <CustomButton v-if="isOverdue && isLender" :title="'Liquidate'" :class="'w-full'" @click="liquidate" />
+        <div v-if="canRepay" class="flex flex-col space-y-[15px] mb-[30px]">
+          <HorizontalDivider />
+          <LoanPreviewLabel
+            :title="'You send (loan + interest)'"
+            :amount="prettifyTokenAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
+            :amount_description="loanToken.symbol"
+          />
+          <HorizontalDivider />
+          <LoanPreviewLabel
+            :title="'You receive (collateral)'"
+            :amount="prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
+            :amount_description="collateralToken.symbol"
+          />
+          <HorizontalDivider />
+          <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+        </div>
 
-        <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
-          <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
-          <button class="text-accent-3">Terms of Use</button>
+        <div v-if="canDelete" class="flex flex-col space-y-[15px] mb-[30px]">
+          <HorizontalDivider />
+          <LoanPreviewLabel
+            :title="'You receive'"
+            :amount="prettifyTokenAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
+            :amount_description="loanToken.symbol"
+          />
+          <HorizontalDivider />
+          <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+        </div>
+
+        <div class="mt-auto">
+          <CustomButton
+            v-if="!isActive && !isLender"
+            :disabled="!account?.isConnected"
+            :title="'Borrow'"
+            :class="'w-full'"
+            @click="borrow"
+          />
+          <CustomButton
+            v-if="!isActive && isLender"
+            :title="'Delete loan'"
+            :class="'w-full'"
+            @click="cancel"
+            :open="true"
+            :delete="true"
+          />
+          <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
+          <CustomButton
+            v-if="isActive && isOverdue && isLender"
+            :title="'Liquidate'"
+            :class="'w-full'"
+            @click="liquidate"
+          />
+          <p class="text-core-light text-[12px] mt-[30px] text-center">
+            By using this feature, you agree to Linx Labs <a href="#" class="text-accent-3">Terms of Use</a>
+          </p>
         </div>
       </div>
+      <!-- Loan information -->
     </section>
 
     <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">

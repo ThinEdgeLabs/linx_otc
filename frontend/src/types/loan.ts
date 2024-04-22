@@ -1,7 +1,7 @@
 import type { Token } from '.'
 
 export interface Loan {
-  id: bigint,
+  id: bigint
   contractId: string
   lender: string
   borrower?: string
