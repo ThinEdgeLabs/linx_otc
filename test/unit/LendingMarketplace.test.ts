@@ -197,9 +197,10 @@ describe('LendingMarketplace', () => {
         blockTimeStamp
       })
 
-      expect(testResult.events.length).toEqual(2)
-      const loanCreatedEvent = testResult.events.find((e) => e.name === 'LoanCreated') as LendingMarketplaceTypes.LoanCreatedEvent
-      expect(loanCreatedEvent.fields).toEqual({
+      expect(testResult.events.length).toEqual(3)
+      const loanDetailsEvent = testResult.events.find((e) => e.name === 'LoanDetails') as LendingMarketplaceTypes.LoanDetailsEvent
+      expect(loanDetailsEvent.fields).toEqual({
+        loanId: binToHex(contractIdFromAddress(testResult.returns)),
         lendingTokenId,
         collateralTokenId,
         lendingAmount,
@@ -207,7 +208,14 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender: lender.address,
-        loanId: binToHex(contractIdFromAddress(testResult.returns))
+      })
+
+      const loanCreatedEvent = testResult.events.find((e) => e.name === 'LoanCreated') as LendingMarketplaceTypes.LoanCreatedEvent
+      expect(loanCreatedEvent.fields).toEqual({
+        loanId: binToHex(contractIdFromAddress(testResult.returns)),
+        id: totalLoans,
+        by: lender.address,
+        timestamp: BigInt(blockTimeStamp)
       })
 
       const lendingOfferState = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>

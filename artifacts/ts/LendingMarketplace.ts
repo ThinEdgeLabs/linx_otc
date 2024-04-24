@@ -45,7 +45,8 @@ export namespace LendingMarketplaceTypes {
     previous: Address;
     new: Address;
   }>;
-  export type LoanCreatedEvent = ContractEvent<{
+  export type LoanDetailsEvent = ContractEvent<{
+    loanId: HexString;
     lendingTokenId: HexString;
     collateralTokenId: HexString;
     lendingAmount: bigint;
@@ -53,7 +54,12 @@ export namespace LendingMarketplaceTypes {
     interestRate: bigint;
     duration: bigint;
     lender: Address;
+  }>;
+  export type LoanCreatedEvent = ContractEvent<{
     loanId: HexString;
+    id: bigint;
+    by: Address;
+    timestamp: bigint;
   }>;
   export type LoanCancelledEvent = ContractEvent<{
     loanId: HexString;
@@ -151,11 +157,12 @@ class Factory extends ContractFactory<
 
   eventIndex = {
     AdminUpdated: 0,
-    LoanCreated: 1,
-    LoanCancelled: 2,
-    LoanPaid: 3,
-    LoanAccepted: 4,
-    LoanLiquidated: 5,
+    LoanDetails: 1,
+    LoanCreated: 2,
+    LoanCancelled: 3,
+    LoanPaid: 4,
+    LoanAccepted: 5,
+    LoanLiquidated: 6,
   };
   consts = {
     Day: BigInt(86400),
@@ -314,7 +321,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "58b75d681ba912f195010b1419f33855fcac00cb0f881b540e381702ef0e7696"
+    "9bd3d73316eee09f73462dabf34ec4fb1d1315e011666561a0a42657394b39be"
   )
 );
 
@@ -341,6 +348,19 @@ export class LendingMarketplaceInstance extends ContractInstance {
       this,
       options,
       "AdminUpdated",
+      fromCount
+    );
+  }
+
+  subscribeLoanDetailsEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanDetailsEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanDetails",
       fromCount
     );
   }
@@ -413,6 +433,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
+      | LendingMarketplaceTypes.LoanDetailsEvent
       | LendingMarketplaceTypes.LoanCreatedEvent
       | LendingMarketplaceTypes.LoanCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent

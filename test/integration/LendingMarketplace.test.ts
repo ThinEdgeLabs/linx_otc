@@ -1,4 +1,4 @@
-import { ALPH_TOKEN_ID, ONE_ALPH, addressFromContractId, web3 } from "@alephium/web3"
+import { ALPH_TOKEN_ID, ONE_ALPH, addressFromContractId, contractIdFromAddress, web3 } from "@alephium/web3"
 import { getSigners, testNodeWallet } from "@alephium/web3-test"
 import { LendingMarketplaceHelper } from "../../shared/lending-marketplace"
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from "../../shared/utils"
@@ -37,26 +37,28 @@ describe('LendingMarketplace', () => {
     const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
     const { txId } = await marketplace.createOffer(signer, lendingTokenId, ALPH_TOKEN_ID, lendingAmount, collateralAmount, interestRate, duration)
     await waitTxConfirmed(provider, txId, 1, 1000)
-
+    const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
+    const loanAddress = txDetails.generatedOutputs[0].address
+    const loanId = (Buffer.from(contractIdFromAddress(loanAddress)).toString('hex'));
     const lendingMarketplaceContractEvents = await web3.getCurrentNodeProvider().events.getEventsContractContractaddress(
       addressFromContractId(marketplace.contractId!),
       { start: 0, group: 0 }
     )
-    expect(lendingMarketplaceContractEvents.events.length).toEqual(1)
-    const loanCreatedEventFields = lendingMarketplaceContractEvents.events[0].fields
-    expect(loanCreatedEventFields[0].value).toEqual(lendingTokenId)
-    expect(loanCreatedEventFields[1].value).toEqual(ALPH_TOKEN_ID)
-    expect(BigInt(+loanCreatedEventFields[2].value)).toEqual(lendingAmount)
-    expect(BigInt(+loanCreatedEventFields[3].value)).toEqual(collateralAmount)
-    expect(BigInt(+loanCreatedEventFields[4].value)).toEqual(interestRate)
-    expect(BigInt(+loanCreatedEventFields[5].value)).toEqual(duration)
-    expect(loanCreatedEventFields[6].value).toEqual(lender)
+    expect(lendingMarketplaceContractEvents.events.length).toEqual(2)
+    const loanDetailsEventFields = lendingMarketplaceContractEvents.events[0].fields
+    expect(loanDetailsEventFields[0].value).toEqual(loanId)
+    expect(loanDetailsEventFields[1].value).toEqual(lendingTokenId)
+    expect(loanDetailsEventFields[2].value).toEqual(ALPH_TOKEN_ID)
+    expect(BigInt(+loanDetailsEventFields[3].value)).toEqual(lendingAmount)
+    expect(BigInt(+loanDetailsEventFields[4].value)).toEqual(collateralAmount)
+    expect(BigInt(+loanDetailsEventFields[5].value)).toEqual(interestRate)
+    expect(BigInt(+loanDetailsEventFields[6].value)).toEqual(duration)
+    expect(loanDetailsEventFields[7].value).toEqual(lender)
 
     const marketplaceContractState = await new LendingMarketplaceInstance(addressFromContractId(marketplace.contractId!)).fetchState()
     expect(marketplaceContractState.fields.totalLendingOffers).toEqual(1n)
 
-    const offerId = loanCreatedEventFields[7].value
-    const lendingOffer = LendingOffer.at(addressFromContractId(offerId.toString()))
+    const lendingOffer = LendingOffer.at(addressFromContractId(loanId))
     const lendingOfferState = await lendingOffer.fetchState()
     expect(lendingOfferState.fields).toEqual({
       id: 0n,

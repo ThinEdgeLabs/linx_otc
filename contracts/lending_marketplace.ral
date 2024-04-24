@@ -11,17 +11,18 @@ Contract LendingMarketplace(
     new: Address
   )
 
-  event LoanCreated(
+  event LoanDetails(
+    loanId: ByteVec,
     lendingTokenId: ByteVec,
     collateralTokenId: ByteVec,
     lendingAmount: U256,
     collateralAmount: U256,
     interestRate: U256,
     duration: U256,
-    lender: Address,
-    loanId: ByteVec
+    lender: Address
   )
 
+  event LoanCreated(loanId: ByteVec, id: U256, by: Address, timestamp: U256)
   event LoanCancelled(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
@@ -70,7 +71,8 @@ Contract LendingMarketplace(
     )
     totalLendingOffers = totalLendingOffers + 1
 
-    emit LoanCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, loanId)
+    emit LoanDetails(loanId, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender)
+    emit LoanCreated(loanId, id, lender, blockTimeStamp!())
 
     return contractIdToAddress!(loanId)
   }
