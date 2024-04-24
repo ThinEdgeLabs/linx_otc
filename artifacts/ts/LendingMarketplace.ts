@@ -55,13 +55,26 @@ export namespace LendingMarketplaceTypes {
     lender: Address;
     loanId: HexString;
   }>;
-  export type LoanCancelledEvent = ContractEvent<{ loanId: HexString }>;
-  export type LoanPaidEvent = ContractEvent<{ loanId: HexString }>;
-  export type LoanStartedEvent = ContractEvent<{
+  export type LoanCancelledEvent = ContractEvent<{
     loanId: HexString;
-    borrower: Address;
+    by: Address;
+    timestamp: bigint;
   }>;
-  export type LoanLiquidatedEvent = ContractEvent<{ loanId: HexString }>;
+  export type LoanPaidEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
+  export type LoanAcceptedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
+  export type LoanLiquidatedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -141,7 +154,7 @@ class Factory extends ContractFactory<
     LoanCreated: 1,
     LoanCancelled: 2,
     LoanPaid: 3,
-    LoanStarted: 4,
+    LoanAccepted: 4,
     LoanLiquidated: 5,
   };
   consts = {
@@ -301,7 +314,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "87f53f7f125fd1b1c91a89ffb51022f3719ac70db1c9ef4c2fe05cf3dbc5058f"
+    "58b75d681ba912f195010b1419f33855fcac00cb0f881b540e381702ef0e7696"
   )
 );
 
@@ -371,15 +384,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeLoanStartedEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanStartedEvent>,
+  subscribeLoanAcceptedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanAcceptedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "LoanStarted",
+      "LoanAccepted",
       fromCount
     );
   }
@@ -403,7 +416,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
       | LendingMarketplaceTypes.LoanCreatedEvent
       | LendingMarketplaceTypes.LoanCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
-      | LendingMarketplaceTypes.LoanStartedEvent
+      | LendingMarketplaceTypes.LoanAcceptedEvent
       | LendingMarketplaceTypes.LoanLiquidatedEvent
     >,
     fromCount?: number

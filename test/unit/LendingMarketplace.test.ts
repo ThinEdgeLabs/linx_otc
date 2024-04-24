@@ -481,7 +481,7 @@ describe('LendingMarketplace', () => {
       expect(testResult).rejects.toThrowError(error)
     })
 
-    it('borrower receives tokens, collateral is locked, emits LoanStarted event', async () => {
+    it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
       const offer = createLendingOffer(lender.address, lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -495,7 +495,7 @@ describe('LendingMarketplace', () => {
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }]},
         marketplace
       )
-
+      const blockTimeStamp = Math.floor(Date.now())
       const testResult = await LendingMarketplace.tests.borrow({
         initialFields: marketplace.selfState.fields,
         address: marketplace.address,
@@ -508,11 +508,13 @@ describe('LendingMarketplace', () => {
         ],
         testArgs: {
           offerId: offer.contractId
-        }
+        },
+        blockTimeStamp
       })
-      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanStarted') as LendingMarketplaceTypes.LoanStartedEvent
+      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanAccepted') as LendingMarketplaceTypes.LoanAcceptedEvent
       expect(loanStartedEvent.fields.loanId).toEqual(offer.contractId)
-      expect(loanStartedEvent.fields.borrower).toEqual(borrower.address)
+      expect(loanStartedEvent.fields.by).toEqual(borrower.address)
+      expect(loanStartedEvent.fields.timestamp).toEqual(BigInt(blockTimeStamp))
       const contractBalance = testResult.txOutputs[0]
       expect(contractBalance.tokens![0]).toEqual({
         id: collateralTokenId,

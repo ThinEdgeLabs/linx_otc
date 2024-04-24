@@ -22,10 +22,10 @@ Contract LendingMarketplace(
     loanId: ByteVec
   )
 
-  event LoanCancelled(loanId: ByteVec)
-  event LoanPaid(loanId: ByteVec)
-  event LoanStarted(loanId: ByteVec, borrower: Address)
-  event LoanLiquidated(loanId: ByteVec)
+  event LoanCancelled(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
 
   enum ErrorCodes {
     AdminAllowedOnly = 0
@@ -82,9 +82,9 @@ Contract LendingMarketplace(
     let collateralTokenId = offer.getCollateralTokenId()
     let collateralAmount = offer.getCollateralAmount()
     checkCaller!(callerAddress!() != lender, ErrorCodes.LenderNotAllowed)
-    let borrower = callerAddress!()
-    offer.take{borrower -> collateralTokenId: collateralAmount}(borrower)
-    emit LoanStarted(offerId, borrower)
+    let caller = callerAddress!()
+    offer.take{caller -> collateralTokenId: collateralAmount}(caller)
+    emit LoanAccepted(offerId, caller, blockTimeStamp!())
   }
 
   pub fn cancelOffer(loanId: ByteVec) -> () {
@@ -92,7 +92,7 @@ Contract LendingMarketplace(
     let lender = offer.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     offer.cancel()
-    emit LoanCancelled(loanId)
+    emit LoanCancelled(loanId, callerAddress!(), blockTimeStamp!())
   }
 
   @using(preapprovedAssets = true)
@@ -105,7 +105,7 @@ Contract LendingMarketplace(
     let caller = callerAddress!()
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
     loan.payback{caller -> lendingTokenId: loanAmount + interest}()
-    emit LoanPaid(loanId)
+    emit LoanPaid(loanId, caller, blockTimeStamp!())
   }
 
   pub fn liquidateLoan(loanId: ByteVec) -> () {
@@ -113,7 +113,7 @@ Contract LendingMarketplace(
     let lender = loan.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     loan.liquidate()
-    emit LoanLiquidated(loanId)
+    emit LoanLiquidated(loanId, callerAddress!(), blockTimeStamp!())
   }
 
   @using(updateFields = true)
