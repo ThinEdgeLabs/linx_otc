@@ -306,7 +306,7 @@ function reset() {
         v-else
         @update:retry="isLender ? cancel() : isBorrower ? repay() : borrow()"
         @update:cancel="reset"
-        @update:finished="$emit('update:closeOffer')"
+        @update:finished="router.push('/lending')"
         :status="status"
         :tx-id="txId"
       />
