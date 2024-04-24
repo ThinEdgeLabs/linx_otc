@@ -17,7 +17,7 @@ const loginStore = useLoginStore()
           <font-awesome-icon
             :icon="['far', 'xmark']"
             @click="loginStore.toggleModal"
-            class="text-2xl/[18] text-accent-1"
+            class="text-2xl/[18] text-accent-1 cursor-pointer"
           />
         </h3>
         <div class="text-start text-white opacity-75">

@@ -3,8 +3,9 @@ import { defineStore } from 'pinia'
 import type { Loan } from '@/types'
 import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '@/config'
-import { addressFromContractId, decodeEvent } from '@alephium/web3'
+import { ContractEvent, addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
+import { type LendingMarketplaceTypes } from '../../../artifacts/ts/LendingMarketplace'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
@@ -12,6 +13,7 @@ export const useLoanStore = defineStore('loans', () => {
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
+  let events = Array<ContractEvent>()
 
   const store = useAccountStore()
   const config = getMarketplaceConfig()
@@ -51,7 +53,10 @@ export const useLoanStore = defineStore('loans', () => {
       if (contractEvents.events.length === 0) {
         return events
       } else {
-        events = [...events, ...contractEvents.events]
+        const decodedEvents = contractEvents.events.map((event) =>
+          decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
+        )
+        events = [...events, ...decodedEvents]
         return go(contractEvents.nextStart, limit, events)
       }
     }
@@ -60,22 +65,21 @@ export const useLoanStore = defineStore('loans', () => {
 
   async function fetchLoans() {
     isLoading.value = true
-    const events = await getMarketplaceEvents()
-    const decodedEvents = events.map((event) =>
-      decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
-    )
-    const cancelled = decodedEvents.filter((e) => e.name === 'OfferCancelled').map((e) => e.fields['offerId'] as String)
-    const paid = decodedEvents.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
-    const liquidated = decodedEvents.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
+    if (events.length === 0) {
+      events = await getMarketplaceEvents()
+    }
+    const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
+    const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
+    const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
     const closed = new Set([...cancelled, ...paid, ...liquidated])
 
-    loans.value = decodedEvents
-      .filter((event) => event.name === 'OfferCreated')
-      .filter((event) => !closed.has(event.fields['lendingOfferContractId'] as String))
+    loans.value = events
+      .filter((event) => event.name === 'LoanCreated')
+      .filter((event) => !closed.has(event.fields['loanId'] as String))
       .map((event) => {
         return {
           id: event.fields['id'] as bigint,
-          contractId: event.fields['lendingOfferContractId'] as string,
+          contractId: event.fields['loanId'] as string,
           lender: event.fields['lender'] as string,
           borrower: undefined,
           loanToken: event.fields['lendingTokenId'] as string,
@@ -90,6 +94,13 @@ export const useLoanStore = defineStore('loans', () => {
       })
     _loans.value = loans.value
     isLoading.value = false
+  }
+
+  async function getLoanEvents(contractId: string) {
+    if (!events.length) {
+      events = await getMarketplaceEvents()
+    }
+    return events.filter((e) => e.fields['loanId'] === contractId)
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
@@ -179,5 +190,5 @@ export const useLoanStore = defineStore('loans', () => {
 
   fetchLoans()
 
-  return { filterLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading }
+  return { filterLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading, getLoanEvents }
 })

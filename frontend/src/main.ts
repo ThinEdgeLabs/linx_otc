@@ -46,7 +46,12 @@ import {
   faCalendarDays,
   faWallet,
   faBars,
-  faFilter
+  faFilter,
+  faPen,
+  faTrashCan,
+  faHandshake,
+  faMoneyFromBracket,
+  faGavel
 } from '@fortawesome/pro-light-svg-icons'
 library.add(
   faBell,
@@ -83,7 +88,12 @@ library.add(
   faCalendarDays,
   faWallet,
   faBars,
-  faFilter
+  faFilter,
+  faPen,
+  faTrashCan,
+  faHandshake,
+  faMoneyFromBracket,
+  faGavel
 )
 import {
   faBell as fasBell,

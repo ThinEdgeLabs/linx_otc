@@ -62,7 +62,7 @@ const connectWalletConnect = async () => {
         </p>
       </div>
     </div>
-    <p class="text-core-light">Do you want to logout?</p>
+    <p class="text-core-light">Are you sure you want to logout?</p>
     <div @click="accountStore.disconnect" class="w-full">
       <CustomButton title="Logout" :class="'w-full'" />
     </div>

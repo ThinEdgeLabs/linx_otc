@@ -8,11 +8,18 @@ import { computed, onMounted, ref } from 'vue'
 import ApproveWallet, { type Status } from '../components/ApproveWallet.vue'
 import { calculateApr, convertBasisPointsToPercentage } from '../functions/utils'
 import type { Loan, Token } from '../types'
-import { SignerProvider, addressFromContractId, prettifyExactAmount, prettifyTokenAmount, web3 } from '@alephium/web3'
+import {
+  ContractEvent,
+  SignerProvider,
+  addressFromContractId,
+  prettifyExactAmount,
+  prettifyTokenAmount,
+  web3
+} from '@alephium/web3'
 import { getMarketplaceConfig, getTokens } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
-import { useAccountStore } from '../stores'
+import { useAccountStore, useLoanStore } from '../stores'
 import { LendingOfferInstance } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
 import router from '@/router'
@@ -29,6 +36,7 @@ const { account, signer, nodeProvider } = storeToRefs(useAccountStore())
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const fetchingData = ref<boolean>(true)
+const events = ref<ContractEvent[]>([])
 
 const isLender = computed(() => loan.value?.lender === account.value?.address)
 const isBorrower = computed(() => loan.value?.borrower === account.value?.address)
@@ -56,10 +64,10 @@ const loanToken = ref<Token>(undefinedToken)
 
 onMounted(async () => {
   await loadLoan()
+  events.value = await useLoanStore().getLoanEvents(contractId)
 })
 
 function calculateReceivedAmount(loan: Loan) {
-  console.log((loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n)
   return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
 }
 
@@ -318,28 +326,133 @@ function reset() {
           <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
 
-        <div
-          class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px] mb-[30px]"
-        >
-          <div class="flex flex-row space-x-[10px] items-center">
-            <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
-            <div class="flex flex-col text-start justify-center">
-              <p class="text-[10px] text-core-light">LENDING</p>
-              <div class="flex flex-row items-center space-x-[10px] text-[14px]">
-                <p class="font-extrabold text-core-lightest">
-                  {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
-                </p>
-                <p class="text-core-light">{{ loanToken.symbol }}</p>
+        <div v-for="event in events" v-bind:key="events.indexOf(event)">
+          <div
+            v-if="event.name == 'LoanCreated'"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px]"
+          >
+            <div class="flex flex-row space-x-[10px]">
+              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
+                <font-awesome-icon :icon="['fal', 'pen']" class="text-core-light text-[20px]" />
               </div>
+              <div class="flex flex-col text-start justify-center text-[10px]">
+                <p class="text-core-light">CREATED BY</p>
+                <div class="flex flex-row items-center space-x-[10px]">
+                  <p class="font-extrabold text-core-lightest">
+                    {{ shortenString(event.fields['lender'] as string, 12) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] flex flex-col text-end">
+              <p class="text-core-light">ON</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ new Date(loan.created).toDateString() }}
+              </p>
             </div>
           </div>
 
-          <div class="flex flex-col text-end">
-            <p class="text-[10px] text-core-light">FROM</p>
-            <p class="text-[14px] font-extrabold text-core-lightest">
-              {{ shortenString(loan.lender, 12) }}
-            </p>
+          <div
+            v-if="event.name == 'LoanCancelled'"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+          >
+            <div class="flex flex-row space-x-[10px]">
+              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
+                <font-awesome-icon :icon="['fal', 'trash-can']" class="text-core-light text-[20px]" />
+              </div>
+              <div class="flex flex-col text-start justify-center text-[10px]">
+                <p class="text-core-light">CANCELLED BY</p>
+                <div class="flex flex-row items-center space-x-[10px]">
+                  <p class="font-extrabold text-core-lightest">
+                    {{ shortenString(event.fields['lender'] as string, 12) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] flex flex-col text-end">
+              <p class="text-core-light">ON</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
+              </p>
+            </div>
           </div>
+
+          <div
+            v-if="event.name == 'LoanAccepted'"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+          >
+            <div class="flex flex-row space-x-[10px]">
+              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
+                <font-awesome-icon :icon="['fal', 'handshake']" class="text-core-light text-[20px]" />
+              </div>
+              <div class="flex flex-col text-start justify-center text-[10px]">
+                <p class="text-core-light">ACCEPTED BY</p>
+                <div class="flex flex-row items-center space-x-[10px]">
+                  <p class="font-extrabold text-core-lightest">
+                    {{ shortenString(event.fields['by'] as string, 12) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] flex flex-col text-end">
+              <p class="text-core-light">ON</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="event.name == 'LoanPaid'"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+          >
+            <div class="flex flex-row space-x-[10px]">
+              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
+                <font-awesome-icon :icon="['fal', 'money-from-bracket']" class="text-core-light text-[20px]" />
+              </div>
+              <div class="flex flex-col text-start justify-center text-[10px]">
+                <p class="text-core-light"></p>
+                <div class="flex flex-row items-center space-x-[10px]">
+                  <p class="font-extrabold text-core-lightest">
+                    {{ shortenString(event.fields['by'] as string, 12) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] flex flex-col text-end">
+              <p class="text-core-light">ON</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="event.name == 'LoanLiquidated'"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px]"
+          >
+            <div class="flex flex-row space-x-[10px]">
+              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
+                <font-awesome-icon :icon="['fal', 'gavel']" class="text-core-light text-[20px]" />
+              </div>
+              <div class="flex flex-col text-start justify-center text-[10px]">
+                <p class="text-core-light"></p>
+                <div class="flex flex-row items-center space-x-[10px]">
+                  <p class="font-extrabold text-core-lightest">
+                    {{ shortenString(event.fields['by'] as string, 12) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] flex flex-col text-end">
+              <p class="text-core-light">ON</p>
+              <p class="font-extrabold text-core-lightest">
+                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
+              </p>
+            </div>
+          </div>
+
+          <div v-if="events.indexOf(event) !== events.length - 1" class="border-dashed border-l border-accent-3 h-[30px] ms-[30px]"></div>
         </div>
 
         <div v-if="canBorrow" class="flex flex-col space-y-[15px] mb-[30px]">
