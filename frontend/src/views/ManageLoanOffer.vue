@@ -40,7 +40,7 @@ const events = ref<ContractEvent[]>([])
 
 const isLender = computed(() => loan.value?.lender === account.value?.address)
 const isBorrower = computed(() => loan.value?.borrower && loan.value?.borrower === account.value?.address)
-const isActive = computed(() => loan.value?.borrower && loan.value?.borrower !== loan.value?.lender)
+const isActive = computed(() => loanStatus.value === 'Active')
 const isAvailable = computed(() => loanStatus.value === 'Available')
 const isOverdue = computed(() => {
   if (loan.value) {
@@ -249,7 +249,7 @@ function reset() {
                   </div>
                 </div>
               </div>
-              <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
+              <div class="border-dashed border-r border-accent-3 h-[20px] w-[30px]"></div>
               <div class="grid grid-cols-2 w-full items-center">
                 <div class="flex flex-row space-x-[10px] item-center">
                   <img :src="`${collateralToken.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
@@ -291,7 +291,7 @@ function reset() {
             </div>
           </div>
         </div>
-        <div class="flex flex-col w-full border-2 border-dashed border-accent-3 p-[15px] rounded-lg">
+        <div class="flex flex-col w-full border border-dashed border-accent-3 p-[15px] rounded-lg">
           <div class="flex flex-row space-x-[10px] items-center">
             <font-awesome-icon :icon="['fal', 'info-circle']" class="text-core-lightest text-[16px]" />
             <p class="text-[14px] font-extrabold text-core-lightest">Useful Tips</p>

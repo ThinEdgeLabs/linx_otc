@@ -51,7 +51,7 @@ const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loan
           </p>
         </div>
       </div>
-      <div class="border-dashed border-r-2 border-accent-3 h-[20px] w-[30px]"></div>
+      <div class="border-dashed border-r border-accent-3 h-[20px] w-[30px]"></div>
       <div class="w-full bg-core-darkest p-[10px] rounded-lg flex flex-row justify-start items-center">
         <div class="flex flex-row space-x-[10px] item-center">
           <img :src="`${collateralToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />

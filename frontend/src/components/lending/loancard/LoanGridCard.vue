@@ -43,7 +43,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
         </div>
       </div>
     </div>
-    <div class="hidden lg:flex border-dashed border-r-2 border-accent-3 h-[20px] w-[20px]"></div>
+    <div class="hidden lg:flex border-dashed border-r border-accent-3 h-[20px] w-[20px]"></div>
     <div class="flex flex-row w-full items-center space-x-[15px]">
       <img :src="`${collateralToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
       <div class="flex flex-col items-center justify-center leading-snug">
