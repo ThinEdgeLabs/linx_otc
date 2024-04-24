@@ -39,17 +39,29 @@ const fetchingData = ref<boolean>(true)
 const events = ref<ContractEvent[]>([])
 
 const isLender = computed(() => loan.value?.lender === account.value?.address)
-const isBorrower = computed(() => loan.value?.borrower === account.value?.address)
-const isActive = computed(() => loan.value?.borrower !== loan.value?.lender)
+const isBorrower = computed(() => loan.value?.borrower && loan.value?.borrower === account.value?.address)
+const isActive = computed(() => loan.value?.borrower && loan.value?.borrower !== loan.value?.lender)
+const isAvailable = computed(() => loanStatus.value === 'Available')
 const isOverdue = computed(() => {
   if (loan.value) {
     return Number(loan.value.duration) * 24 * 60 * 60 * 1000 + loan.value.created < Date.now()
   }
   return false
 })
-const canBorrow = computed(() => !isActive.value && !isLender.value)
-const canRepay = computed(() => isActive.value && isBorrower.value)
-const canDelete = computed(() => !isActive.value && isLender.value)
+const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.value)
+const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
+const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
+const loanStatus = computed(() => {
+  const isLiquidated = events.value.find((e) => e.name === 'LoanLiquidated')
+  if (isLiquidated) return 'Liquidated'
+  const isPaid = events.value.find((e) => e.name === 'LoanPaid')
+  if (isPaid) return 'Paid'
+  const isCancelled = events.value.find((e) => e.name === 'LoanCancelled')
+  if (isCancelled) return 'Cancelled'
+  const isActive = events.value.find((e) => e.name === 'LoanAccepted')
+  if (isActive) return 'Active'
+  return 'Available'
+})
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -63,8 +75,16 @@ const collateralToken = ref<Token>(undefinedToken)
 const loanToken = ref<Token>(undefinedToken)
 
 onMounted(async () => {
-  await loadLoan()
-  events.value = await useLoanStore().getLoanEvents(contractId)
+  try {
+    loan.value = await useLoanStore().getLoan(contractId)
+    events.value = await useLoanStore().getLoanEvents(contractId)
+    collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
+    loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
+  } catch (err) {
+    console.log('err', err)
+  } finally {
+    fetchingData.value = false
+  }
 })
 
 function calculateReceivedAmount(loan: Loan) {
@@ -82,32 +102,6 @@ function getDueDate(loan: Loan) {
     return `${hours} hours`
   } else {
     return 0
-  }
-}
-
-async function loadLoan() {
-  try {
-    const instance = new LendingOfferInstance(addressFromContractId(contractId))
-    const state = await instance.fetchState()
-    loan.value = {
-      id: state.fields.id,
-      contractId,
-      collateralToken: state.fields.collateralTokenId,
-      collateralAmount: state.fields.collateralAmount,
-      loanToken: state.fields.lendingTokenId,
-      loanAmount: state.fields.lendingAmount,
-      interest: state.fields.interestRate,
-      duration: state.fields.duration,
-      created: Number(state.fields.loanTimeStamp) * 1000,
-      lender: state.fields.lender,
-      borrower: state.fields.borrower
-    }
-    collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
-    loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
-  } catch (err) {
-    console.log('err', err)
-  } finally {
-    fetchingData.value = false
   }
 }
 
@@ -221,7 +215,7 @@ function reset() {
             <ComponentTitle
               :title="`Loan #${loan.id}`"
               :description="`Created on ${new Date(loan.created).toDateString()}`"
-              :status="isActive ? 'Active' : 'Open'"
+              :status="loanStatus"
               @update:go-back="router.push('/lending')"
             />
             <div class="flex flex-col">
@@ -329,7 +323,7 @@ function reset() {
         <div v-for="event in events" v-bind:key="events.indexOf(event)">
           <div
             v-if="event.name == 'LoanCreated'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px]"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px] last:mb-[30px]"
           >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
@@ -339,7 +333,7 @@ function reset() {
                 <p class="text-core-light">CREATED BY</p>
                 <div class="flex flex-row items-center space-x-[10px]">
                   <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['lender'] as string, 12) }}
+                    {{ shortenString(event.fields['by'] as string, 12) }}
                   </p>
                 </div>
               </div>
@@ -354,7 +348,7 @@ function reset() {
 
           <div
             v-if="event.name == 'LoanCancelled'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
           >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
@@ -364,7 +358,7 @@ function reset() {
                 <p class="text-core-light">CANCELLED BY</p>
                 <div class="flex flex-row items-center space-x-[10px]">
                   <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['lender'] as string, 12) }}
+                    {{ shortenString(event.fields['by'] as string, 12) }}
                   </p>
                 </div>
               </div>
@@ -379,7 +373,7 @@ function reset() {
 
           <div
             v-if="event.name == 'LoanAccepted'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
           >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
@@ -404,14 +398,14 @@ function reset() {
 
           <div
             v-if="event.name == 'LoanPaid'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
           >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
                 <font-awesome-icon :icon="['fal', 'money-from-bracket']" class="text-core-light text-[20px]" />
               </div>
               <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light"></p>
+                <p class="text-core-light">PAID BY</p>
                 <div class="flex flex-row items-center space-x-[10px]">
                   <p class="font-extrabold text-core-lightest">
                     {{ shortenString(event.fields['by'] as string, 12) }}
@@ -429,7 +423,7 @@ function reset() {
 
           <div
             v-if="event.name == 'LoanLiquidated'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px]"
+            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
           >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
@@ -504,14 +498,14 @@ function reset() {
 
         <div class="mt-auto">
           <CustomButton
-            v-if="!isActive && !isLender"
+            v-if="isAvailable && !isLender"
             :disabled="!account?.isConnected"
             :title="'Borrow'"
             :class="'w-full'"
             @click="borrow"
           />
           <CustomButton
-            v-if="!isActive && isLender"
+            v-if="isAvailable && isLender"
             :title="'Delete loan'"
             :class="'w-full'"
             @click="cancel"
@@ -534,7 +528,7 @@ function reset() {
     </section>
 
     <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
-      <p class="text-[30px] text-core-lightest font-extrabold">Getting Loan</p>
+      <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
       <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
     <section v-if="!fetchingData && !loan" class="w-full justify-center items-center text-center">

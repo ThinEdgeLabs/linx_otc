@@ -5,7 +5,6 @@ import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '@/config'
 import { ContractEvent, addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
-import { type LendingMarketplaceTypes } from '../../../artifacts/ts/LendingMarketplace'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
@@ -13,7 +12,9 @@ export const useLoanStore = defineStore('loans', () => {
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
+
   let events = Array<ContractEvent>()
+  let createdLoans = Array<Loan>()
 
   const store = useAccountStore()
   const config = getMarketplaceConfig()
@@ -63,19 +64,32 @@ export const useLoanStore = defineStore('loans', () => {
     return go(start, limit, [])
   }
 
-  async function fetchLoans() {
+  async function getAvailableLoans() {
     isLoading.value = true
+    if (createdLoans.length === 0) {
+      await getLoans()
+    }
     if (events.length === 0) {
       events = await getMarketplaceEvents()
     }
+
     const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
     const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
     const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
     const closed = new Set([...cancelled, ...paid, ...liquidated])
+    const availableLoans = createdLoans.filter((loan) => !closed.has(loan.contractId))
+    loans.value = availableLoans
+    _loans.value = availableLoans
+    isLoading.value = false
+    return availableLoans
+  }
 
-    loans.value = events
-      .filter((event) => event.name === 'LoanCreated')
-      .filter((event) => !closed.has(event.fields['loanId'] as String))
+  async function getLoans() {
+    if (events.length === 0) {
+      events = await getMarketplaceEvents()
+    }
+    const loans = events
+      .filter((event) => event.name === 'LoanDetails')
       .map((event) => {
         return {
           id: event.fields['id'] as bigint,
@@ -92,15 +106,41 @@ export const useLoanStore = defineStore('loans', () => {
           duration: event.fields['duration'] as bigint
         } as Loan
       })
-    _loans.value = loans.value
+
+    const loanCreatedEvents = new Map(events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event]))
+    const loanAcceptedEvents = new Map(events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event]))
+    loans.forEach((loan) => {
+      const createdEvent = loanCreatedEvents.get(loan.contractId)
+      if (createdEvent) {
+        loan.created = Number(createdEvent.fields['timestamp'] as bigint)
+        loan.id = createdEvent.fields['id'] as bigint
+      }
+      const acceptedEvent = loanAcceptedEvents.get(loan.contractId)
+      if (acceptedEvent) {
+        loan.borrower = acceptedEvent.fields['by'] as string
+        loan.startDate = Number(acceptedEvent.fields['timestamp'] as bigint)
+      }
+    })
+    createdLoans = loans
+    return loans
+  }
+
+  async function getLoan(contractId: string) {
+    isLoading.value = true
+    if (!createdLoans.length) {
+      await getLoans()
+    }
     isLoading.value = false
+    return createdLoans.find((e) => e.contractId === contractId)
   }
 
   async function getLoanEvents(contractId: string) {
+    isLoading.value = true
     if (!events.length) {
       events = await getMarketplaceEvents()
     }
-    return events.filter((e) => e.fields['loanId'] === contractId)
+    isLoading.value = false;
+    return events.filter((e) => e.fields['loanId'] === contractId).filter((e) => e.name !== 'LoanDetails')
   }
 
   function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
@@ -188,7 +228,5 @@ export const useLoanStore = defineStore('loans', () => {
     })
   }
 
-  fetchLoans()
-
-  return { filterLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading, getLoanEvents }
+  return { filterLoans, loans, sortLoans, sortCategory, getAvailableLoans, isLoading, getLoanEvents, getLoan }
 })

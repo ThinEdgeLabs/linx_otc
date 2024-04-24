@@ -13,7 +13,7 @@ const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
 
 onMounted(async () => {
-  await loanStore.fetchLoans()
+  await loanStore.getAvailableLoans()
   fetchingData.value = false
 })
 </script>
