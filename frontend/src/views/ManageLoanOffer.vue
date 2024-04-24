@@ -73,6 +73,7 @@ const undefinedToken = {
 
 const collateralToken = ref<Token>(undefinedToken)
 const loanToken = ref<Token>(undefinedToken)
+const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
 
 onMounted(async () => {
   try {
@@ -320,11 +321,13 @@ function reset() {
           <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
 
-        <div v-for="event in events" v-bind:key="events.indexOf(event)">
+        <a v-for="event in events" v-bind:key="events.indexOf(event)" v-bind:href="`${explorerUrl}/transactions/${event.txId}`"
+            target="_blank">
           <div
             v-if="event.name == 'LoanCreated'"
             class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px] last:mb-[30px]"
-          >
+
+            >
             <div class="flex flex-row space-x-[10px]">
               <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
                 <font-awesome-icon :icon="['fal', 'pen']" class="text-core-light text-[20px]" />
@@ -447,7 +450,7 @@ function reset() {
           </div>
 
           <div v-if="events.indexOf(event) !== events.length - 1" class="border-dashed border-l border-accent-3 h-[30px] ms-[30px]"></div>
-        </div>
+        </a>
 
         <div v-if="canBorrow" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
