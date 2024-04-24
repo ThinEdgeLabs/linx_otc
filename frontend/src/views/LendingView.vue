@@ -3,17 +3,14 @@ import CustomButton from '@/components/CustomButton.vue'
 import { useLoanStore } from '@/stores/loans'
 import LoansList from '@/components/lending/LoansList.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import router from '@/router'
-
-const fetchingData = ref<boolean>(true)
 
 const loanStore = useLoanStore()
 const loanOfferStore = useLoanOrderStore()
 
 onMounted(async () => {
-  await loanStore.getAvailableLoans()
-  fetchingData.value = false
+  loanStore.getAvailableLoans()
 })
 </script>
 
@@ -32,8 +29,8 @@ onMounted(async () => {
         <CustomButton :title="'Create New Loan'" @click="router.push('/lending/create')" />
       </div>
     </div>
-    <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
-      <p class="text-[30px] text-core-lightest font-extrabold">Getting Loans</p>
+    <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px]">
+      <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
       <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
     <LoansList v-else @update:selected-loan="router.push(`/lending/${$event.loanId}`)" />
