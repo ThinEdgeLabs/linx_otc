@@ -66,12 +66,8 @@ export const useLoanStore = defineStore('loans', () => {
 
   async function getAvailableLoans() {
     isLoading.value = true
-    if (createdLoans.length === 0) {
-      await getLoans()
-    }
-    if (events.length === 0) {
-      events = await getMarketplaceEvents()
-    }
+    await getLoans()
+    events = await getMarketplaceEvents()
 
     const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
     const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
@@ -85,9 +81,7 @@ export const useLoanStore = defineStore('loans', () => {
   }
 
   async function getLoans() {
-    if (events.length === 0) {
-      events = await getMarketplaceEvents()
-    }
+    events = await getMarketplaceEvents()
     const loans = events
       .filter((event) => event.name === 'LoanDetails')
       .map((event) => {

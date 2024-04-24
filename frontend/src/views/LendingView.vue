@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import CustomButton from '@/components/CustomButton.vue'
 import { useLoanStore } from '@/stores/loans'
-import { type Loan } from '@/types'
 import LoansList from '@/components/lending/LoansList.vue'
 import { useLoanOrderStore } from '@/stores/loanOrder'
 import { onMounted, ref } from 'vue'
