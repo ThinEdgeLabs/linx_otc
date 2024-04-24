@@ -32,10 +32,9 @@ const loan = ref<Loan | undefined>(undefined)
 const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
 const { account, signer, nodeProvider } = storeToRefs(useAccountStore())
-
+const loanStore = useLoanStore()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
-const fetchingData = ref<boolean>(true)
 const events = ref<ContractEvent[]>([])
 
 const isLender = computed(() => loan.value?.lender === account.value?.address)
@@ -48,6 +47,7 @@ const isOverdue = computed(() => {
   }
   return false
 })
+const waitingForTx = computed(() => status.value === 'signed')
 const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.value)
 const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
 const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
@@ -77,14 +77,12 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
 
 onMounted(async () => {
   try {
-    loan.value = await useLoanStore().getLoan(contractId)
-    events.value = await useLoanStore().getLoanEvents(contractId)
+    loan.value = await loanStore.getLoan(contractId)
+    events.value = await loanStore.getLoanEvents(contractId, true)
     collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
     loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
   } catch (err) {
     console.log('err', err)
-  } finally {
-    fetchingData.value = false
   }
 })
 
@@ -123,6 +121,7 @@ async function borrow() {
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
+      events.value = await useLoanStore().getLoanEvents(contractId, true)
       status.value = 'success'
     } catch (err) {
       console.log('err', err)
@@ -143,6 +142,7 @@ async function cancel() {
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
+      events.value = await useLoanStore().getLoanEvents(contractId, true)
       status.value = 'success'
     } catch (err) {
       console.log('err', err)
@@ -170,6 +170,7 @@ async function repay() {
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
+      events.value = await useLoanStore().getLoanEvents(contractId, true)
       status.value = 'success'
     } catch (err) {
       console.log('err', err)
@@ -190,6 +191,7 @@ async function liquidate() {
       await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
       txId.value = result.txId
+      events.value = await useLoanStore().getLoanEvents(contractId, true)
       status.value = 'success'
     } catch (err) {
       console.log('err', err)
@@ -452,7 +454,7 @@ function reset() {
           <div v-if="events.indexOf(event) !== events.length - 1" class="border-dashed border-l border-accent-3 h-[30px] ms-[30px]"></div>
         </a>
 
-        <div v-if="canBorrow" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canBorrow && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send'"
@@ -471,7 +473,7 @@ function reset() {
           <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="canRepay" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canRepay && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
@@ -488,7 +490,7 @@ function reset() {
           <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="canDelete" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canDelete && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
@@ -499,7 +501,7 @@ function reset() {
           <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div class="mt-auto">
+        <div v-if="!waitingForTx" class="mt-auto">
           <CustomButton
             v-if="isAvailable && !isLender"
             :disabled="!account?.isConnected"
@@ -530,11 +532,11 @@ function reset() {
       <!-- Loan information -->
     </section>
 
-    <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">
+    <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px]">
       <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
       <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
-    <section v-if="!fetchingData && !loan" class="w-full justify-center items-center text-center">
+    <section v-if="!loanStore.isLoading && !loan" class="w-full justify-center items-center text-center">
       <p class="text-[30px] text-core-lightest font-extrabold">Loan not found</p>
     </section>
   </div>
