@@ -38,6 +38,17 @@ const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
 const events = ref<ContractEvent[]>([])
 
+const loanStatus = computed(() => {
+  const isLiquidated = events.value.find((e) => e.name === 'LoanLiquidated')
+  if (isLiquidated) return 'Liquidated'
+  const isPaid = events.value.find((e) => e.name === 'LoanPaid')
+  if (isPaid) return 'Paid'
+  const isCancelled = events.value.find((e) => e.name === 'LoanCancelled')
+  if (isCancelled) return 'Cancelled'
+  const isActive = events.value.find((e) => e.name === 'LoanAccepted')
+  if (isActive) return 'Active'
+  return 'Available'
+})
 const isLender = computed(() => loan.value?.lender === account.value?.address)
 const isBorrower = computed(() => loan.value?.borrower && loan.value?.borrower === account.value?.address)
 const isActive = computed(() => loanStatus.value === 'Active')
@@ -52,17 +63,6 @@ const waitingForTxConfirmation = computed(() => status.value === 'signed')
 const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.value)
 const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
 const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
-const loanStatus = computed(() => {
-  const isLiquidated = events.value.find((e) => e.name === 'LoanLiquidated')
-  if (isLiquidated) return 'Liquidated'
-  const isPaid = events.value.find((e) => e.name === 'LoanPaid')
-  if (isPaid) return 'Paid'
-  const isCancelled = events.value.find((e) => e.name === 'LoanCancelled')
-  if (isCancelled) return 'Cancelled'
-  const isActive = events.value.find((e) => e.name === 'LoanAccepted')
-  if (isActive) return 'Active'
-  return 'Available'
-})
 
 const undefinedToken = {
   contractId: 'unknown',
@@ -105,98 +105,90 @@ function getDueDate(loan: Loan) {
 }
 
 async function borrow() {
-  if (loan.value) {
-    const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
-    marketplace.contractId = config.marketplaceContractId
-    try {
-      status.value = 'approve'
-      const result = await marketplace.takeOffer(
-        signer.value as SignerProvider,
-        loan.value.contractId,
-        loan.value.collateralToken,
-        loan.value.collateralAmount
-      )
-      status.value = 'signed'
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
-      txId.value = result.txId
-      events.value = await useLoanStore().getLoanEvents(contractId, true)
-      status.value = 'success'
-    } catch (err) {
-      console.log('err', err)
-      status.value = 'denied'
-    }
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  try {
+    status.value = 'approve'
+    const result = await marketplace.takeOffer(
+      signer.value as SignerProvider,
+      loan.value!.contractId,
+      loan.value!.collateralToken,
+      loan.value!.collateralAmount
+    )
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    txId.value = result.txId
+    events.value = await useLoanStore().getLoanEvents(contractId, true)
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
   }
 }
 
 async function cancel() {
-  if (loan.value) {
-    const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
-    marketplace.contractId = config.marketplaceContractId
-    try {
-      status.value = 'approve'
-      const result = await marketplace.cancelOffer(signer.value as SignerProvider, loan.value.contractId)
-      status.value = 'signed'
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
-      txId.value = result.txId
-      events.value = await useLoanStore().getLoanEvents(contractId, true)
-      status.value = 'success'
-    } catch (err) {
-      console.log('err', err)
-      status.value = 'denied'
-    }
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  try {
+    status.value = 'approve'
+    const result = await marketplace.cancelOffer(signer.value as SignerProvider, loan.value!.contractId)
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    txId.value = result.txId
+    events.value = await useLoanStore().getLoanEvents(contractId, true)
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
   }
 }
 
 async function repay() {
-  if (loan.value) {
-    const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
-    marketplace.contractId = config.marketplaceContractId
-    const instance = new LendingOfferInstance(addressFromContractId(contractId))
-    const interest = (await instance.methods.getInterest()).returns
-    try {
-      status.value = 'approve'
-      const result = await marketplace.repayLoan(
-        signer.value as SignerProvider,
-        loan.value.contractId,
-        loan.value.loanToken,
-        loan.value.loanAmount + interest
-      )
-      status.value = 'signed'
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
-      txId.value = result.txId
-      events.value = await useLoanStore().getLoanEvents(contractId, true)
-      status.value = 'success'
-    } catch (err) {
-      console.log('err', err)
-      status.value = 'denied'
-    }
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  const instance = new LendingOfferInstance(addressFromContractId(contractId))
+  const interest = (await instance.methods.getInterest()).returns
+  try {
+    status.value = 'approve'
+    const result = await marketplace.repayLoan(
+      signer.value as SignerProvider,
+      loan.value!.contractId,
+      loan.value!.loanToken,
+      loan.value!.loanAmount + interest
+    )
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    txId.value = result.txId
+    events.value = await useLoanStore().getLoanEvents(contractId, true)
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
   }
 }
 
 async function liquidate() {
-  if (loan.value) {
-    const config = getMarketplaceConfig()
-    const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
-    marketplace.contractId = config.marketplaceContractId
-    try {
-      status.value = 'approve'
-      const result = await marketplace.liquidateLoan(signer.value as SignerProvider, loan.value.contractId)
-      status.value = 'signed'
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
-      txId.value = result.txId
-      events.value = await useLoanStore().getLoanEvents(contractId, true)
-      status.value = 'success'
-    } catch (err) {
-      console.log('err', err)
-      status.value = 'denied'
-    }
+  const config = getMarketplaceConfig()
+  const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
+  marketplace.contractId = config.marketplaceContractId
+  try {
+    status.value = 'approve'
+    const result = await marketplace.liquidateLoan(signer.value as SignerProvider, loan.value!.contractId)
+    status.value = 'signed'
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    txId.value = result.txId
+    events.value = await useLoanStore().getLoanEvents(contractId, true)
+    status.value = 'success'
+  } catch (err) {
+    console.log('err', err)
+    status.value = 'denied'
   }
 }
 
