@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { shortenString } from '../functions/stringUtils'
 import HorizontalDivider from '../components/HorizontalDivider.vue'
 import LoanPreviewLabel from '../components/lending/LoanPreviewLabel.vue'
 import CustomButton from '../components/CustomButton.vue'
@@ -24,6 +23,7 @@ import { LendingOfferInstance } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
+import LoanHistory from '@/components/lending/LoanHistory.vue'
 
 const route = useRoute()
 const contractId = route.params.loan as string
@@ -31,6 +31,7 @@ const loan = ref<Loan | undefined>(undefined)
 
 const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
+
 const { account, signer, nodeProvider } = storeToRefs(useAccountStore())
 const loanStore = useLoanStore()
 const status = ref<Status | undefined>(undefined)
@@ -47,7 +48,7 @@ const isOverdue = computed(() => {
   }
   return false
 })
-const waitingForTx = computed(() => status.value === 'signed')
+const waitingForTxConfirmation = computed(() => status.value === 'signed')
 const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.value)
 const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
 const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
@@ -73,7 +74,6 @@ const undefinedToken = {
 
 const collateralToken = ref<Token>(undefinedToken)
 const loanToken = ref<Token>(undefinedToken)
-const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
 
 onMounted(async () => {
   try {
@@ -323,138 +323,9 @@ function reset() {
           <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
         </div>
 
-        <a v-for="event in events" v-bind:key="events.indexOf(event)" v-bind:href="`${explorerUrl}/transactions/${event.txId}`"
-            target="_blank">
-          <div
-            v-if="event.name == 'LoanCreated'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg mt-[20px] last:mb-[30px]"
+        <LoanHistory :events="events" :loan="loan" />
 
-            >
-            <div class="flex flex-row space-x-[10px]">
-              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
-                <font-awesome-icon :icon="['fal', 'pen']" class="text-core-light text-[20px]" />
-              </div>
-              <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light">CREATED BY</p>
-                <div class="flex flex-row items-center space-x-[10px]">
-                  <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['by'] as string, 12) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-[10px] flex flex-col text-end">
-              <p class="text-core-light">ON</p>
-              <p class="font-extrabold text-core-lightest">
-                {{ new Date(loan.created).toDateString() }}
-              </p>
-            </div>
-          </div>
-
-          <div
-            v-if="event.name == 'LoanCancelled'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
-          >
-            <div class="flex flex-row space-x-[10px]">
-              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
-                <font-awesome-icon :icon="['fal', 'trash-can']" class="text-core-light text-[20px]" />
-              </div>
-              <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light">CANCELLED BY</p>
-                <div class="flex flex-row items-center space-x-[10px]">
-                  <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['by'] as string, 12) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-[10px] flex flex-col text-end">
-              <p class="text-core-light">ON</p>
-              <p class="font-extrabold text-core-lightest">
-                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
-              </p>
-            </div>
-          </div>
-
-          <div
-            v-if="event.name == 'LoanAccepted'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
-          >
-            <div class="flex flex-row space-x-[10px]">
-              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
-                <font-awesome-icon :icon="['fal', 'handshake']" class="text-core-light text-[20px]" />
-              </div>
-              <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light">ACCEPTED BY</p>
-                <div class="flex flex-row items-center space-x-[10px]">
-                  <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['by'] as string, 12) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-[10px] flex flex-col text-end">
-              <p class="text-core-light">ON</p>
-              <p class="font-extrabold text-core-lightest">
-                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
-              </p>
-            </div>
-          </div>
-
-          <div
-            v-if="event.name == 'LoanPaid'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
-          >
-            <div class="flex flex-row space-x-[10px]">
-              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
-                <font-awesome-icon :icon="['fal', 'money-from-bracket']" class="text-core-light text-[20px]" />
-              </div>
-              <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light">PAID BY</p>
-                <div class="flex flex-row items-center space-x-[10px]">
-                  <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['by'] as string, 12) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-[10px] flex flex-col text-end">
-              <p class="text-core-light">ON</p>
-              <p class="font-extrabold text-core-lightest">
-                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
-              </p>
-            </div>
-          </div>
-
-          <div
-            v-if="event.name == 'LoanLiquidated'"
-            class="w-full bg-core-darkest px-[15px] py-[10px] flex flex-row justify-between items-center rounded-lg last:mb-[30px]"
-          >
-            <div class="flex flex-row space-x-[10px]">
-              <div class="flex w-[40px] h-[40px] rounded-full bg-menu items-center justify-center">
-                <font-awesome-icon :icon="['fal', 'gavel']" class="text-core-light text-[20px]" />
-              </div>
-              <div class="flex flex-col text-start justify-center text-[10px]">
-                <p class="text-core-light"></p>
-                <div class="flex flex-row items-center space-x-[10px]">
-                  <p class="font-extrabold text-core-lightest">
-                    {{ shortenString(event.fields['by'] as string, 12) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="text-[10px] flex flex-col text-end">
-              <p class="text-core-light">ON</p>
-              <p class="font-extrabold text-core-lightest">
-                {{ new Date(Number(event.fields['timestamp'] as bigint)).toDateString() }}
-              </p>
-            </div>
-          </div>
-
-          <div v-if="events.indexOf(event) !== events.length - 1" class="border-dashed border-l border-accent-3 h-[30px] ms-[30px]"></div>
-        </a>
-
-        <div v-if="canBorrow && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canBorrow && !waitingForTxConfirmation" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send'"
@@ -470,10 +341,10 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="canRepay && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canRepay && !waitingForTxConfirmation" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
@@ -487,10 +358,10 @@ function reset() {
             :amount_description="collateralToken.symbol"
           />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="canDelete && status !== 'signed'" class="flex flex-col space-y-[15px] mb-[30px]">
+        <div v-if="canDelete && !waitingForTxConfirmation" class="flex flex-col space-y-[15px] mb-[30px]">
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
@@ -498,10 +369,10 @@ function reset() {
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="!waitingForTx" class="mt-auto">
+        <div v-if="!waitingForTxConfirmation" class="mt-auto">
           <CustomButton
             v-if="isAvailable && !isLender"
             :disabled="!account?.isConnected"
@@ -529,7 +400,6 @@ function reset() {
           </p>
         </div>
       </div>
-      <!-- Loan information -->
     </section>
 
     <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px]">
