@@ -32,12 +32,6 @@ const percentageFilled = computed(() => {
 </script>
 
 <template>
-  <!-- <TransactionError
-    v-if="status === 'timeout'"
-    :description="'Did not receive a response from the wallet'"
-    @update:cancel="$emit('update:cancel', 0)"
-    @update:retry="retryTransaction()"
-  /> -->
   <TransactionError
     v-if="status === 'denied'"
     :description="'Transaction was rejected'"
@@ -73,7 +67,7 @@ const percentageFilled = computed(() => {
     </div>
     <p class="text-core-lightest font-extrabold text-[22px]">Your order was created and signed successfully</p>
     <p class="text-core-light text-[16px]">
-      Please copy and share the link underneath with the counterparty so they can sign and submit the transaction.
+      Please copy and share the link below with the counterparty so they can sign and submit the transaction.
     </p>
     <div
       @click="copyToClipboard(props.link!)"
