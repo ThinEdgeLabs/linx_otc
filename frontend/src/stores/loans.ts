@@ -46,7 +46,7 @@ export const useLoanStore = defineStore('loans', () => {
   async function getMarketplaceEvents() {
     const start = 0
     const limit = 20
-    async function go(start: number, limit: number, events: any[]) {
+    async function go(start: number, limit: number, events: ContractEvent[]) {
       const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
         start,
         limit
@@ -100,8 +100,12 @@ export const useLoanStore = defineStore('loans', () => {
         } as Loan
       })
 
-    const loanCreatedEvents = new Map(events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event]))
-    const loanAcceptedEvents = new Map(events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event]))
+    const loanCreatedEvents = new Map(
+      events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event])
+    )
+    const loanAcceptedEvents = new Map(
+      events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event])
+    )
     loans.forEach((loan) => {
       const createdEvent = loanCreatedEvents.get(loan.contractId)
       if (createdEvent) {
@@ -132,7 +136,7 @@ export const useLoanStore = defineStore('loans', () => {
     if (!events.length || refresh) {
       events = await getMarketplaceEvents()
     }
-    isLoading.value = false;
+    isLoading.value = false
     return events.filter((e) => e.fields['loanId'] === contractId).filter((e) => e.name !== 'LoanDetails')
   }
 
@@ -221,5 +225,15 @@ export const useLoanStore = defineStore('loans', () => {
     })
   }
 
-  return { filterLoans, loans, sortLoans, sortCategory, getAvailableLoans, isLoading, getLoanEvents, getLoan }
+  return {
+    filterLoans,
+    loans,
+    sortLoans,
+    sortCategory,
+    getAvailableLoans,
+    isLoading,
+    getLoanEvents,
+    getLoan,
+    getMarketplaceEvents
+  }
 })
