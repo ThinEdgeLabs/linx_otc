@@ -23,10 +23,10 @@ const menuItems = [
     title: 'P2P Lending',
     destination: '/lending'
   },
-  // {
-  //   title: 'My Activity',
-  //   destination: '/activity'
-  // },
+  {
+    title: 'Activity',
+    destination: '/activity'
+  },
   {
     title: 'Docs',
     destination: '/gitbook'
