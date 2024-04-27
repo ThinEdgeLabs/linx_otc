@@ -6,7 +6,7 @@ const loanStore = useLoanStore()
 </script>
 
 <template>
-  <div class="">
+  <div>
     <div class="w-full py-4 px-[20px] flex flex-row text-[14px] font-bold text-core-light">
       <!-- <button
         class="group w-full flex flex-row justify-between items-center hover:text-accent-3"

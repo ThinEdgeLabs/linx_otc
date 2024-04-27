@@ -6,12 +6,9 @@ import DashboardUserData from '@/components/dashboard/DashboardUserData.vue'
 import ManageActivity from '@/components/dashboard/ManageActivity.vue'
 import type { Activity } from '@/types'
 import { useAccountStore } from '@/stores/account'
-import { useLoginStore } from '@/stores/login'
 import { ref } from 'vue'
 
 const accountStore = useAccountStore()
-const loginStore = useLoginStore()
-
 const selectedActivity = ref<Activity>()
 </script>
 
@@ -51,7 +48,7 @@ const selectedActivity = ref<Activity>()
             :destination="'/faq'"
           />
         </div>
-        <DashboardLogin v-if="!accountStore.account?.isConnected" @click="loginStore.toggleModal()" />
+        <DashboardLogin v-if="!accountStore.account?.isConnected" />
         <DashboardUserData v-else @update:edit-activity="selectedActivity = $event" />
       </section>
     </div>
