@@ -311,8 +311,8 @@ function reset() {
         class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg min-h-[500px] justify-items-stretch"
       >
         <div class="flex flex-col">
-          <p class="text-[22px] font-extrabold text-core-lightest">Loan information</p>
-          <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p class="text-[22px] font-extrabold text-core-lightest">Details</p>
+          <!-- <p class="text-[14px] text-core-light">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p> -->
         </div>
 
         <LoanHistory :events="events" :loan="loan" />
