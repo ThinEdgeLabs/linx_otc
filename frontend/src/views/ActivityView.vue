@@ -19,15 +19,15 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
         </div>
       </div>
     </div>
-    <div class="w-full rounded-lg bg-menu p-[30px] relative z-10">
+    <div class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] relative z-10">
       <!-- <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
       <LoanHeaders v-if="view === 'list'" /> -->
       <div>
-        <div class="py-4 px-[20px] flex flex-row text-[14px] font-bold text-core-light">
+        <div class="py-4 lg:px-[20px] px-[10px] flex flex-row text-[14px] font-bold text-core-light">
           <div class="grow">Details</div>
-          <div class="grow">Date</div>
-          <div class="grow">Transaction ID</div>
-          <div class="grow"></div>
+          <div class="lg:block hidden grow">Date</div>
+          <div class="grow text-right lg:text-left">Transaction ID</div>
+          <div class="grow lg:block hidden"></div>
         </div>
         <HorizontalDivider />
         <DashboardLogin v-if="!accountStore.account?.isConnected" />
@@ -49,8 +49,8 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
         </div>
         <div class="space-y-4" v-for="event in events" v-bind:key="event.txId">
           <div class="group lg:hover:bg-core-darkest cursor-pointer">
-            <div class="w-full flex flex-row items-center p-[20px]">
-              <div class="w-full flex flex-row items-center text-[16px]">
+            <div class="w-full flex flex-row items-center p-[10px] lg:p-[20px]">
+              <div class="w-full flex flex-row items-center text-[16px] shrink-0 lg:shrink">
                 <img
                   v-if="event.tokens[0]"
                   :src="`${event.tokens[0].logoUri}`"
@@ -63,14 +63,14 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
                 />
                 <div class="ms-[10px] font-extrabold text-core-lightest">{{ event.details }}</div>
               </div>
-              <div class="w-full flex flex-row space-x-1 text-core-light">
+              <div class="w-full flex-row space-x-1 text-core-light lg:flex hidden">
                 {{ new Date(event.timestamp).toLocaleString() }}
               </div>
-              <div class="w-full flex flex-row space-x-[10px] text-core-light">
+              <div class="w-full flex flex-row space-x-[10px] text-core-light shrink">
                 <font-awesome-icon :icon="['fal', 'copy']" @click="copyToClipboard(event.txId)" class="mt-[2px]" />
-                <div>{{ shortenString(event.txId, 12) }}</div>
+                <div class="lg:block hidden">{{ shortenString(event.txId, 12) }}</div>
               </div>
-              <div class="w-full">
+              <div class="w-full lg:block hidden">
                 <a
                   class="invisible group-hover:visible py-[10px] px-[20px] rounded-[20px] text-[16px] justify-center items-center bg-gradient-to-r from-accent-1 to-accent-2 text-white hover:bg-none hover:bg-accent-2"
                   v-bind:href="`${explorerUrl}/transactions/${event.txId}`"
