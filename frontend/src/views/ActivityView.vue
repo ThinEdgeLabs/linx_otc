@@ -27,7 +27,7 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
           <div class="grow">Details</div>
           <div class="lg:block hidden grow">Date</div>
           <div class="grow text-right lg:text-left">Transaction ID</div>
-          <div class="grow lg:block hidden"></div>
+          <div class="grow lg:block hidden">Action</div>
         </div>
         <HorizontalDivider />
         <DashboardLogin v-if="!accountStore.account?.isConnected" />
