@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { dummyActivity } from '@/dummyData'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import ActivityStatus from './ActivityStatus.vue'
 import ActivityFromToVue from './ActivityFromTo.vue'
@@ -14,7 +13,7 @@ defineEmits<{
   (e: 'update:editActivity', activity: Activity): void
 }>()
 
-const activities = dummyActivity
+const activities = ref<Activity[]>([])
 
 function getButtonTitle(activity: Activity): string {
   if (activity.status === 'Open') {
