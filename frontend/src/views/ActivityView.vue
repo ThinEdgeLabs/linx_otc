@@ -4,6 +4,7 @@ import { useActivity } from '@/composables/activity'
 import { useAccountStore } from '@/stores'
 import DashboardLogin from '@/components/dashboard/DashboardLogin.vue'
 import { shortenString } from '@/functions/stringUtils'
+import { copyToClipboard } from '@/functions/utils'
 
 const { events, isLoading, error } = useActivity()
 const accountStore = useAccountStore()
@@ -15,7 +16,6 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
       <div class="flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 justify-between w-full">
         <div class="flex flex-col leading-snug">
           <p class="text-[32px] font-extrabold text-white">Activity</p>
-          <p>Check out our FAQ to learn more about how P2P loans work</p>
         </div>
       </div>
     </div>
@@ -25,7 +25,6 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
       <div>
         <div class="py-4 px-[20px] flex flex-row text-[14px] font-bold text-core-light">
           <div class="grow">Details</div>
-          <!-- <div class="grow">Status</div> -->
           <div class="grow">Date</div>
           <div class="grow">Transaction ID</div>
           <div class="grow"></div>
@@ -51,21 +50,25 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
         <div class="space-y-4" v-for="event in events" v-bind:key="event.txId">
           <div class="group lg:hover:bg-core-darkest cursor-pointer">
             <div class="w-full flex flex-row items-center p-[20px]">
-              <div class="w-full flex flex-row items-center space-x-[10px] text-[16px]">
-                <div v-if="event.name === 'LoanCreated'" class="font-extrabold text-core-lightest">Created loan</div>
-                <div v-if="event.name === 'LoanCancelled'" class="font-extrabold text-core-lightest">
-                  Cancelled loan
-                </div>
-                <div v-if="event.name === 'LoanAccepted'" class="font-extrabold text-core-lightest">Borrowed</div>
-                <div v-if="event.name === 'LoanPaid'" class="font-extrabold text-core-lightest">Paid loan</div>
-                <div v-if="event.name === 'LoanLiquidated'" class="font-extrabold text-core-lightest">Paid loan</div>
+              <div class="w-full flex flex-row items-center text-[16px]">
+                <img
+                  v-if="event.tokens[0]"
+                  :src="`${event.tokens[0].logoUri}`"
+                  class="w-[40px] h-[40px] rounded-full"
+                />
+                <img
+                  v-if="event.tokens[1]"
+                  :src="`${event.tokens[1].logoUri}`"
+                  class="w-[40px] h-[40px] ms-[-10px] rounded-full"
+                />
+                <div class="ms-[10px] font-extrabold text-core-lightest">{{ event.details }}</div>
               </div>
-              <!-- <div class="w-full flex flex-row items-center space-x-[10px] text-[14px]">Event Status</div> -->
-              <div class="w-full flex flex-row space-x-1">
-                {{ new Date(Number(event.fields['timestamp'] as bigint)).toLocaleString() }}
+              <div class="w-full flex flex-row space-x-1 text-core-light">
+                {{ new Date(event.timestamp).toLocaleString() }}
               </div>
-              <div class="w-full flex flex-col">
-                {{ shortenString(event.txId, 12) }}
+              <div class="w-full flex flex-row space-x-[10px] text-core-light">
+                <font-awesome-icon :icon="['fal', 'copy']" @click="copyToClipboard(event.txId)" class="mt-[2px]" />
+                <div>{{ shortenString(event.txId, 12) }}</div>
               </div>
               <div class="w-full">
                 <a

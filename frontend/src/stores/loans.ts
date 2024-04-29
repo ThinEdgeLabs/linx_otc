@@ -79,8 +79,12 @@ export const useLoanStore = defineStore('loans', () => {
     return availableLoans
   }
 
-  async function getLoans() {
-    events = await getMarketplaceEvents()
+  async function getLoans(marketplaceEvents?: ContractEvent[]) {
+    if (!marketplaceEvents) {
+      events = await getMarketplaceEvents()
+    } else {
+      events = marketplaceEvents
+    }
     const loans = events
       .filter((event) => event.name === 'LoanDetails')
       .map((event) => {
@@ -234,6 +238,7 @@ export const useLoanStore = defineStore('loans', () => {
     isLoading,
     getLoanEvents,
     getLoan,
+    getLoans,
     getMarketplaceEvents
   }
 })
