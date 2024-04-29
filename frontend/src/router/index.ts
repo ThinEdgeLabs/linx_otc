@@ -7,6 +7,7 @@ import FaqView from '@/views/FaqView.vue'
 import ManageTrade from '@/views/ManageTrade.vue'
 import ManageLoanOffer from '@/views/ManageLoanOffer.vue'
 import CreateLoan from '@/views/CreateLoan.vue'
+import ActivityView from '@/views/ActivityView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +46,11 @@ const router = createRouter({
       path: '/lending/:loan',
       name: 'manage_loan',
       component: ManageLoanOffer
+    },
+    {
+      path: '/activity',
+      name: 'activity',
+      component: ActivityView
     },
     {
       path: '/faq',
