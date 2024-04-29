@@ -2,7 +2,7 @@ import { Configuration } from '@alephium/cli'
 import { Number256 } from '@alephium/web3'
 
 export type Settings = {
-  fee: Number256,
+  fee: Number256
   admin: string
 }
 
@@ -32,7 +32,10 @@ const configuration: Configuration<Settings> = {
 
     testnet: {
       nodeUrl: process.env.NODE_URL as string,
-      privateKeys: process.env.PRIVATE_KEYS === undefined ? ['42eeb5ee9a0921048354067a262ecd9cf4817d3d50a8a6cced1cd6e3e9d487db'] : process.env.PRIVATE_KEYS.split(','),
+      privateKeys:
+        process.env.PRIVATE_KEYS === undefined
+          ? ['42eeb5ee9a0921048354067a262ecd9cf4817d3d50a8a6cced1cd6e3e9d487db']
+          : process.env.PRIVATE_KEYS.split(','),
       settings: loadSettings('testnet')
     },
 

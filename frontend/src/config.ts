@@ -340,7 +340,8 @@ export interface MarketplaceConfig {
 
 export function getMarketplaceConfig(): MarketplaceConfig {
   const network = import.meta.env.VITE_NETWORK_ID
-  const deployments = loadDeployments(network as NetworkId)
+  const deployerAddress = import.meta.env.VITE_DEPLOYER_ADDRESS
+  const deployments = loadDeployments(network as NetworkId, deployerAddress)
   const marketPlace = deployments.contracts.LendingMarketplace.contractInstance
   const groupIndex = marketPlace.groupIndex
   const marketplaceAdminAddress = deployments.deployerAddress
