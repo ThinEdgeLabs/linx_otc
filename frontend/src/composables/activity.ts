@@ -77,7 +77,6 @@ export function useActivity() {
           return makeActivityEvent(event, loan!)
         })
         .sort((a, b) => b.timestamp - a.timestamp)
-      console.log(events.value)
     } catch (e) {
       error.value = e
     } finally {
