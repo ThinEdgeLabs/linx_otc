@@ -23,7 +23,9 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
       <!-- <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
       <LoanHeaders v-if="view === 'list'" /> -->
       <div>
-        <div class="py-4 lg:px-[20px] px-[10px] flex flex-row text-[14px] font-bold text-core-light">
+        <div
+          class="py-4 lg:px-[20px] px-[10px] grid lg:grid-cols-4 grid-cols-2 gap-x-3 items-stretch text-[14px] font-bold text-core-light"
+        >
           <div class="grow">Details</div>
           <div class="lg:block hidden grow">Date</div>
           <div class="grow text-right lg:text-left">Transaction ID</div>
@@ -49,8 +51,8 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
         </div>
         <div class="space-y-4" v-for="event in events" v-bind:key="event.txId">
           <div class="group lg:hover:bg-core-darkest cursor-pointer">
-            <div class="w-full flex flex-row items-center p-[10px] lg:p-[20px]">
-              <div class="w-full flex flex-row items-center text-[16px] shrink-0 lg:shrink">
+            <div class="grid lg:grid-cols-4 grid-cols-3 gap-x-1 items-stretch py-[10px] lg:p-[20px]">
+              <div class="col-span-2 lg:col-span-1 flex flex-row items-center text-[16px]">
                 <img
                   v-if="event.tokens[0]"
                   :src="`${event.tokens[0].logoUri}`"
@@ -63,14 +65,14 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
                 />
                 <div class="ms-[10px] font-extrabold text-core-lightest">{{ event.details }}</div>
               </div>
-              <div class="w-full flex-row space-x-1 text-core-light lg:flex hidden">
+              <div class="flex-row space-x-1 text-core-light lg:flex hidden items-center">
                 {{ new Date(event.timestamp).toLocaleString() }}
               </div>
-              <div class="w-full flex flex-row space-x-[10px] text-core-light shrink">
+              <div class="w-full flex flex-row space-x-[10px] text-core-light items-center">
                 <font-awesome-icon :icon="['fal', 'copy']" @click="copyToClipboard(event.txId)" class="mt-[2px]" />
-                <div class="lg:block hidden">{{ shortenString(event.txId, 12) }}</div>
+                <div>{{ shortenString(event.txId, 8) }}</div>
               </div>
-              <div class="w-full lg:block hidden">
+              <div class="lg:flex hidden grow items-center">
                 <a
                   class="invisible group-hover:visible py-[10px] px-[20px] rounded-[20px] text-[16px] justify-center items-center bg-gradient-to-r from-accent-1 to-accent-2 text-white hover:bg-none hover:bg-accent-2"
                   v-bind:href="`${explorerUrl}/transactions/${event.txId}`"
