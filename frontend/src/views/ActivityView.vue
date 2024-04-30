@@ -5,11 +5,13 @@ import { useAccountStore } from '@/stores'
 import DashboardLogin from '@/components/dashboard/DashboardLogin.vue'
 import { shortenString } from '@/functions/stringUtils'
 import { copyToClipboard } from '@/functions/utils'
-
-const { events, isLoading, error } = useActivity()
+import OrderStatusSelector from '@/components/activity/OrderStatusSelector.vue'
+import OrderTypeSelector from '@/components/activity/OrderTypeSelector.vue'
+const { filteredEvents, isLoading, error, setTypeFilter } = useActivity()
 const accountStore = useAccountStore()
 const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
 </script>
+
 <template>
   <section class="pt-[30px] space-y-[30px]">
     <div>
@@ -20,8 +22,18 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
       </div>
     </div>
     <div class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] relative z-10">
-      <!-- <LoanFilters :view="view" :change-view="changeView" :class="'z-10 hidden lg:flex'" />
-      <LoanHeaders v-if="view === 'list'" /> -->
+      <div
+        class="flex flex-col lg:flex-row items-center w-full space-y-[20px] lg:space-y-0 lg:space-x-[30px] text-[14px] font-bold text-core-lightest"
+      >
+        <div class="flex flex-col space-y-[10px] w-full">
+          <p>Order type</p>
+          <OrderTypeSelector @update:tx-type="setTypeFilter($event)" />
+        </div>
+        <!-- <div class="flex flex-col space-y-[10px] min-w-[386px]">
+          <p>Order Status</p>
+          <OrderStatusSelector />
+        </div> -->
+      </div>
       <div>
         <div
           class="py-4 lg:px-[20px] px-[10px] grid lg:grid-cols-4 grid-cols-2 gap-x-3 items-stretch text-[14px] font-bold text-core-light"
@@ -46,10 +58,10 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
           <p class="text-[30px] text-core-lightest font-extrabold mb-[20px]">Loading...</p>
           <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
         </div>
-        <div v-if="!isLoading && accountStore.account?.isConnected && events.length === 0">
+        <div v-if="!isLoading && accountStore.account?.isConnected && filteredEvents.length === 0">
           <p class="text-center text-[14px] pt-4 text-core-lightest">You don't have any activity yet.</p>
         </div>
-        <div class="space-y-4" v-for="event in events" v-bind:key="event.txId">
+        <div class="space-y-4" v-for="event in filteredEvents" v-bind:key="event.txId">
           <div class="group lg:hover:bg-core-darkest cursor-pointer">
             <div class="grid lg:grid-cols-4 grid-cols-3 gap-x-1 items-stretch py-[10px] lg:p-[20px]">
               <div class="col-span-2 lg:col-span-1 flex flex-row items-center text-[16px]">

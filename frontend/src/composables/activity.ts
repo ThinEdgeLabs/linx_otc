@@ -10,6 +10,7 @@ export function useActivity() {
   const isLoading = ref<boolean>(true)
   const error = ref<any>(undefined)
   const events = ref<ActivityEvent[]>([])
+  const filteredEvents = ref<ActivityEvent[]>([])
 
   const { account } = storeToRefs(useAccountStore())
   const loansStore = useLoanStore()
@@ -76,6 +77,7 @@ export function useActivity() {
           return makeActivityEvent(event, loan!)
         })
         .sort((a, b) => b.timestamp - a.timestamp)
+      filteredEvents.value = events.value
     } catch (e) {
       error.value = e
     } finally {
@@ -83,9 +85,25 @@ export function useActivity() {
     }
   })
 
+  function setTypeFilter(txType: string) {
+    const newEvents = events.value
+    if (txType === 'Loans') {
+      filteredEvents.value = newEvents.filter((e) => e.details.includes('loan'))
+    } else if (txType === 'Trades') {
+      filteredEvents.value = newEvents.filter((e) => e.details.includes('trade'))
+    } else {
+      filteredEvents.value = newEvents
+    }
+  }
+
+  function setStatusFilter(statusType: string) {}
+
   return {
     isLoading,
     error,
-    events
+    events,
+    filteredEvents,
+    setTypeFilter,
+    setStatusFilter
   }
 }
