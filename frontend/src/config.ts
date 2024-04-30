@@ -1,7 +1,6 @@
 import type { Token } from '@/types'
 import { default as devnetTokens } from './devnet-token-list.json'
 import { ALPH_TOKEN_ID, type NetworkId, type Number256 } from '@alephium/web3'
-import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005

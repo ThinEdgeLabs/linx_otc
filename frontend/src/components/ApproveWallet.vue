@@ -55,7 +55,7 @@ const percentageFilled = computed(() => {
     </div>
     <div v-if="status === 'signed'">
       <div class="space-y-[10px] text-center">
-        <div class="text-[22px] font-extrabold text-core-lightest">Received and sent signed transaction</div>
+        <div class="text-[22px] font-extrabold text-core-lightest">Transaction was sent</div>
         <div class="text-[16px]">Waiting for network confirmation</div>
       </div>
     </div>

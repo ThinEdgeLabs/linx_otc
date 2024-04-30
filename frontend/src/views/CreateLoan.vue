@@ -76,7 +76,6 @@ async function createLoan() {
         duration
       )
       status.value = 'signed'
-      await new Promise((resolve) => setTimeout(resolve, 3000))
       await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
       txId.value = result.txId
       status.value = 'success'
@@ -126,12 +125,12 @@ function createErrorMessage(): Array<string> {
   <section class="w-full py-[30px]">
     <div
       v-if="!status"
-      class="w-full rounded-lg bg-menu p-[10px] lg:p-[30px] space-y-[30px]"
+      class="w-full rounded-lg bg-menu p-[10px] pt-[40px] lg:p-[30px] space-y-[30px]"
       :class="popUpStore.popUp ? 'fixed' : ''"
     >
       <ComponentTitle
         :title="'Create new loan offer'"
-        :description="'Create a new loan offer to lend your tokens to other users. You can set the accepted collateral, interest rate and the duration of the loan.'"
+        :description="'Lend your tokens to other users and earn interest. You can set the accepted collateral, interest rate and the duration of the loan.'"
         @update:go-back="router.push('/lending')"
       />
       <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
@@ -188,7 +187,7 @@ function createErrorMessage(): Array<string> {
         class="w-full flex flex-col lg:flex-row items-center text-center lg:justify-between space-y-[20px] lg:space-y-0"
       >
         <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
-          <WalletButton v-if="!accountStore.account" :class="'w-full lg:w-[228px]'" />
+          <WalletButton v-if="!accountStore.account" :class="'w-full'" />
           <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
           <CustomButton
             :title="'Cancel'"

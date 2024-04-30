@@ -21,7 +21,7 @@ const props = defineProps({
 
 <template>
   <section
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg space-y-[30px] py-[30px] px-[20px] lg:px-0 lg:py-0 justify-center items-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg space-y-[30px] py-[30px] px-[20px] justify-center items-center"
   >
     <div class="flex bg-warning w-[60px] h-[60px] rounded-full justify-center items-center">
       <font-awesome-icon :icon="['fal', 'warning']" class="text-core-lightest text-[27px]" />

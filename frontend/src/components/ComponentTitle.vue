@@ -24,7 +24,7 @@ const props = defineProps({
     <div class="flex flex-row items-center space-x-[20px]">
       <button
         @click="$emit('update:goBack')"
-        class="flex w-[40px] h-[40px] rounded-full bg-core-darkest items-center justify-center"
+        class="flex w-[40px] h-[40px] rounded-full bg-core-darkest items-center justify-center shrink-0"
       >
         <font-awesome-icon :icon="['fal', 'arrow-left-long']" class="text-core-light text-[20px]" />
       </button>
@@ -40,7 +40,7 @@ const props = defineProps({
     <div
       v-if="props.status"
       class="border rounded-[20px] text-[12px] py-[7px] px-[10px] min-w-[70px] text-center"
-      :class="['Liquidated', 'Cancelled'].includes($props.status!)  ? 'border-danger text-danger' : 'border-ok text-ok'"
+      :class="['Liquidated', 'Cancelled'].includes($props.status!) ? 'border-danger text-danger' : 'border-ok text-ok'"
     >
       {{ status }}
     </div>

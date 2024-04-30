@@ -192,14 +192,13 @@ export const useLoanStore = defineStore('loans', () => {
       sortUpDown.value = category === 'interest' ? 'down' : 'up'
     }
     loans.value.sort((a, b) => {
-      // if (sortCategory.value === 'loanId') {
-      //   if (sortUpDown.value === 'up') {
-      //     return a.loanId - b.loanId
-      //   } else {
-      //     return b.loanId - a.loanId
-      //   }
-      // } else
-      if (sortCategory.value === 'loanAmount') {
+      if (sortCategory.value === 'id') {
+        if (sortUpDown.value === 'up') {
+          return compareBigInt(a.id, b.id, true)
+        } else {
+          return compareBigInt(b.id, a.id, false)
+        }
+      } else if (sortCategory.value === 'loanAmount') {
         if (sortUpDown.value === 'up') {
           return compareBigInt(a.loanAmount, b.loanAmount, true)
         } else {

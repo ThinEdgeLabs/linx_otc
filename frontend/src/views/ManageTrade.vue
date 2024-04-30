@@ -54,7 +54,6 @@ async function signAndSend() {
       signatures: tradeData.value!.sigs as Array<string>
     })
     status.value = 'signed'
-    await new Promise((resolve) => setTimeout(resolve, 3000))
     await waitTxConfirmed(account.nodeProvider, result!.txId, 1, 5000)
     txId.value = result!.txId
     status.value = 'success'

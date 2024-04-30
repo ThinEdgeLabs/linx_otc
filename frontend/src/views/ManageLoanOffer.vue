@@ -24,6 +24,7 @@ import { useRoute } from 'vue-router'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
 import LoanHistory from '@/components/lending/LoanHistory.vue'
+import WalletButton from '@/components/WalletButton.vue'
 
 const route = useRoute()
 const contractId = route.params.loan as string
@@ -364,32 +365,35 @@ function reset() {
           <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="!waitingForTxConfirmation" class="mt-auto">
-          <CustomButton
-            v-if="isAvailable && !isLender"
-            :disabled="!account?.isConnected"
-            :title="'Borrow'"
-            :class="'w-full'"
-            @click="borrow"
-          />
-          <CustomButton
-            v-if="isAvailable && isLender"
-            :title="'Delete loan'"
-            :class="'w-full'"
-            @click="cancel"
-            :open="true"
-            :delete="true"
-          />
-          <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
-          <CustomButton
-            v-if="isActive && isOverdue && isLender"
-            :title="'Liquidate'"
-            :class="'w-full'"
-            @click="liquidate"
-          />
-          <p class="text-core-light text-[12px] mt-[30px] text-center">
-            By using this feature, you agree to Linx Labs <a href="#" class="text-accent-3">Terms of Use</a>
-          </p>
+        <div v-if="!waitingForTxConfirmation" class="lg:mt-auto mt-[20px] lg:text-center">
+          <WalletButton v-if="!account?.isConnected" />
+          <div v-else>
+            <CustomButton
+              v-if="isAvailable && !isLender"
+              :disabled="!account?.isConnected"
+              :title="'Borrow'"
+              :class="'w-full'"
+              @click="borrow"
+            />
+            <CustomButton
+              v-if="isAvailable && isLender"
+              :title="'Delete loan'"
+              :class="'w-full'"
+              @click="cancel"
+              :open="true"
+              :delete="true"
+            />
+            <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
+            <CustomButton
+              v-if="isActive && isOverdue && isLender"
+              :title="'Liquidate'"
+              :class="'w-full'"
+              @click="liquidate"
+            />
+            <p class="text-core-light text-[12px] mt-[30px] text-center">
+              By using this feature, you agree to Linx Labs <a href="#" class="text-accent-3">Terms of Use</a>
+            </p>
+          </div>
         </div>
       </div>
     </section>

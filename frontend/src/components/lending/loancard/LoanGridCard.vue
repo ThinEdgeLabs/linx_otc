@@ -27,10 +27,8 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
 
 <template>
   <div class="flex flex-col leading-snug">
-    <p class="text-[16px] font-extrabold text-core-lightest">
-      Loan offer #{{ shortenString(props.loan.contractId, 8) }}
-    </p>
-    <p class="text-[12px] text-core-light">Created on {{ props.loan.startDate }}</p>
+    <p class="text-[16px] font-extrabold text-core-lightest">Loan #{{ props.loan.id }}</p>
+    <p class="text-[12px] text-core-light">Created on {{ new Date(loan.created).toDateString() }}</p>
   </div>
   <div class="lg:pt-[20px] flex flex-row lg:flex-col cursor-pointer">
     <div class="flex flex-row w-full items-center space-x-[15px]">

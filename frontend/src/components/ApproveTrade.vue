@@ -71,12 +71,13 @@ const percentageFilled = computed(() => {
     </p>
     <div
       @click="copyToClipboard(props.link!)"
-      class="flex w-[80%] bg-core-lightest rounded-lg py-[20px] text-center items-center justify-center text-[14px] font-extrabold text-core-darkest"
+      class="flex max-w-full bg-core-lightest rounded-lg py-[17px] px-[60px] text-center items-center justify-center text-[14px] font-extrabold text-core-darkest"
     >
-      {{ shortenString(props.link!, 48) }}
+      <div class="hidden lg:block">{{ shortenString(props.link!, 48) }}</div>
+      <div class="lg:hidden">{{ shortenString(props.link!, 28) }}</div>
     </div>
     <div
-      class="flex flex-col lg:flex-row items-center lg:justify-between space-y-[30px] lg:space-y-0 space-x-0 lg:space-x-[30px]"
+      class="flex flex-col lg:flex-row items-center lg:justify-between space-y-[30px] lg:space-y-0 space-x-0 lg:space-x-[30px] w-full lg:w-auto"
     >
       <CustomButton :title="'Copy link'" :icon="'copy'" @click="copyToClipboard(props.link!)" />
       <CustomButton :title="'Close'" :open="true" @click="$emit('update:finished')" />

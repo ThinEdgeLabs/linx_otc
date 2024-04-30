@@ -66,7 +66,6 @@ export function useActivity() {
       }
     }
     isLoading.value = true
-    await new Promise((resolve) => setTimeout(resolve, 2000))
     try {
       const marketplaceEvents = await loansStore.getMarketplaceEvents()
       const loans = new Map((await loansStore.getLoans(marketplaceEvents)).map((loan) => [loan.contractId, loan]))

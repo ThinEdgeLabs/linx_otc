@@ -64,7 +64,7 @@ function goToDocs() {
       />
     </div>
     <nav
-      class="absolute lg:p-0 sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px] z-20"
+      class="absolute lg:pt-0 lg:px-0 sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px] z-20"
       :class="{
         'absolute -translate-x-0 left-[75%] w-[75%] top-0 bg-core-darkest': showSideBar,
         'left-0': !showSideBar
@@ -91,8 +91,8 @@ function goToDocs() {
           :is-selected="$route.fullPath === item.destination"
         ></MenuItem>
       </div>
-      <div class="w-full pr-[30px] lg:pr-0 lg:w-auto">
-        <WalletButton :class="'w-full lg:max-w-[228px] py-[10px]'" @click="showSideBar = false" />
+      <div class="pr-[30px] lg:pr-0">
+        <WalletButton @click="showSideBar = false" />
       </div>
     </nav>
     <HorizontalDivider :class="'relative invisible lg:visible -mt-[3px] z-10'" />

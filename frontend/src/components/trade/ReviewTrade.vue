@@ -36,13 +36,13 @@ async function changeWallet() {
 </script>
 
 <template>
-  <section class="w-full flex flex-col p-[30px] space-y-[30px] bg-menu rounded-lg">
+  <section class="w-full flex flex-col lg:p-[30px] px-[10px] py-[20px] space-y-[30px] bg-menu rounded-lg">
     <SectionTitle :title="'Order information'" :description="'This is a summary of the order that was send to you'" />
-    <div class="flex flex-row items-center w-full space-x-[30px]">
+    <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <ReviewAddress :is-sender="true" :address="props.tradeOffer.to" />
       <ReviewAddress :is-sender="false" :address="props.tradeOffer.from" />
     </div>
-    <div class="flex flex-row items-center w-full space-x-[30px]">
+    <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
       <ReviewTokenBar :is-sender="true" :amount="props.tradeOffer.amountTo" :token="props.tradeOffer.tokenTo" />
       <ReviewTokenBar :is-sender="false" :amount="props.tradeOffer.amountFrom" :token="props.tradeOffer.tokenFrom" />
     </div>
@@ -59,18 +59,22 @@ async function changeWallet() {
       <LoanPreviewLabel :title="'Estimated time to create swap'" :amount="'16'" :amount_description="'seconds'" />
       <HorizontalDivider />
     </div>
-    <div class="flex flex-row items-center justify-between">
-      <div class="flex flex-row space-x-[20px]" v-if="account.account?.address === props.tradeOffer.to">
+    <div class="lg:flex flex-row items-center justify-between">
+      <div
+        class="lg:flex flex-row lg:space-x-[20px] space-y-[20px] lg:space-y-0"
+        v-if="account.account?.address === props.tradeOffer.to"
+      >
         <CustomButton :title="'Confirm order'" @click="$emit('update:approve')" />
         <CustomButton :title="'Decline'" :open="true" :delete="true" @click="$emit('update:cancel')" />
       </div>
       <div class="flex flex-col space-y-[20px]" v-else>
-        <CustomButton :title="'Connect Wallet'" :class="'w-[228px]'" @click="changeWallet()" />
-        <p class="text-core-light font-semibold">
-          Please connect the wallet for the address: {{ shortenString(props.tradeOffer.to, 24) }}
-        </p>
+        <CustomButton :title="'Connect Wallet'" @click="changeWallet()" />
       </div>
-      <AgreeToTerms />
+      <AgreeToTerms :class="'mt-[20px] lg:mt-0 text-center'" />
     </div>
+    <p v-if="account.account?.address !== props.tradeOffer.to" class="text-core-light font-semibold">
+      Please connect the wallet with this address:
+      <span class="text-core-lightest">{{ shortenString(props.tradeOffer.to, 24) }}</span>
+    </p>
   </section>
 </template>

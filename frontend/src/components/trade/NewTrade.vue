@@ -133,13 +133,10 @@ function createErrorMessage(): Array<string> {
 </script>
 
 <template>
-  <section
-    v-if="status === undefined"
-    class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]"
-  >
+  <section v-if="status === undefined" class="p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]">
     <PageTitle
       :title="account.account?.isConnected ? 'Create P2P Order' : 'P2P Trade'"
-      :description="'Make use of the atomic swap feature on Alephium to trade directly with someone.'"
+      :description="'Use Alephium\'s atomic swap feature to trade directly with someone.'"
     />
     <div class="flex flex-col lg:flex-row w-full lg:space-x-[30px] space-y-[30px] lg:space-y-0">
       <AddressBar :is-sender="true" :class="'lg:basis-1/2'" />
@@ -156,13 +153,15 @@ function createErrorMessage(): Array<string> {
       />
     </div>
     <HorizontalDividerVue />
-    <CustomButton
-      :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
-      :open="false"
-      :class="'w-full lg:w-[228px]'"
-      @click="account.account?.isConnected ? createTrade() : loginStore.toggleModal()"
-    />
-    <AgreeToTerms />
+    <div class="lg:flex flex-row justify-between items-center">
+      <CustomButton
+        :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
+        :open="false"
+        :class="'flex-initial'"
+        @click="account.account?.isConnected ? createTrade() : loginStore.toggleModal()"
+      />
+      <AgreeToTerms :class="'mt-[20px] lg:mt-0 text-center'" />
+    </div>
   </section>
   <section v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
     <ApproveTrade

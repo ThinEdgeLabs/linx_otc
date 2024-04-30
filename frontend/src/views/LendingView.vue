@@ -17,16 +17,18 @@ onMounted(async () => {
 <template>
   <section class="pt-[30px] space-y-[30px]">
     <div>
-      <div class="flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 justify-between w-full">
-        <div class="flex flex-col leading-snug">
-          <p class="text-[32px] font-extrabold text-white">
+      <div class="flex flex-col lg:flex-row items-center justify-between w-full">
+        <div>
+          <p class="text-[34px] font-extrabold text-white">
             P2P Loans
             {{ `(${loanStore.loans.length})` }}
           </p>
-          <p v-if="!loanOfferStore.order">Choose a loan that suits you, filter for collateral type, duration etc.</p>
-          <p v-else>Check out our FAQ to learn more about how P2P loans work</p>
+          <p v-if="!loanOfferStore.order">
+            Choose a loan that suits you, filter for collateral type, duration or borrowed token.
+          </p>
+          <p v-else class="mt-[10px]">Check out our FAQ to learn more about how P2P loans work</p>
         </div>
-        <CustomButton :title="'Create New Loan'" @click="router.push('/lending/create')" />
+        <CustomButton :title="'Create New Loan'" class="mt-[20px] lg:mt-0" @click="router.push('/lending/create')" />
       </div>
     </div>
     <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px]">
