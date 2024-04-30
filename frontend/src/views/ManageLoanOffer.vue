@@ -61,6 +61,7 @@ const isOverdue = computed(() => {
   return false
 })
 const waitingForTxConfirmation = computed(() => status.value === 'signed')
+const waitingForSign = computed(() => status.value === 'approve')
 const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.value)
 const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
 const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
@@ -205,7 +206,10 @@ function reset() {
       v-if="loan"
       class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px] leading-snug"
     >
-      <div v-if="!status" class="flex flex-col bg-menu w-full p-[10px] lg:p-[30px] space-y-[30px] rounded-lg">
+      <div
+        v-if="!status"
+        class="flex flex-col bg-menu w-full px-[10px] py-[30px] lg:px-[30px] space-y-[30px] rounded-lg"
+      >
         <div class="flex flex-col h-full justify-between">
           <div class="flex flex-col space-y-[30px]">
             <ComponentTitle
@@ -309,7 +313,7 @@ function reset() {
 
       <!-- Loan information -->
       <div
-        class="flex flex-col bg-menu w-full lg:w-[40%] p-[10px] lg:p-[30px] rounded-lg min-h-[500px] justify-items-stretch"
+        class="flex flex-col bg-menu w-full lg:w-[40%] px-[10px] py-[30px] lg:px-[30px] rounded-lg lg:min-h-[500px] justify-items-stretch"
       >
         <div class="flex flex-col">
           <p class="text-[22px] font-extrabold text-core-lightest">Details</p>
@@ -365,35 +369,44 @@ function reset() {
           <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
         </div>
 
-        <div v-if="!waitingForTxConfirmation" class="lg:mt-auto mt-[20px] lg:text-center">
-          <WalletButton v-if="!account?.isConnected" />
-          <div v-else>
-            <CustomButton
-              v-if="isAvailable && !isLender"
-              :disabled="!account?.isConnected"
-              :title="'Borrow'"
-              :class="'w-full'"
-              @click="borrow"
-            />
-            <CustomButton
-              v-if="isAvailable && isLender"
-              :title="'Delete loan'"
-              :class="'w-full'"
-              @click="cancel"
-              :open="true"
-              :delete="true"
-            />
-            <CustomButton v-if="isActive && isBorrower" :title="'Repay'" :class="'w-full'" @click="repay" />
-            <CustomButton
-              v-if="isActive && isOverdue && isLender"
-              :title="'Liquidate'"
-              :class="'w-full'"
-              @click="liquidate"
-            />
-            <p class="text-core-light text-[12px] mt-[30px] text-center">
-              By using this feature, you agree to Linx Labs <a href="#" class="text-accent-3">Terms of Use</a>
-            </p>
-          </div>
+        <WalletButton v-if="!account?.isConnected" />
+        <div
+          v-if="account?.isConnected && !waitingForTxConfirmation"
+          class="lg:mt-auto mt-[20px] flex flex-col flex-wrap content-center"
+        >
+          <CustomButton
+            v-if="isAvailable && !isLender"
+            :disabled="waitingForSign"
+            :title="'Borrow'"
+            :class="'w-full'"
+            @click="borrow"
+          />
+          <CustomButton
+            v-if="isAvailable && isLender"
+            :title="'Delete loan'"
+            :class="'w-full'"
+            @click="cancel"
+            :open="true"
+            :delete="true"
+            :disabled="waitingForSign"
+          />
+          <CustomButton
+            v-if="isActive && isBorrower"
+            :title="'Repay'"
+            :class="'w-full'"
+            @click="repay"
+            :disabled="waitingForSign"
+          />
+          <CustomButton
+            v-if="isActive && isOverdue && isLender"
+            :title="'Liquidate'"
+            :class="'w-full'"
+            @click="liquidate"
+            :disabled="waitingForSign"
+          />
+          <p class="text-core-light text-[12px] mt-[30px] text-center">
+            By using this feature, you agree to Linx Labs <a href="#" class="text-accent-3">Terms of Use</a>
+          </p>
         </div>
       </div>
     </section>

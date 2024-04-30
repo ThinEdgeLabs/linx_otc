@@ -183,9 +183,7 @@ function createErrorMessage(): Array<string> {
         <HorizontalDivider />
       </div>
 
-      <div
-        class="w-full flex flex-col lg:flex-row items-center text-center lg:justify-between space-y-[20px] lg:space-y-0"
-      >
+      <div class="w-full flex flex-col lg:flex-row items-center lg:justify-between space-y-[20px] lg:space-y-0">
         <div class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
           <WalletButton v-if="!accountStore.account" :class="'w-full'" />
           <CustomButton v-else :title="'Continue'" @click="createLoan" :class="'w-full lg:w-[228px]'" />
@@ -197,7 +195,7 @@ function createErrorMessage(): Array<string> {
             :class="'w-full lg:w-[228px]'"
           />
         </div>
-        <AgreeToTerms class="w-full justify-end" />
+        <AgreeToTerms class="w-full justify-end text-center lg:text-right" />
       </div>
     </div>
     <div v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
