@@ -27,6 +27,14 @@ export const feeAddresses = [
 ]
 export const useGasPayer = false
 
+export const anyToken: Token = {
+  name: 'Any token',
+  symbol: 'NONE',
+  contractId: '',
+  decimals: 18,
+  logoUri: '/images/tokens/NONE.png'
+}
+
 export const mainnetTokens: Token[] = [
   {
     symbol: 'ALPH',
