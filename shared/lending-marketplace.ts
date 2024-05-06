@@ -1,6 +1,22 @@
-import { DUST_AMOUNT, DeployContractResult, ExecuteScriptResult, ONE_ALPH, SignerProvider, ZERO_ADDRESS  } from '@alephium/web3'
+import {
+  DUST_AMOUNT,
+  DeployContractResult,
+  ExecuteScriptResult,
+  ONE_ALPH,
+  SignerProvider,
+  ZERO_ADDRESS
+} from '@alephium/web3'
 import { DeployHelpers } from './deploy-helpers'
-import { CancelOffer, CreateOffer, LendingMarketplace, LendingMarketplaceInstance, LendingOffer, Borrow, RepayLoan, LiquidateLoan} from '../artifacts/ts'
+import {
+  CancelOffer,
+  CreateOffer,
+  LendingMarketplace,
+  LendingMarketplaceInstance,
+  LendingOffer,
+  Borrow,
+  RepayLoan,
+  LiquidateLoan
+} from '../artifacts/ts'
 import { randomContractId } from './utils'
 
 export class LendingMarketplaceHelper extends DeployHelpers {
@@ -19,7 +35,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         interestRate: 0n,
         duration: 0n,
         borrower: ZERO_ADDRESS,
-        loanTimeStamp: 0n,
+        loanTimeStamp: 0n
       }
     })
 
@@ -46,7 +62,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
     lendingAmount: bigint,
     collateralAmount: bigint,
     interestRate: bigint,
-    duration: bigint,
+    duration: bigint
   ): Promise<ExecuteScriptResult> {
     return CreateOffer.execute(signer, {
       initialFields: {
@@ -73,26 +89,37 @@ export class LendingMarketplaceHelper extends DeployHelpers {
       initialFields: {
         marketplace: this.contractId!,
         offerId
-      },
+      }
     })
   }
 
-  async takeOffer(signer: SignerProvider, offerId: string, collateralTokenId: string, collateralAmount: bigint): Promise<ExecuteScriptResult> {
+  async takeOffer(
+    signer: SignerProvider,
+    offerId: string,
+    collateralTokenId: string,
+    collateralAmount: bigint
+  ): Promise<ExecuteScriptResult> {
     return Borrow.execute(signer, {
       initialFields: {
         offerId,
         lendingMarketplace: this.contractId!
       },
+      attoAlphAmount: DUST_AMOUNT,
       tokens: [
         {
           id: collateralTokenId,
-          amount: collateralAmount + DUST_AMOUNT
+          amount: collateralAmount
         }
       ]
     })
   }
 
-  async repayLoan(signer: SignerProvider, loanId: string, borrowedTokenId: string, amount: bigint): Promise<ExecuteScriptResult> {
+  async repayLoan(
+    signer: SignerProvider,
+    loanId: string,
+    borrowedTokenId: string,
+    amount: bigint
+  ): Promise<ExecuteScriptResult> {
     return RepayLoan.execute(signer, {
       initialFields: {
         loanId,
@@ -105,7 +132,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         {
           id: borrowedTokenId,
           amount
-        },
+        }
       ]
     })
   }
@@ -114,8 +141,9 @@ export class LendingMarketplaceHelper extends DeployHelpers {
     return LiquidateLoan.execute(signer, {
       initialFields: {
         loanId,
-        marketplace: this.contractId!,
+        marketplace: this.contractId!
       },
+      attoAlphAmount: DUST_AMOUNT
     })
   }
 }

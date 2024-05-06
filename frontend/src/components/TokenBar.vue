@@ -169,10 +169,10 @@ function onMaxButtonClick() {
       {{
         props.isSender
           ? props.offerType === 'loan'
-            ? 'Offered Loan'
+            ? 'You offer to lend'
             : 'You offer'
           : props.offerType === 'loan'
-            ? 'Requested Collateral'
+            ? 'You want as collateral'
             : 'You request'
       }}
     </div>

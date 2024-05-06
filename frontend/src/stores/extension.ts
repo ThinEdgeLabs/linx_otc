@@ -13,7 +13,6 @@ export const useExtensionStore = defineStore('extension', () => {
   const marketplaceConfig = getMarketplaceConfig()
 
   async function connectExtension() {
-    console.log('connecting to extension')
     try {
       const windowAlephium = await getDefaultAlephiumWallet()
       if (!windowAlephium) {
