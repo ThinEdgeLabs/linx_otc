@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useStatsStore } from '@/stores/stats'
 const alphPrice = 2.7
 const totalValue = 7597285
 const tradeOffers = 312455
@@ -10,6 +11,9 @@ const props = defineProps({
     default: false
   }
 })
+
+const statsStore = useStatsStore()
+statsStore.getPrice()
 </script>
 
 <template>
@@ -26,7 +30,9 @@ const props = defineProps({
         :class="props.isLandingPage ? 'w-full bg-menu rounded-lg p-[20px] lg:p-[30px]' : 'text-end'"
       >
         <div class="text-[14px] text-core-light">ALPH price</div>
-        <div class="text-[22px] lg:text-[18px] font-extrabold text-core-lightest">$ {{ alphPrice.toFixed(2) }}</div>
+        <div class="text-[22px] lg:text-[18px] font-extrabold text-core-lightest">
+          $ {{ statsStore.stats?.price.toFixed(4) }}
+        </div>
       </div>
       <div
         class="flex flex-col"
