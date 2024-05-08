@@ -10,19 +10,28 @@ const selectedMenuItem = ref('Home')
 const showSideBar = ref(false)
 const loginStore = useLoginStore()
 
-const menuItems = [
+interface MenuItemType {
+  title: string
+  destination: string
+}
+
+const menuItems: MenuItemType[] = [
   // {
   //   title: 'Dashboard',
   //   destination: '/dashboard'
   // },
-  {
+]
+import.meta.env.VITE_P2P_TRADING_ENABLED === 'true' &&
+  menuItems.push({
     title: 'P2P Trade',
     destination: '/trading'
-  },
-  {
+  })
+import.meta.env.VITE_P2P_LENDING_ENABLED === 'true' &&
+  menuItems.push({
     title: 'P2P Lending',
     destination: '/lending'
-  },
+  })
+menuItems.push(
   {
     title: 'Activity',
     destination: '/activity'
@@ -39,7 +48,7 @@ const menuItems = [
     title: 'Contact',
     destination: '/contact'
   }
-]
+)
 
 function goToDocs() {
   window.open('https://linx-labs.gitbook.io/linxotc-testnet/', '_blank')
