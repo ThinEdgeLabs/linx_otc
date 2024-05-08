@@ -348,17 +348,18 @@ export interface MarketplaceConfig {
 export function getMarketplaceConfig(): MarketplaceConfig {
   const network = import.meta.env.VITE_NETWORK_ID
   const deployerAddress = import.meta.env.VITE_DEPLOYER_ADDRESS
-  const deployments = loadDeployments(network as NetworkId, deployerAddress)
-  const marketPlace = deployments.contracts.LendingMarketplace.contractInstance
-  const groupIndex = marketPlace.groupIndex
-  const marketplaceAdminAddress = deployments.deployerAddress
+  const lendingEnabled = import.meta.env.VITE_P2P_LENDING_ENABLED === 'true'
+  const deployments = lendingEnabled ? loadDeployments(network as NetworkId, deployerAddress) : null
+  const marketPlace = deployments?.contracts.LendingMarketplace.contractInstance
+  const groupIndex = marketPlace?.groupIndex ?? 0
+  const marketplaceAdminAddress = deployments?.deployerAddress ?? ''
   return {
     network,
     groupIndex,
     marketplaceAdminAddress,
-    marketplaceContractId: marketPlace.contractId,
-    marketplaceContractAddress: marketPlace.address,
-    nftTemplateId: deployments.contracts.LendingOffer.contractInstance.contractId,
+    marketplaceContractId: marketPlace?.contractId ?? '',
+    marketplaceContractAddress: marketPlace?.address ?? '',
+    nftTemplateId: deployments?.contracts.LendingOffer.contractInstance.contractId ?? '',
     fee: lendingFee,
     defaultNodeUrl: getDefaultNodeUrl(),
     defaultExplorerUrl: getDefaultExplorerUrl()
