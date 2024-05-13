@@ -238,7 +238,7 @@ function reset() {
                   </div>
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">
-                      INTEREST {{ convertBasisPointsToPercentage(loan.interest) }} {{ loanToken.symbol }}
+                      INTEREST {{ prettifyTokenAmount(loan.interest, loanToken.decimals) }} {{ loanToken.symbol }}
                     </p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
