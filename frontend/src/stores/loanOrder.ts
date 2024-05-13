@@ -35,6 +35,7 @@ export const useLoanOrderStore = defineStore('loanOrder', () => {
 
   function setLoanAmount(amount: number) {
     order.value!.loanAmount = amount
+    order.value!.interest = amount
   }
 
   function setCollateralAmount(amount: number) {

@@ -28,11 +28,7 @@ function setAmount(amount: number) {
             type="number"
             inputmode="decimal"
             class="text-[18px] font-extrabold text-core-darkest remove-arrow outline-none rounded-lg"
-            :value="
-              !loanOrderStore.order?.loanToken
-                ? 'Choose token'
-                : loanOrderStore.order?.interest + loanOrderStore.order.loanAmount
-            "
+            :value="!loanOrderStore.order?.loanToken ? 'Choose token' : loanOrderStore.order?.interest"
             @input="(e) => setAmount(parseFloat((e.target as HTMLInputElement).value))"
           />
         </div>
