@@ -345,7 +345,7 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
-            :amount="prettifyExactAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
+            :amount="prettifyExactAmount(loan.loanAmount + loan.interest, loanToken.decimals) ?? '0'"
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />
