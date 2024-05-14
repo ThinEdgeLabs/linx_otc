@@ -35,9 +35,6 @@ onMounted(async () => {
       <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
       <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     </section>
-    <section v-else-if="loanStore.error" class="justify-center items-center text-center space-y-[30px]">
-      <p class="text-[18px] text-core-lightest">{{ loanStore.error }}</p>
-    </section>
     <LoansList v-else @update:selected-loan="router.push(`/lending/${$event.loanId}`)" />
   </section>
 </template>

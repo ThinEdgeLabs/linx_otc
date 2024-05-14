@@ -47,9 +47,13 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
         <DashboardLogin v-if="!accountStore.account?.isConnected" />
         <div
           v-if="error && accountStore.account?.isConnected"
-          class="justify-center items-center text-center mt-[30px]"
+          class="flex flex-col w-full h-full py-[15%] items-center text-center"
         >
-          <p class="text-[18px] text-core-lightest">Error fetching activity. Please try again later.</p>
+          <font-awesome-icon :icon="['fat', 'face-disappointed']" class="text-[38px] text-accent-3 pb-[30px]" />
+          <div class="text-[22px] font-extrabold text-core-lightest mb-[10px]">Oops, something went wrong</div>
+          <div class="lg:flex text-core-light text-[14px]">
+            Please try again later or reach out to us if the issue persists.
+          </div>
         </div>
         <div
           v-if="isLoading && accountStore.account?.isConnected"
@@ -58,8 +62,15 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
           <p class="text-[30px] text-core-lightest font-extrabold mb-[20px]">Loading...</p>
           <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
         </div>
-        <div v-if="!error && !isLoading && accountStore.account?.isConnected && filteredEvents.length === 0">
-          <p class="text-center text-[14px] pt-4 text-core-lightest">You don't have any activity yet.</p>
+        <div
+          v-if="!error && !isLoading && accountStore.account?.isConnected && filteredEvents.length === 0"
+          class="flex flex-col w-full h-full py-[15%] items-center text-center"
+        >
+          <font-awesome-icon :icon="['fat', 'bell']" class="text-[38px] text-accent-3 pb-[30px]" />
+          <div class="text-[22px] font-extrabold text-core-lightest mb-[10px]">You don't have any activity yet.</div>
+          <!-- <div class="lg:flex text-core-light text-[14px]">
+
+          </div> -->
         </div>
         <div class="space-y-4" v-for="event in filteredEvents" v-bind:key="event.txId">
           <div class="group lg:hover:bg-core-darkest cursor-pointer">

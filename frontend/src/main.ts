@@ -147,7 +147,9 @@ import {
   faTrashAlt as fatTrashAlt,
   faTimes as fatTimes,
   faList as fatList,
-  faCommentQuestion
+  faCommentQuestion,
+  faBell as fatBell,
+  faFaceDisappointed
 } from '@fortawesome/pro-thin-svg-icons'
 
 import { faDiscord, faTelegram, faXTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -205,7 +207,9 @@ library.add(
   fatTimes,
   fatList,
   faSort,
-  faCommentQuestion
+  faCommentQuestion,
+  fatBell,
+  faFaceDisappointed
 )
 
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)
