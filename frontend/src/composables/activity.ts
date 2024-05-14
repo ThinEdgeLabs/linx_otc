@@ -113,23 +113,27 @@ export function useActivity() {
     }
     isLoading.value = true
     try {
-      const marketplaceEvents = await loansStore.getMarketplaceEvents()
-      const loans = new Map((await loansStore.getLoans(marketplaceEvents)).map((loan) => [loan.contractId, loan]))
-      events.value = marketplaceEvents
-        .filter((event) => isActivityEvent(event) && event.fields['by'] === account.value?.address)
-        .map((event) => {
-          const loan = loans.get(event.fields['loanId'] as string)
-          return makeActivityEvent(event, loan!)
-        })
-        .sort((a, b) => b.timestamp - a.timestamp)
+      events.value = (import.meta.env.VITE_P2P_LENDING_ENABLED === 'true' && (await fetchP2PLendingEvents())) || []
       filteredEvents.value = events.value
-      manageTransactions()
+      await fetchP2PSwapsEvents()
     } catch (e) {
       error.value = e
     } finally {
       isLoading.value = false
     }
   })
+
+  async function fetchP2PLendingEvents() {
+    const marketplaceEvents = await loansStore.getMarketplaceEvents()
+    const loans = new Map((await loansStore.getLoans(marketplaceEvents)).map((loan) => [loan.contractId, loan]))
+    return marketplaceEvents
+      .filter((event) => isActivityEvent(event) && event.fields['by'] === account.value?.address)
+      .map((event) => {
+        const loan = loans.get(event.fields['loanId'] as string)
+        return makeActivityEvent(event, loan!)
+      })
+      .sort((a, b) => b.timestamp - a.timestamp)
+  }
 
   function setTypeFilter(txType: string) {
     const newEvents = events.value
@@ -149,9 +153,9 @@ export function useActivity() {
   async function getTransactions(feeAddress: string) {
     const tradeTransactions: Array<Transaction> = []
     // First get amount of transactions
-    const amountReq = await fetch(
-      `https://backend.testnet.alephium.org/addresses/${account.value?.address}/total-transactions`
-    ).then(async (e) => parseInt(await e.text()))
+    // const amountReq = await fetch(
+    //   `https://backend.testnet.alephium.org/addresses/${account.value?.address}/total-transactions`
+    // ).then(async (e) => parseInt(await e.text()))
     // TODO: If txs amount > 10, split up in batches
     const transactions = await fetch(
       `https://backend.testnet.alephium.org/addresses/${account.value?.address}/transactions?page=1&limit=10`
@@ -170,7 +174,7 @@ export function useActivity() {
     return tradeTransactions
   }
 
-  async function manageTransactions() {
+  async function fetchP2PSwapsEvents() {
     const feeAddress = feeAddresses.find((e) => e.group === account.value?.group)?.address
     const transactions = await getTransactions(feeAddress!)
     for (const i in transactions) {
