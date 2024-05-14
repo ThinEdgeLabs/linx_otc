@@ -5,8 +5,6 @@ import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005
 export const lendingFee = 50n
-export const domainURL = 'https://testnet.linxotc.com'
-//export const domainURL = 'localhost:5173'
 export const feeAddresses = [
   {
     group: 0,
@@ -317,11 +315,7 @@ export const getTokens = () => {
 
 export function getDefaultNodeUrl(): string {
   const network = import.meta.env.VITE_NETWORK_ID
-  return network === 'devnet'
-    ? 'http://127.0.0.1:22973'
-    : network === 'testnet'
-      ? 'https://wallet-v20.testnet.alephium.org'
-      : 'https://wallet-v20.mainnet.alephium.org'
+  return network === 'devnet' ? 'http://127.0.0.1:22973' : import.meta.env.VITE_ALPH_NODE
 }
 
 export function getDefaultExplorerUrl(): string {

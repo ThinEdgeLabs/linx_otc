@@ -59,7 +59,6 @@ async function handleAddress(pubKey: string) {
       errorMessage.value = undefined
       return
     }
-    nodeStore.getBalance(address, props.isSender)
     orderStore.setReceiver(address, group.group, pubKey)
   } else {
     inputValue.value = pubKey
