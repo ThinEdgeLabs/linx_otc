@@ -1,4 +1,4 @@
-import { anyToken, feeAddresses, getTokens } from '@/config'
+import { anyToken, feeAddresses, getMarketplaceConfig, getTokens } from '@/config'
 import { useAccountStore, useLoanStore } from '@/stores'
 import { Loan, Token } from '@/types'
 import { ActivityEvent } from '@/types/activityEvent'
@@ -59,6 +59,7 @@ export function useActivity() {
 
   const { account } = storeToRefs(useAccountStore())
   const loansStore = useLoanStore()
+  const config = getMarketplaceConfig()
 
   function isActivityEvent(event: ContractEvent) {
     return (
@@ -158,7 +159,7 @@ export function useActivity() {
     // ).then(async (e) => parseInt(await e.text()))
     // TODO: If txs amount > 10, split up in batches
     const transactions = await fetch(
-      `https://backend.testnet.alephium.org/addresses/${account.value?.address}/transactions?page=1&limit=10`
+      `${config.defaultExplorerUrl}/addresses/${account.value?.address}/transactions?page=1&limit=10`
     ).then(async (e) => await e.json())
     // Filter for OTC Trades
     for (const tx in transactions) {

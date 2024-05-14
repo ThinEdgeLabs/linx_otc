@@ -320,11 +320,7 @@ export function getDefaultNodeUrl(): string {
 
 export function getDefaultExplorerUrl(): string {
   const network = import.meta.env.VITE_NETWORK_ID
-  return network === 'devnet'
-    ? 'http://localhost:9090'
-    : network === 'testnet'
-      ? 'https://backend-v113.testnet.alephium.org'
-      : 'https://backend-v113.mainnet.alephium.org'
+  return network === 'devnet' ? 'http://localhost:9090' : import.meta.env.VITE_ALPH_EXPLORER_BACKEND
 }
 
 export interface MarketplaceConfig {

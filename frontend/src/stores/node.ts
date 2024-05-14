@@ -21,7 +21,9 @@ export const useNodeStore = defineStore('nodeProvider', () => {
   const nodeProvider = shallowRef<NodeProvider>(
     new NodeProvider(config.defaultNodeUrl, import.meta.env.VITE_ALEPHIUM_NODE_API_KEY as string)
   )
-  const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER))
+  const explorerProvider = shallowRef<ExplorerProvider>(
+    new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER_BACKEND as string)
+  )
 
   async function getGroupForAddress(address: string): Promise<node.Group> {
     return nodeProvider.value!.addresses.getAddressesAddressGroup(address)
