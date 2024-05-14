@@ -1,10 +1,10 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Loan } from '@/types'
-import { useAccountStore } from '.'
 import { getMarketplaceConfig } from '@/config'
 import { ContractEvent, addressFromContractId, decodeEvent } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
+import { useNodeStore } from './node'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
@@ -12,11 +12,12 @@ export const useLoanStore = defineStore('loans', () => {
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
+  const error = ref<string | undefined>()
 
   let events = Array<ContractEvent>()
   let createdLoans = Array<Loan>()
 
-  const store = useAccountStore()
+  const store = useNodeStore()
   const config = getMarketplaceConfig()
   const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
 
@@ -80,50 +81,56 @@ export const useLoanStore = defineStore('loans', () => {
   }
 
   async function getLoans(marketplaceEvents?: ContractEvent[]) {
-    if (!marketplaceEvents) {
-      events = await getMarketplaceEvents()
-    } else {
-      events = marketplaceEvents
-    }
-    const loans = events
-      .filter((event) => event.name === 'LoanDetails')
-      .map((event) => {
-        return {
-          id: event.fields['id'] as bigint,
-          contractId: event.fields['loanId'] as string,
-          lender: event.fields['lender'] as string,
-          borrower: undefined,
-          loanToken: event.fields['lendingTokenId'] as string,
-          loanAmount: event.fields['lendingAmount'],
-          interest: event.fields['interestRate'] as bigint,
-          collateralToken: event.fields['collateralTokenId'] as string,
-          collateralAmount: event.fields['collateralAmount'] as bigint,
-          created: 0,
-          startDate: undefined,
-          duration: event.fields['duration'] as bigint
-        } as Loan
-      })
+    try {
+      if (!marketplaceEvents) {
+        events = await getMarketplaceEvents()
+      } else {
+        events = marketplaceEvents
+      }
+      const loans = events
+        .filter((event) => event.name === 'LoanDetails')
+        .map((event) => {
+          return {
+            id: event.fields['id'] as bigint,
+            contractId: event.fields['loanId'] as string,
+            lender: event.fields['lender'] as string,
+            borrower: undefined,
+            loanToken: event.fields['lendingTokenId'] as string,
+            loanAmount: event.fields['lendingAmount'],
+            interest: event.fields['interestRate'] as bigint,
+            collateralToken: event.fields['collateralTokenId'] as string,
+            collateralAmount: event.fields['collateralAmount'] as bigint,
+            created: 0,
+            startDate: undefined,
+            duration: event.fields['duration'] as bigint
+          } as Loan
+        })
 
-    const loanCreatedEvents = new Map(
-      events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event])
-    )
-    const loanAcceptedEvents = new Map(
-      events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event])
-    )
-    loans.forEach((loan) => {
-      const createdEvent = loanCreatedEvents.get(loan.contractId)
-      if (createdEvent) {
-        loan.created = Number(createdEvent.fields['timestamp'] as bigint)
-        loan.id = createdEvent.fields['id'] as bigint
-      }
-      const acceptedEvent = loanAcceptedEvents.get(loan.contractId)
-      if (acceptedEvent) {
-        loan.borrower = acceptedEvent.fields['by'] as string
-        loan.startDate = Number(acceptedEvent.fields['timestamp'] as bigint)
-      }
-    })
-    createdLoans = loans
-    return loans
+      const loanCreatedEvents = new Map(
+        events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event])
+      )
+      const loanAcceptedEvents = new Map(
+        events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event])
+      )
+      loans.forEach((loan) => {
+        const createdEvent = loanCreatedEvents.get(loan.contractId)
+        if (createdEvent) {
+          loan.created = Number(createdEvent.fields['timestamp'] as bigint)
+          loan.id = createdEvent.fields['id'] as bigint
+        }
+        const acceptedEvent = loanAcceptedEvents.get(loan.contractId)
+        if (acceptedEvent) {
+          loan.borrower = acceptedEvent.fields['by'] as string
+          loan.startDate = Number(acceptedEvent.fields['timestamp'] as bigint)
+        }
+      })
+      createdLoans = loans
+      return loans
+    } catch (e) {
+      isLoading.value = false
+      error.value = 'Error fetching loans. Please try again later.'
+      return []
+    }
   }
 
   async function getLoan(contractId: string) {
@@ -231,6 +238,7 @@ export const useLoanStore = defineStore('loans', () => {
   return {
     filterLoans,
     loans,
+    error,
     sortLoans,
     sortCategory,
     getAvailableLoans,

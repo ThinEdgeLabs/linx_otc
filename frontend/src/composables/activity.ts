@@ -57,7 +57,7 @@ export function useActivity() {
   const events = ref<ActivityEvent[]>([])
   const filteredEvents = ref<ActivityEvent[]>([])
 
-  const { account, nodeProvider } = storeToRefs(useAccountStore())
+  const { account } = storeToRefs(useAccountStore())
   const loansStore = useLoanStore()
 
   function isActivityEvent(event: ContractEvent) {

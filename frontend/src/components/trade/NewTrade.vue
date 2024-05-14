@@ -13,7 +13,7 @@ import { useLoginStore } from '@/stores/login'
 import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import type { Status } from '../ApproveWallet.vue'
-import { domainURL, useGasPayer } from '@/config'
+import { useGasPayer } from '@/config'
 import { usePopUpStore } from '@/stores/popup'
 import { useGasPayerStore } from '@/stores/gasPayer'
 import { registerLink } from '@/functions/utils'
@@ -67,7 +67,7 @@ async function createTrade() {
         const hash = trade.txId
         const sendLink = await registerLink(hash, encodedTx)
         if (sendLink) {
-          tradeLink.value = `${domainURL}/trading/${hash}`
+          tradeLink.value = `${location.host}/trading/${hash}`
           status.value = 'signed'
         } else {
           throw Error('Could not register transaction')

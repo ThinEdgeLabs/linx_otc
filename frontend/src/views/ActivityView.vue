@@ -49,7 +49,7 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
           v-if="error && accountStore.account?.isConnected"
           class="justify-center items-center text-center mt-[30px]"
         >
-          <p class="text-[30px] text-core-lightest font-extrabold">Error</p>
+          <p class="text-[18px] text-core-lightest">Error fetching activity. Please try again later.</p>
         </div>
         <div
           v-if="isLoading && accountStore.account?.isConnected"
@@ -58,7 +58,7 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
           <p class="text-[30px] text-core-lightest font-extrabold mb-[20px]">Loading...</p>
           <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
         </div>
-        <div v-if="!isLoading && accountStore.account?.isConnected && filteredEvents.length === 0">
+        <div v-if="!error && !isLoading && accountStore.account?.isConnected && filteredEvents.length === 0">
           <p class="text-center text-[14px] pt-4 text-core-lightest">You don't have any activity yet.</p>
         </div>
         <div class="space-y-4" v-for="event in filteredEvents" v-bind:key="event.txId">
