@@ -24,11 +24,10 @@ const props = defineProps({
   }
 })
 
-const timer = ref(20)
+const timer = ref(60)
 
 async function startTimer() {
   while (timer.value > 0) {
-    //TODO: Set timeout to 60 seconds once everything is ready
     await new Promise((resolve) => setTimeout(resolve, 1000))
     timer.value--
   }
