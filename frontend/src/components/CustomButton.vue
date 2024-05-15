@@ -15,7 +15,7 @@ const props = defineProps({
     :class="
       props.disabled
         ? 'bg-gradient-to-r from-accent-1/50 to-accent-2/50 text-white/50'
-        : 'bg-gradient-to-r from-accent-1 to-accent-2 text-white hover:bg-none hover:bg-accent-2'
+        : 'bg-gradient-to-r from-accent-1 to-accent-2 text-white hover:bg-none hover:bg-accent-3'
     "
   >
     <font-awesome-icon v-if="props.icon" :icon="['fal', 'copy']" />
@@ -27,7 +27,7 @@ const props = defineProps({
     :class="
       props.delete
         ? 'border-danger text-danger hover:bg-danger border py-[14px]'
-        : 'text-core-lightest bg-core-darkest hover:border-accent-1 hover:bg-accent-1 py-[15px]'
+        : 'text-core-lightest bg-core-darkest hover:border-accent-3 hover:bg-accent-3 py-[15px]'
     "
   >
     <font-awesome-icon v-if="props.icon" :icon="['fal', `${props.icon}`]" />
