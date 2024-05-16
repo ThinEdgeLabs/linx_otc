@@ -3,7 +3,6 @@ import DashboardButton from '@/components/dashboard/DashboardButton.vue'
 import DashboardData from '@/components/dashboard/DashboardData.vue'
 import DashboardLogin from '@/components/dashboard/DashboardLogin.vue'
 import DashboardUserData from '@/components/dashboard/DashboardUserData.vue'
-import ManageActivity from '@/components/dashboard/ManageActivity.vue'
 import { useAccountStore } from '@/stores/account'
 
 const accountStore = useAccountStore()
