@@ -6,6 +6,7 @@ import { useWalletConnectStore } from '@/stores/walletconnect'
 import type { Wallet } from '@/types'
 import { NodeProvider, ExplorerProvider, type SignerProvider } from '@alephium/web3'
 import { getMarketplaceConfig } from '@/config'
+import { useLoanStore } from './loans'
 
 interface Account {
   address: string
@@ -59,6 +60,8 @@ export const useAccountStore = defineStore('account', () => {
       wcStore.disconnectWalletConnect()
     }
     const orderStore = useOrderStore()
+    const loanStore = useLoanStore()
+    loanStore.resetUserLoans()
     account.value = undefined
     orderStore.resetOrder()
   }

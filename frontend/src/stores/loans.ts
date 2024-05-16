@@ -113,6 +113,10 @@ export const useLoanStore = defineStore('loans', () => {
     isLoading.value = false
   }
 
+  function resetUserLoans() {
+    userLoans.value = []
+  }
+
   function getDueDate(loan: Loan) {
     const dueTimestamp = loan.created + Number(loan.duration) * 24 * 60 * 60 * 1000
     const diff = dueTimestamp - Date.now()
@@ -296,6 +300,7 @@ export const useLoanStore = defineStore('loans', () => {
     getLoans,
     getLoansForUser,
     getMarketplaceEvents,
-    getDueDate
+    getDueDate,
+    resetUserLoans
   }
 })
