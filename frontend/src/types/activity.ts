@@ -3,6 +3,7 @@ import type { Token } from './token'
 export interface Activity {
   type: string
   id: number
+  contractId?: string | undefined
   offerToken: Token['symbol']
   offerAmount: number
   interest?: number | undefined
@@ -12,6 +13,6 @@ export interface Activity {
   counterParty?: string | undefined
   txId?: string | undefined
   duration?: number | undefined
-  remaining?: number | undefined
+  remaining?: string | number | undefined
   created: number
 }

@@ -5,7 +5,7 @@ import CustomButton from '../components/CustomButton.vue'
 import ComponentTitle from '../components/ComponentTitle.vue'
 import { computed, onMounted, ref } from 'vue'
 import ApproveWallet, { type Status } from '../components/ApproveWallet.vue'
-import { calculateApr, convertBasisPointsToPercentage } from '../functions/utils'
+import { calculateApr, convertBasisPointsToPercentage, calculateInterest, parseBalance } from '../functions/utils'
 import type { Loan, Token } from '../types'
 import {
   ContractEvent,
@@ -28,6 +28,7 @@ import WalletButton from '@/components/WalletButton.vue'
 
 const route = useRoute()
 const contractId = route.params.loan as string
+const returnPage = route.query.return as string
 const loan = ref<Loan | undefined>(undefined)
 
 const config = getMarketplaceConfig()
@@ -90,20 +91,6 @@ onMounted(async () => {
 
 function calculateReceivedAmount(loan: Loan) {
   return (loan.loanAmount * (10000n - (config.fee as bigint))) / 10000n
-}
-
-function getDueDate(loan: Loan) {
-  const dueTimestamp = loan.created + Number(loan.duration) * 24 * 60 * 60 * 1000
-  const diff = dueTimestamp - Date.now()
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000))
-  const hours = Math.floor(diff / (60 * 60 * 1000)) % 24
-  if (days > 0) {
-    return `${days} days`
-  } else if (days === 0 && hours > 0) {
-    return `${hours} hours`
-  } else {
-    return 0
-  }
 }
 
 async function borrow() {
@@ -216,7 +203,7 @@ function reset() {
               :title="`Loan #${loan.id}`"
               :description="`Created on ${new Date(loan.created).toDateString()}`"
               :status="loanStatus"
-              @update:go-back="router.push('/lending')"
+              @update:go-back="returnPage ? router.push(`/${returnPage}`) : router.push('/lending')"
             />
             <div class="flex flex-col">
               <div class="grid grid-cols-2 w-full items-center">
@@ -238,7 +225,9 @@ function reset() {
                   </div>
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">
-                      INTEREST {{ prettifyTokenAmount(loan.interest, loanToken.decimals) }} {{ loanToken.symbol }}
+                      INTEREST
+                      {{ calculateInterest(loan.interest, loan.loanAmount, loanToken.decimals) }}
+                      {{ loanToken.symbol }}
                     </p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
@@ -272,7 +261,7 @@ function reset() {
                       <p class="text-[10px] lg:text-[12px] text-core-light">DUE IN</p>
                       <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                         <p class="font-extrabold text-core-lightest">
-                          {{ getDueDate(loan) }}
+                          {{ loanStore.getDueDate(loan) }}
                         </p>
                       </div>
                     </div>
@@ -345,7 +334,10 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
-            :amount="prettifyExactAmount(loan.loanAmount + loan.interest, loanToken.decimals) ?? '0'"
+            :amount="`${
+              parseBalance(Number(loan.loanAmount), loanToken.decimals)! +
+                calculateInterest(loan.interest, loan.loanAmount, loanToken.decimals) ?? '0'
+            }`"
             :amount_description="loanToken.symbol"
           />
           <HorizontalDivider />

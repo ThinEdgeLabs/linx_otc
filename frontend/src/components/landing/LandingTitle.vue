@@ -21,7 +21,7 @@ const props = defineProps({
     <p class="text-[18px] text-core-light">
       LinxOTC makes uses of the atomic swap feature on Alephium to enable p2p trading.
     </p>
-    <RouterLink :to="'/trading'">
+    <RouterLink :to="'/dashboard'">
       <CustomButton :title="'Open App'" :class="'w-[194px]'" />
     </RouterLink>
   </section>

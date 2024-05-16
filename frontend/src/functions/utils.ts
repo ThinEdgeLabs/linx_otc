@@ -45,6 +45,12 @@ export function convertBasisPointsToPercentage(basisPoints: bigint | number) {
   return `${Number(basisPoints) / 100}%`
 }
 
+export function calculateInterest(interest: bigint, loan: bigint, decimals: number) {
+  const interestPercentage = Number(interest) / 10000
+  const loanAmount = parseBalance(Number(loan), decimals)
+  return interestPercentage * loanAmount
+}
+
 export function hashLink(link: string) {
   const hash = binToHex(blake.blake2b(link, undefined, 32))
   return hash
