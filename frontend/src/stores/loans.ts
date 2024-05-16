@@ -93,7 +93,6 @@ export const useLoanStore = defineStore('loans', () => {
         if (loanExists === -1) {
           const loanToken = tokenList.find((e) => e.contractId === loans.value[i].loanToken)
           const collateralToken = tokenList.find((e) => e.contractId === loans.value[i].collateralToken)
-          const counterParty = loans.value[i].lender === address ? loans.value[i].borrower : loans.value[i].lender
           userLoans.value.push({
             type: 'Loan',
             contractId: loans.value[i].contractId,
