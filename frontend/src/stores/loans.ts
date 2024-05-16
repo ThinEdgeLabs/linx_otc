@@ -106,7 +106,7 @@ export const useLoanStore = defineStore('loans', () => {
             requestAmount: parseFloat(prettifyTokenAmount(loans.value[i].collateralAmount, collateralToken!.decimals)!),
             status: loans.value[i].borrower ? 'Active' : 'Open',
             created: loans.value[i].created,
-            counterParty: counterParty
+            counterParty: loans.value[i].borrower
           })
         }
       }

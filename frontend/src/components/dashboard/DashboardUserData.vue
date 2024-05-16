@@ -24,10 +24,10 @@ function getButtonTitle(activity: Activity): string {
     return 'Delete'
   } else if (activity.status === 'Expired') {
     return 'Claim'
-  } else if (activity.counterParty != accountStore.account?.address) {
-    return 'View'
-  } else {
+  } else if (activity.counterParty === accountStore.account?.address) {
     return 'Payback'
+  } else {
+    return 'View'
   }
 }
 </script>
