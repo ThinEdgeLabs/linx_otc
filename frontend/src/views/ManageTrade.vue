@@ -54,7 +54,6 @@ async function signAndSend() {
       signatures: tradeData.value!.sigs as Array<string>
     })
     status.value = 'signed'
-    await new Promise((resolve) => setTimeout(resolve, 3000))
     await waitTxConfirmed(account.nodeProvider, result!.txId, 1, 5000)
     txId.value = result!.txId
     status.value = 'success'
@@ -103,13 +102,7 @@ async function fetchData() {
       v-if="status && order"
       class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]"
     >
-      <ApproveWallet
-        :status="status"
-        @update:retry="signAndSend"
-        @update:cancel="router.push('/')"
-        @update:finished="router.push('/')"
-        :tx-id="txId"
-      />
+      <ApproveWallet :status="status" @update:retry="signAndSend" @update:cancel="router.push('/')" :tx-id="txId" />
       <TradePreview :trade-offer="order" />
     </section>
     <section v-if="fetchingData" class="justify-center items-center text-center space-y-[30px]">

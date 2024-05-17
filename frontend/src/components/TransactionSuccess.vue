@@ -3,6 +3,7 @@ import { copyToClipboard } from '@/functions/utils'
 import CustomButton from './CustomButton.vue'
 import { onMounted, ref } from 'vue'
 import { getMarketplaceConfig } from '@/config'
+import { shortenString } from '@/functions/stringUtils'
 
 const emits = defineEmits<{
   (e: 'update:finished'): void
@@ -23,11 +24,10 @@ const props = defineProps({
   }
 })
 
-const timer = ref(20)
+const timer = ref(60)
 
 async function startTimer() {
   while (timer.value > 0) {
-    //TODO: Set timeout to 60 seconds once everything is ready
     await new Promise((resolve) => setTimeout(resolve, 1000))
     timer.value--
   }
@@ -51,7 +51,7 @@ onMounted(() => startTimer())
 
 <template>
   <section
-    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[20px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center"
+    class="flex flex-col w-full min-h-full bg-menu rounded-lg py-[30px] px-[10px] lg:px-0 lg:py-0 space-y-[30px] justify-center items-center cursor-pointer"
   >
     <div class="flex bg-ok w-[60px] h-[60px] rounded-full justify-center items-center">
       <font-awesome-icon :icon="['fal', 'check']" class="text-core-lightest text-[27px]" />
@@ -61,10 +61,11 @@ onMounted(() => startTimer())
       <p class="text-[16px] text-core-light">{{ props.description }}</p>
     </div>
     <a
-      class="w-full lg:w-[60%] bg-core-lightest rounded-lg py-[20px] text-center text-core-darkest text-[14px] font-extrabold"
+      class="flex max-w-full bg-core-lightest rounded-lg py-[17px] px-[60px] text-center items-center justify-center text-[14px] font-extrabold text-core-darkest"
       @click="goToExplorer(props.txId)"
     >
-      {{ props.txId }}
+      <div class="hidden lg:block">{{ shortenString(props.txId!, 48) }}</div>
+      <div class="lg:hidden">{{ shortenString(props.txId!, 28) }}</div>
     </a>
     <div
       class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[10px] items-center justify-center"

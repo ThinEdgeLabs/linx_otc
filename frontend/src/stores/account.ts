@@ -3,10 +3,10 @@ import { defineStore } from 'pinia'
 import { useOrderStore } from '@/stores/tradeOrder'
 import { useExtensionStore } from '@/stores/extension'
 import { useWalletConnectStore } from '@/stores/walletconnect'
-import { useNodeStore } from '@/stores/node'
 import type { Wallet } from '@/types'
 import { NodeProvider, ExplorerProvider, type SignerProvider } from '@alephium/web3'
 import { getMarketplaceConfig } from '@/config'
+import { useLoanStore } from './loans'
 
 interface Account {
   address: string
@@ -21,9 +21,10 @@ export const useAccountStore = defineStore('account', () => {
   const config = getMarketplaceConfig()
   const account = ref<Account | undefined>()
   const explorerProvider = shallowRef<ExplorerProvider>(new ExplorerProvider(config.defaultExplorerUrl))
-  const nodeProvider = shallowRef<NodeProvider>(new NodeProvider(config.defaultNodeUrl))
+  const nodeProvider = shallowRef<NodeProvider>(
+    new NodeProvider(config.defaultNodeUrl, import.meta.env.VITE_ALEPHIUM_NODE_API_KEY as string)
+  )
   const signer = shallowRef<SignerProvider | undefined>()
-  const _nodeProvider = useNodeStore()
 
   async function setAccount(
     address: string,
@@ -45,8 +46,6 @@ export const useAccountStore = defineStore('account', () => {
     if (explorerProv) explorerProvider.value = explorerProv
     if (nodeProv) nodeProvider.value = nodeProv
 
-    await _nodeProvider.getBalance(address, true)
-
     const orderStore = useOrderStore()
     orderStore.startNewOrder(address, group)
   }
@@ -61,9 +60,23 @@ export const useAccountStore = defineStore('account', () => {
       wcStore.disconnectWalletConnect()
     }
     const orderStore = useOrderStore()
+    const loanStore = useLoanStore()
+    loanStore.resetUserLoans()
     account.value = undefined
     orderStore.resetOrder()
   }
 
-  return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect }
+  function reconnect() {
+    const wallet = account.value?.wallet
+    disconnect()
+    if (wallet === 'Extension') {
+      const extension = useExtensionStore()
+      extension.connectExtension()
+    } else if (wallet === 'WalletConnect') {
+      const wc = useWalletConnectStore()
+      wc.connectWalletConnect()
+    }
+  }
+
+  return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect, reconnect }
 })

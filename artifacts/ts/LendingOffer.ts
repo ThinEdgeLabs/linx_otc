@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as LendingOfferContractJson } from "../LendingOffer.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -30,6 +32,7 @@ import { getContractByCodeHash } from "./contracts";
 // Custom types for the contract
 export namespace LendingOfferTypes {
   export type Fields = {
+    id: bigint;
     lender: Address;
     lendingTokenId: HexString;
     collateralTokenId: HexString;
@@ -71,6 +74,10 @@ export namespace LendingOfferTypes {
       params: CallContractParams<{ amount: bigint; feeRate: bigint }>;
       result: CallContractResult<bigint>;
     };
+    getId: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
     getLender: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Address>;
@@ -92,6 +99,10 @@ export namespace LendingOfferTypes {
       result: CallContractResult<bigint>;
     };
     getInterestRate: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getInterest: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
@@ -147,14 +158,14 @@ class Factory extends ContractFactory<
   tests = {
     blockTimeStampInSeconds: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "blockTimeStampInSeconds", params);
     },
     calculateInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingOfferTypes.Fields,
         {
           currentBlockTimeStamp: bigint;
@@ -164,124 +175,143 @@ class Factory extends ContractFactory<
           days: bigint;
         }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateInterestPayment", params);
     },
     calculateTotalInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingOfferTypes.Fields,
         { amount: bigint; interest: bigint; days: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateTotalInterestPayment", params);
     },
     calculateMarketplaceFee: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingOfferTypes.Fields,
         { amount: bigint; feeRate: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateMarketplaceFee", params);
+    },
+    getId: async (
+      params: Omit<
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+      return testMethod(this, "getId", params);
     },
     getLender: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "getLender", params);
     },
     getLendingTokenId: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getLendingTokenId", params);
     },
     getCollateralTokenId: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getCollateralTokenId", params);
     },
     getLendingAmount: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getLendingAmount", params);
     },
     getCollateralAmount: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getCollateralAmount", params);
     },
     getInterestRate: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getInterestRate", params);
+    },
+    getInterest: async (
+      params: Omit<
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+      return testMethod(this, "getInterest", params);
     },
     getDuration: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getDuration", params);
     },
     getBorrower: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "getBorrower", params);
     },
     getLoanTimeStamp: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getLoanTimeStamp", params);
     },
     take: async (
-      params: TestContractParams<LendingOfferTypes.Fields, { caller: Address }>
-    ): Promise<TestContractResult<null>> => {
+      params: TestContractParamsWithoutMaps<
+        LendingOfferTypes.Fields,
+        { caller: Address }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "take", params);
     },
     cancel: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "cancel", params);
     },
     payback: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "payback", params);
     },
     liquidate: async (
       params: Omit<
-        TestContractParams<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "liquidate", params);
     },
   };
@@ -292,7 +322,7 @@ export const LendingOffer = new Factory(
   Contract.fromJson(
     LendingOfferContractJson,
     "",
-    "53cb9c1d912b1fac5af6701042f95ba8dfea0713adc856a0b8a42a1b60409b93"
+    "4368076f0b8330d78e1cb2f6650f4e103d1f1cba6a5e4ca21e30625c4bc34c0a"
   )
 );
 
@@ -359,6 +389,17 @@ export class LendingOfferInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    getId: async (
+      params?: LendingOfferTypes.CallMethodParams<"getId">
+    ): Promise<LendingOfferTypes.CallMethodResult<"getId">> => {
+      return callMethod(
+        LendingOffer,
+        this,
+        "getId",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
     getLender: async (
       params?: LendingOfferTypes.CallMethodParams<"getLender">
     ): Promise<LendingOfferTypes.CallMethodResult<"getLender">> => {
@@ -421,6 +462,17 @@ export class LendingOfferInstance extends ContractInstance {
         LendingOffer,
         this,
         "getInterestRate",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getInterest: async (
+      params?: LendingOfferTypes.CallMethodParams<"getInterest">
+    ): Promise<LendingOfferTypes.CallMethodResult<"getInterest">> => {
+      return callMethod(
+        LendingOffer,
+        this,
+        "getInterest",
         params === undefined ? {} : params,
         getContractByCodeHash
       );

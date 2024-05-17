@@ -43,11 +43,11 @@ async function handleAddress(pubKey: string) {
     const group = await nodeStore.getGroupForAddress(address)
     if (group.group != account.account?.group) {
       popUpStore.setPopUp({
-        title: 'Address Groups Error',
+        title: 'Invalid Address Group',
         message: [
-          'P2P trades can only be created between addresses on the same group.',
-          `\bYour address is on Group ${account.account?.group}`,
-          `\bThe public key you entered is on Group ${group.group}`,
+          'P2P trades can only be created between addresses in the same group.',
+          `\bYour address is in Group ${account.account?.group}`,
+          `\bThe public key you entered is in Group ${group.group}`,
           'You can move your balance to the group of the counterparty or ask the counterparty to move his/her funds.'
         ],
         onAcknowledged: () => popUpStore.closePopUp(),
@@ -59,7 +59,6 @@ async function handleAddress(pubKey: string) {
       errorMessage.value = undefined
       return
     }
-    nodeStore.getBalance(address, props.isSender)
     orderStore.setReceiver(address, group.group, pubKey)
   } else {
     inputValue.value = pubKey

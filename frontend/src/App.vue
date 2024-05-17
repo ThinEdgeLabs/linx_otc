@@ -27,12 +27,11 @@ onMounted(async () => {
   const hasApproved = localStorage.getItem('approveTerms')
   if (!hasApproved || hasApproved != deploymentNetwork) {
     popUpStore.setPopUp({
-      title: 'Welcome to LinxOTC',
+      title: 'Welcome to Linx OTC',
       type: 'warning',
       message: [
-        'Please be aware that LinxOTC is in a BETA stage. This means there can be bugs, errors and, eventhough we strive to deliver a safe DApp, contracts could potentially become compromised which can result in losing all your funds.',
-        '\bLinxOTC is currently on TESTNET',
-        '\bUse this DApp at your own risk'
+        'Please be aware that Linx OTC is still in the BETA phase. This means there may be bugs and errors. Despite our efforts to deliver a safe DApp, contracts could potentially become compromised, which could result in the loss of all your funds.',
+        '\bLinx Labs is not responsible for any loss of funds, use this DApp at your own risk.'
       ],
       showTerms: true,
       onAcknowledged: acknowledgedTerms,
@@ -49,17 +48,15 @@ function acknowledgedTerms() {
 </script>
 
 <template>
-  <main
-    class="relative font-sans antialiased text-base text-core bg-core-darkest min-h-screen px-[16px] lg:px-[10%]"
-  >
-  <div class="container mx-auto min-h-screen flex flex-col">
-    <header>
-      <LinxMenu />
-    </header>
-    <RouterView :class="popUpStore.popUp ? 'fixed' : ''" class="mb-auto" />
-    <FooterComponent />
-    <SelectWalletModal />
-    <PopUpView v-if="popUpStore.popUp" />
-  </div>
+  <main class="relative font-sans antialiased text-base text-core bg-core-darkest min-h-screen px-[16px] lg:px-[10%]">
+    <div class="container mx-auto min-h-screen flex flex-col">
+      <header>
+        <LinxMenu />
+      </header>
+      <RouterView :class="popUpStore.popUp ? 'fixed' : ''" class="mb-auto" />
+      <FooterComponent />
+      <SelectWalletModal />
+      <PopUpView v-if="popUpStore.popUp" />
+    </div>
   </main>
 </template>

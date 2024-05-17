@@ -13,7 +13,7 @@ import { useLoginStore } from '@/stores/login'
 import { ref } from 'vue'
 import { useOrderStore } from '@/stores/tradeOrder'
 import type { Status } from '../ApproveWallet.vue'
-import { domainURL, useGasPayer } from '@/config'
+import { useGasPayer } from '@/config'
 import { usePopUpStore } from '@/stores/popup'
 import { useGasPayerStore } from '@/stores/gasPayer'
 import { registerLink } from '@/functions/utils'
@@ -67,7 +67,7 @@ async function createTrade() {
         const hash = trade.txId
         const sendLink = await registerLink(hash, encodedTx)
         if (sendLink) {
-          tradeLink.value = `${domainURL}/trading/${hash}`
+          tradeLink.value = `${location.host}/trading/${hash}`
           status.value = 'signed'
         } else {
           throw Error('Could not register transaction')
@@ -85,7 +85,8 @@ async function createTrade() {
         leftButtonTitle: 'OK',
         type: 'warning',
         message: apiErrorHandler(e as string),
-        showTerms: false
+        showTerms: false,
+        showIcon: true
       })
       status.value = 'denied'
     }
@@ -96,7 +97,8 @@ async function createTrade() {
       leftButtonTitle: 'OK',
       type: 'warning',
       message: createErrorMessage(),
-      showTerms: false
+      showTerms: false,
+      showIcon: true
     })
   }
 }
@@ -133,13 +135,12 @@ function createErrorMessage(): Array<string> {
 </script>
 
 <template>
-  <section
-    v-if="status === undefined"
-    class="flex flex-col w-full p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]"
-  >
+  <section v-if="status === undefined" class="p-[10px] lg:p-[30px] bg-core-darker rounded-lg space-y-[30px]">
     <PageTitle
       :title="account.account?.isConnected ? 'Create P2P Order' : 'P2P Trade'"
-      :description="'Make use of the atomic swap feature on Alephium to trade directly with someone.'"
+      :description="'OTC trade directly via Alephium\'s atomic swap, no escrow needed.'"
+      :description-right="'OTC trades are only possible between accounts in the same group.'"
+      :icon="['fal', 'circle-info']"
     />
     <div class="flex flex-col lg:flex-row w-full lg:space-x-[30px] space-y-[30px] lg:space-y-0">
       <AddressBar :is-sender="true" :class="'lg:basis-1/2'" />
@@ -156,13 +157,15 @@ function createErrorMessage(): Array<string> {
       />
     </div>
     <HorizontalDividerVue />
-    <CustomButton
-      :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
-      :open="false"
-      :class="'w-full lg:w-[228px]'"
-      @click="account.account?.isConnected ? createTrade() : loginStore.toggleModal()"
-    />
-    <AgreeToTerms />
+    <div class="lg:flex flex-row justify-between items-center">
+      <CustomButton
+        :title="account.account?.isConnected ? 'Create Order' : 'Connect wallet'"
+        :open="false"
+        :class="'flex-initial'"
+        @click="account.account?.isConnected ? createTrade() : loginStore.toggleModal()"
+      />
+      <AgreeToTerms :class="'mt-[20px] lg:mt-0 text-center'" />
+    </div>
   </section>
   <section v-else class="w-full flex flex-col lg:flex-row space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
     <ApproveTrade

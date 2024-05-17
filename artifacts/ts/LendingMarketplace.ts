@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as LendingMarketplaceContractJson } from "../LendingMarketplace.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -43,7 +45,8 @@ export namespace LendingMarketplaceTypes {
     previous: Address;
     new: Address;
   }>;
-  export type OfferCreatedEvent = ContractEvent<{
+  export type LoanDetailsEvent = ContractEvent<{
+    loanId: HexString;
     lendingTokenId: HexString;
     collateralTokenId: HexString;
     lendingAmount: bigint;
@@ -51,15 +54,33 @@ export namespace LendingMarketplaceTypes {
     interestRate: bigint;
     duration: bigint;
     lender: Address;
-    lendingOfferContractId: HexString;
   }>;
-  export type OfferCancelledEvent = ContractEvent<{ offerId: HexString }>;
-  export type LoanPaidEvent = ContractEvent<{ loanId: HexString }>;
-  export type LoanStartedEvent = ContractEvent<{
+  export type LoanCreatedEvent = ContractEvent<{
     loanId: HexString;
-    borrower: Address;
+    id: bigint;
+    by: Address;
+    timestamp: bigint;
   }>;
-  export type LoanLiquidatedEvent = ContractEvent<{ loanId: HexString }>;
+  export type LoanCancelledEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
+  export type LoanPaidEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
+  export type LoanAcceptedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
+  export type LoanLiquidatedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
 
   export interface CallMethodTable {
     blockTimeStampInSeconds: {
@@ -136,11 +157,12 @@ class Factory extends ContractFactory<
 
   eventIndex = {
     AdminUpdated: 0,
-    OfferCreated: 1,
-    OfferCancelled: 2,
-    LoanPaid: 3,
-    LoanStarted: 4,
-    LoanLiquidated: 5,
+    LoanDetails: 1,
+    LoanCreated: 2,
+    LoanCancelled: 3,
+    LoanPaid: 4,
+    LoanAccepted: 5,
+    LoanLiquidated: 6,
   };
   consts = {
     Day: BigInt(86400),
@@ -160,14 +182,14 @@ class Factory extends ContractFactory<
   tests = {
     blockTimeStampInSeconds: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "blockTimeStampInSeconds", params);
     },
     calculateInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         {
           currentBlockTimeStamp: bigint;
@@ -177,51 +199,51 @@ class Factory extends ContractFactory<
           days: bigint;
         }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateInterestPayment", params);
     },
     calculateTotalInterestPayment: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { amount: bigint; interest: bigint; days: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateTotalInterestPayment", params);
     },
     calculateMarketplaceFee: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { amount: bigint; feeRate: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "calculateMarketplaceFee", params);
     },
     getAdmin: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "getAdmin", params);
     },
     getTotalLendingOffers: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalLendingOffers", params);
     },
     getFee: async (
       params: Omit<
-        TestContractParams<LendingMarketplaceTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LendingMarketplaceTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getFee", params);
     },
     createLendingOffer: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         {
           lendingTokenId: HexString;
@@ -232,63 +254,63 @@ class Factory extends ContractFactory<
           duration: bigint;
         }
       >
-    ): Promise<TestContractResult<Address>> => {
+    ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "createLendingOffer", params);
     },
     borrow: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { offerId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "borrow", params);
     },
     cancelOffer: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
-        { offerId: HexString }
+        { loanId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "cancelOffer", params);
     },
     paybackLoan: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "paybackLoan", params);
     },
     liquidateLoan: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "liquidateLoan", params);
     },
     updateAdmin: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { newAdmin: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateAdmin", params);
     },
     updateFee: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { newFee: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateFee", params);
     },
     updateLendingEnabled: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         LendingMarketplaceTypes.Fields,
         { enabled: boolean }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateLendingEnabled", params);
     },
   };
@@ -299,7 +321,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "7302abf93fddebbacb50451fdb3b7dfb779a0dcd5305c055e30a8e72eb9f7697"
+    "9bd3d73316eee09f73462dabf34ec4fb1d1315e011666561a0a42657394b39be"
   )
 );
 
@@ -330,28 +352,41 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeOfferCreatedEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.OfferCreatedEvent>,
+  subscribeLoanDetailsEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanDetailsEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "OfferCreated",
+      "LoanDetails",
       fromCount
     );
   }
 
-  subscribeOfferCancelledEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.OfferCancelledEvent>,
+  subscribeLoanCreatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "OfferCancelled",
+      "LoanCreated",
+      fromCount
+    );
+  }
+
+  subscribeLoanCancelledEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanCancelledEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanCancelled",
       fromCount
     );
   }
@@ -369,15 +404,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeLoanStartedEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanStartedEvent>,
+  subscribeLoanAcceptedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanAcceptedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "LoanStarted",
+      "LoanAccepted",
       fromCount
     );
   }
@@ -398,10 +433,11 @@ export class LendingMarketplaceInstance extends ContractInstance {
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.AdminUpdatedEvent
-      | LendingMarketplaceTypes.OfferCreatedEvent
-      | LendingMarketplaceTypes.OfferCancelledEvent
+      | LendingMarketplaceTypes.LoanDetailsEvent
+      | LendingMarketplaceTypes.LoanCreatedEvent
+      | LendingMarketplaceTypes.LoanCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
-      | LendingMarketplaceTypes.LoanStartedEvent
+      | LendingMarketplaceTypes.LoanAcceptedEvent
       | LendingMarketplaceTypes.LoanLiquidatedEvent
     >,
     fromCount?: number

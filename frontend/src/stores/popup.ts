@@ -10,6 +10,7 @@ interface PopUp {
   rightButtonTitle?: string
   onCancel?: Function
   onAcknowledged?: Function
+  showIcon?: boolean
 }
 
 export const usePopUpStore = defineStore('popup', () => {

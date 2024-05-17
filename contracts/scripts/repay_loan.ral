@@ -1,0 +1,3 @@
+TxScript RepayLoan(marketplace: LendingMarketplace, loanId: ByteVec, borrowedTokenId: ByteVec, amount: U256) {
+  marketplace.paybackLoan{callerAddress!() -> borrowedTokenId: amount}(loanId)
+}

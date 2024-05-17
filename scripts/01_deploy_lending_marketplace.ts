@@ -20,7 +20,8 @@ const deployMarketplace: DeployFunction<Settings> = async (
     lendingOfferTemplateId: lendingOfferTemplateResult.contractInstance.contractId,
     admin: addressFromPublicKey(network.settings.admin),
     totalLendingOffers: 0n,
-    fee: BigInt(network.settings.fee)
+    fee: BigInt(network.settings.fee),
+    lendingEnabled: true,
   }
 
   const result = await deployer.deployContract(LendingMarketplace, {

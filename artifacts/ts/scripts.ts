@@ -15,6 +15,8 @@ import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
 import { default as CancelOfferScriptJson } from "../scripts/CancelOffer.ral.json";
 import { default as CreateOfferScriptJson } from "../scripts/CreateOffer.ral.json";
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
+import { default as LiquidateLoanScriptJson } from "../scripts/LiquidateLoan.ral.json";
+import { default as RepayLoanScriptJson } from "../scripts/RepayLoan.ral.json";
 
 export const Borrow = new ExecutableScript<{
   offerId: HexString;
@@ -41,3 +43,15 @@ export const GetToken = new ExecutableScript<{
   sender: Address;
   amount: bigint;
 }>(Script.fromJson(GetTokenScriptJson, ""));
+
+export const LiquidateLoan = new ExecutableScript<{
+  marketplace: HexString;
+  loanId: HexString;
+}>(Script.fromJson(LiquidateLoanScriptJson, ""));
+
+export const RepayLoan = new ExecutableScript<{
+  marketplace: HexString;
+  loanId: HexString;
+  borrowedTokenId: HexString;
+  amount: bigint;
+}>(Script.fromJson(RepayLoanScriptJson, ""));

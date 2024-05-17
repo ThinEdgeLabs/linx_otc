@@ -8,7 +8,9 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-row w-full items-center justify-between py-[14px] px-[19px] cursor-pointer hover:bg-core-lightest">
+  <div
+    class="flex flex-row w-full items-center justify-between py-[14px] px-[19px] cursor-pointer hover:bg-core-lightest"
+  >
     <div class="flex flex-row items-center space-x-[10px]">
       <img :src="`${token.logoUri}`" class="w-[32px] h-[32px] rounded-full" />
       <div class="flex flex-col">

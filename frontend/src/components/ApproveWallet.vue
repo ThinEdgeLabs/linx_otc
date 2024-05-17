@@ -10,7 +10,7 @@ defineEmits<{
   (f: 'update:retry'): void
 }>()
 
-export type Status = 'approve' | 'signed' | 'timeout' | 'denied' | 'success'
+export type Status = 'approve' | 'signed' | 'denied' | 'success'
 
 const props = defineProps<{
   status: Status
@@ -29,12 +29,6 @@ const percentageFilled = computed(() => {
 </script>
 
 <template>
-  <!-- <TransactionError
-    v-if="status === 'timeout'"
-    :description="'Did not receive a response from the wallet'"
-    @update:cancel="$emit('update:cancel', 0)"
-    @update:retry="retryTransaction()"
-  /> -->
   <TransactionError
     v-if="status === 'denied'"
     :description="'Transaction was rejected'"
@@ -44,7 +38,7 @@ const percentageFilled = computed(() => {
   <TransactionSuccess
     v-if="status === 'success'"
     :title="`Your transaction was confirmed`"
-    :description="'Click the transaction ID to open in the explorer'"
+    :description="'Click the transaction ID to view it in explorer'"
     :tx-id="txId!"
     @update:finished="$emit('update:finished')"
   />
@@ -55,13 +49,13 @@ const percentageFilled = computed(() => {
     <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
     <div v-if="status === 'approve'">
       <div class="space-y-[10px] text-center">
-        <div class="text-[22px] font-extrabold text-core-lightest">Confirm the order creation in your wallet</div>
+        <div class="text-[22px] font-extrabold text-core-lightest">Confirm the transaction in your wallet</div>
         <div class="text-[16px]">Waiting for transaction confirmation</div>
       </div>
     </div>
     <div v-if="status === 'signed'">
       <div class="space-y-[10px] text-center">
-        <div class="text-[22px] font-extrabold text-core-lightest">Received and sent signed transaction</div>
+        <div class="text-[22px] font-extrabold text-core-lightest">Transaction was sent</div>
         <div class="text-[16px]">Waiting for network confirmation</div>
       </div>
     </div>

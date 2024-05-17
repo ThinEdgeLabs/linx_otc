@@ -9,9 +9,11 @@ const deployLendingOfferTemplate: DeployFunction<Settings> = async (
 ): Promise<void> => {
   const result = await deployer.deployContract(LendingOffer, {
     initialFields: {
+      id: 0n,
       lender: ZERO_ADDRESS,
       lendingTokenId: '',
       collateralTokenId: '',
+      marketplaceContractId: ZERO_ADDRESS,
       lendingAmount: 0n,
       collateralAmount: 0n,
       interestRate: 0n,

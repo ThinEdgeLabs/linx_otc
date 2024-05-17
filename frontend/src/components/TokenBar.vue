@@ -18,11 +18,17 @@ const props = defineProps<{
   isSender: boolean
   offerType: 'trade' | 'loan'
   validateInput: boolean
+  hideBalance?: boolean
 }>()
 
 const errorMessage = ref<string | undefined>(undefined)
 
 onMounted(() => {
+  if (props.hideBalance) {
+    // If the balance is hidden, we just need to display the list of tokens
+    tokens.value = getTokens()
+    return
+  }
   watchEffect(() => {
     if (!toValue(isLoading)) {
       if (toValue(balance)) {
@@ -44,8 +50,6 @@ onMounted(() => {
               balanceHint: ` ${prettifyExactAmount(tokenBalance.amount, token.decimals)!} ${token.symbol}`
             }
             tokensWithBalance.push(tokenWithBalance)
-          } else {
-            tokensWithBalance.push()
           }
         })
         tokens.value = tokensWithBalance
@@ -93,7 +97,8 @@ function selectToken(token: Token) {
 }
 
 function toggleDropDown() {
-  if ((!props.isSender && props.accountAddress) || (props.isSender && accountStore.account)) {
+  // If the wallet is not connected, do not open an empty dropdown
+  if (accountStore.account) {
     dropdownOpen.value = !dropdownOpen.value
   }
 }
@@ -159,25 +164,22 @@ function onMaxButtonClick() {
 </script>
 
 <template>
-  <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px]">
-    <div class="flex flex-row justify-between items-center">
-      <div class="font-extrabold text-core-light">
-        {{
-          props.isSender
-            ? props.offerType === 'loan'
-              ? 'Offered Loan'
-              : 'You offer'
-            : props.offerType === 'loan'
-              ? 'Requested Collateral'
-              : 'You request'
-        }}
-      </div>
-      <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
-        <p class="text-core-light">Available</p>
-        <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
-      </div>
+  <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px] cursor-pointer">
+    <div class="font-extrabold text-core-light">
+      {{
+        props.isSender
+          ? props.offerType === 'loan'
+            ? 'You offer to lend'
+            : 'You offer'
+          : props.offerType === 'loan'
+            ? 'You want as collateral'
+            : 'You request'
+      }}
     </div>
-
+    <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
+      <p class="text-core-light">Available</p>
+      <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
+    </div>
     <div class="relative w-full">
       <div
         @click="!selectedToken ? toggleDropDown() : null"

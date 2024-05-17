@@ -66,7 +66,7 @@ function calculateInterest() {
       @click="$emit('update:stepUp')"
     />
     <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
-      <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
+      <p class="text-core-light">By using this feature, you agree to Linx Labs</p>
       <button class="text-accent-3">Terms of Use</button>
     </div>
   </div>

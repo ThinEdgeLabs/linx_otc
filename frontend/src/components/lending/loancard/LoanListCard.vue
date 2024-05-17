@@ -25,14 +25,14 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
 </script>
 
 <template>
-  <div class="group lg:hover:bg-core-darkest">
+  <div class="group lg:hover:bg-core-darkest cursor-pointer">
     <section class="w-full flex flex-row items-center p-[20px]">
-      <!-- <div class="w-full flex flex-col">
-        <div class="text-[16px] font-extrabold text-core-lightest">Loan offer #{{ loan.loanId }}</div>
+      <div class="w-full flex flex-col">
+        <div class="text-[16px] font-extrabold text-core-lightest">Loan #{{ loan.id }}</div>
         <div class="text-[12px] font-semibold text-core-light">
           Created on {{ new Date(loan.created).toDateString() }}
         </div>
-      </div> -->
+      </div>
       <div class="w-full flex flex-row items-center space-x-[10px] text-[14px]">
         <img :src="`${loanToken.logoUri}`" class="w-[40px] h-[40px] rounded-full" />
         <div class="flex flex-row items-center space-x-1">
@@ -62,10 +62,13 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
           </div>
           <div class="text-core-light">% APR</div>
         </div>
-        <div class="text-core-light text-[12px]">{{ props.loan.interest }} {{ loanToken.symbol }}</div>
+        <div class="text-core-light text-[12px]">
+          {{ prettifyTokenAmount((props.loan.interest * props.loan.loanAmount) / 10000n, loanToken.decimals) }}
+          {{ loanToken.symbol }}
+        </div>
       </div>
       <div class="w-[20%]">
-        <CustomButton :title="'view'" :class="'invisible group-hover:visible px-0 w-full'" />
+        <CustomButton :title="'View'" :class="'invisible group-hover:visible'" />
       </div>
     </section>
     <HorizontalDivider />

@@ -12,32 +12,35 @@ const props = defineProps({
 
 <template>
   <section
-    class="flex flex-col space-y-[30px] lg:space-y-[60px] max-w-[90%] lg:max-w-[50%] rounded-lg bg-menu py-[30px] lg:py-[60px] px-[16px] lg:px-[30px] items-center text-center text-core-lightest"
+    class="flex flex-col max-w-[90%] lg:max-w-[25%] rounded-lg bg-menu py-[30px] lg:py-[60px] px-[16px] lg:px-[30px] items-center text-center text-core-lightest"
   >
-    <div class="flex flex-col space-y-[30px]">
-      <p class="text-[24px] lg:text-[40px] font-extrabold text-core-lightest">{{ props.popUp.title }}</p>
-      <font-awesome-icon :icon="['fal', 'warning']" class="text-warning text-[24px] lg:text-[40px]" />
-
+    <div class="flex flex-col space-y-[20px]">
+      <font-awesome-icon
+        v-if="popUp.showIcon"
+        :icon="['fal', 'warning']"
+        class="text-danger text-[24px] lg:text-[40px]"
+      />
+      <p class="text-[22px] font-extrabold text-core-lightest">{{ props.popUp.title }}</p>
       <p
         v-for="message in props.popUp.message"
         v-bind:key="message"
-        class="text-[14px] lg:text-[20px]"
+        class="text-[14px]"
         :class="message.includes('\b') ? 'font-extrabold text-core-lightest' : 'text-core-light'"
       >
         {{ message.replace('\b', '') }}
       </p>
     </div>
 
-    <AgreeToTerms v-if="props.popUp.showTerms" :class="'text-[14px] lg:text-[20px]'" />
-    <div class="flex flex-row space-x-[30px] justify-center items-center">
-      <CustomButton :title="props.popUp.leftButtonTitle" @click="props.popUp.onAcknowledged()" />
+    <div class="flex flex-col justify-center items-center w-full mt-[40px]">
+      <CustomButton :title="props.popUp.leftButtonTitle" @click="props.popUp.onAcknowledged()" :class="'lg:w-full'" />
       <CustomButton
         v-if="props.popUp.onCancel"
         :title="props.popUp.rightButtonTitle"
-        :delete="true"
         :open="true"
         @click="props.popUp.onCancel()"
+        :class="'lg:w-full mt-[20px]'"
       />
     </div>
+    <AgreeToTerms v-if="props.popUp.showTerms" :class="'mt-[20px]'" />
   </section>
 </template>

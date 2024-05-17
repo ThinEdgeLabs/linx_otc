@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as TestTokenContractJson } from "../test/TestToken.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -84,31 +86,43 @@ class Factory extends ContractFactory<
 
   tests = {
     getSymbol: async (
-      params: Omit<TestContractParams<TestTokenTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<HexString>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<TestTokenTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
-      params: Omit<TestContractParams<TestTokenTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<HexString>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<TestTokenTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
-      params: Omit<TestContractParams<TestTokenTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<bigint>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<TestTokenTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
-      params: Omit<TestContractParams<TestTokenTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<bigint>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<TestTokenTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalSupply", params);
     },
     getToken: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         TestTokenTypes.Fields,
         { sender: Address; amount: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "getToken", params);
     },
   };

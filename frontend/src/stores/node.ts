@@ -1,9 +1,8 @@
-import { ref } from 'vue'
+import { shallowRef } from 'vue'
 import { defineStore } from 'pinia'
-import { ALPH_TOKEN_ID, NodeProvider, hexToString } from '@alephium/web3'
-import { useRequesterBalanceStore } from '@/stores/requesterBalance'
-import { useReceiverBalanceStore } from '@/stores/receiverBalance'
-import type { Token } from '@/types'
+import { ExplorerProvider, NodeProvider } from '@alephium/web3'
+import { node } from '@alephium/web3'
+import { getMarketplaceConfig } from '@/config'
 
 export interface TokenData {
   contract: string
@@ -18,53 +17,17 @@ export interface Balance {
 }
 
 export const useNodeStore = defineStore('nodeProvider', () => {
-  const nodeProvider = ref<NodeProvider | undefined>()
+  const config = getMarketplaceConfig()
+  const nodeProvider = shallowRef<NodeProvider>(
+    new NodeProvider(config.defaultNodeUrl, import.meta.env.VITE_ALEPHIUM_NODE_API_KEY as string)
+  )
+  const explorerProvider = shallowRef<ExplorerProvider>(
+    new ExplorerProvider(import.meta.env.VITE_ALPH_EXPLORER_BACKEND as string)
+  )
 
-  function init() {
-    // Uncomment to run from our node
-    //nodeProvider.value = new NodeProvider(import.meta.env.VITE_ALPH_NODE, import.meta.env.VITE_NODE_API_KEY)
-    // Run from Public Node
-    nodeProvider.value = new NodeProvider(import.meta.env.VITE_ALPH_NODE)
+  async function getGroupForAddress(address: string): Promise<node.Group> {
+    return nodeProvider.value!.addresses.getAddressesAddressGroup(address)
   }
 
-  async function getBalance(address: string, isSender: boolean) {
-    const balanceStore = isSender ? useRequesterBalanceStore() : useReceiverBalanceStore()
-    const totalBalances: Array<Token & Balance> = []
-    const balance = await nodeProvider.value!.addresses.getAddressesAddressBalance(address)
-    // Add Alph balance
-    // if (balance.balance.length > 0) {
-    //   totalBalances.push({
-    //     contractId: ALPH_TOKEN_ID,
-    //     name: 'Alephium',
-    //     symbol: 'ALPH',
-    //     decimals: 18,
-    //     balance: parseInt(balance.balance),
-    //     logoUri: '/images/tokens/ALPH.png'
-    //   })
-    // }
-    // for (const i in balance.tokenBalances) {
-    //   // Fetch token metadata
-    //   const tokenId = balance.tokenBalances[i].id
-    //   const tokenData = await nodeProvider.value!.fetchFungibleTokenMetaData(tokenId)
-    //   const tokenName = hexToString(tokenData.name)
-    //   const tokenSymbol = hexToString(tokenData.symbol)
-    //   totalBalances.push({
-    //     contractId: tokenId,
-    //     name: tokenName,
-    //     symbol: tokenSymbol,
-    //     decimals: tokenData.decimals,
-    //     balance: balance.tokenBalances[i].amount
-    //   })
-    // }
-    //balanceStore.setBalance(totalBalances)
-  }
-
-  async function getGroupForAddress(address: string) {
-    const group = await nodeProvider.value!.addresses.getAddressesAddressGroup(address)
-    return group
-  }
-
-  init()
-
-  return { nodeProvider, getBalance, getGroupForAddress }
+  return { nodeProvider, explorerProvider, getGroupForAddress }
 })

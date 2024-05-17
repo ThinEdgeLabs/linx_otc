@@ -11,21 +11,22 @@ Contract LendingMarketplace(
     new: Address
   )
 
-  event OfferCreated(
+  event LoanDetails(
+    loanId: ByteVec,
     lendingTokenId: ByteVec,
     collateralTokenId: ByteVec,
     lendingAmount: U256,
     collateralAmount: U256,
     interestRate: U256,
     duration: U256,
-    lender: Address,
-    lendingOfferContractId: ByteVec
+    lender: Address
   )
 
-  event OfferCancelled(offerId: ByteVec)
-  event LoanPaid(loanId: ByteVec)
-  event LoanStarted(loanId: ByteVec, borrower: Address)
-  event LoanLiquidated(loanId: ByteVec)
+  event LoanCreated(loanId: ByteVec, id: U256, by: Address, timestamp: U256)
+  event LoanCancelled(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
 
   enum ErrorCodes {
     AdminAllowedOnly = 0
@@ -62,16 +63,18 @@ Contract LendingMarketplace(
     // Checking for overflow
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, 0)
     let key = toByteVec!(totalLendingOffers)
-    let lendingOfferContractId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
+    let id = totalLendingOffers
+    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, lender, blockTimeStampInSeconds())
+    let loanId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )
     totalLendingOffers = totalLendingOffers + 1
 
-    emit OfferCreated(lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender, lendingOfferContractId)
+    emit LoanDetails(loanId, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender)
+    emit LoanCreated(loanId, id, lender, blockTimeStamp!())
 
-    return contractIdToAddress!(lendingOfferContractId)
+    return contractIdToAddress!(loanId)
   }
 
   @using(preapprovedAssets = true)
@@ -81,17 +84,17 @@ Contract LendingMarketplace(
     let collateralTokenId = offer.getCollateralTokenId()
     let collateralAmount = offer.getCollateralAmount()
     checkCaller!(callerAddress!() != lender, ErrorCodes.LenderNotAllowed)
-    let borrower = callerAddress!()
-    offer.take{borrower -> collateralTokenId: collateralAmount}(borrower)
-    emit LoanStarted(offerId, borrower)
+    let caller = callerAddress!()
+    offer.take{caller -> collateralTokenId: collateralAmount}(caller)
+    emit LoanAccepted(offerId, caller, blockTimeStamp!())
   }
 
-  pub fn cancelOffer(offerId: ByteVec) -> () {
-    let offer = LendingOffer(offerId)
+  pub fn cancelOffer(loanId: ByteVec) -> () {
+    let offer = LendingOffer(loanId)
     let lender = offer.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     offer.cancel()
-    emit OfferCancelled(offerId)
+    emit LoanCancelled(loanId, callerAddress!(), blockTimeStamp!())
   }
 
   @using(preapprovedAssets = true)
@@ -100,10 +103,11 @@ Contract LendingMarketplace(
     let borrower = loan.getBorrower()
     let lendingTokenId = loan.getLendingTokenId()
     let loanAmount = loan.getLendingAmount()
+    let interest = loan.getInterest()
     let caller = callerAddress!()
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
-    loan.payback{caller -> lendingTokenId: loanAmount}()
-    emit LoanPaid(loanId)
+    loan.payback{caller -> lendingTokenId: loanAmount + interest}()
+    emit LoanPaid(loanId, caller, blockTimeStamp!())
   }
 
   pub fn liquidateLoan(loanId: ByteVec) -> () {
@@ -111,7 +115,7 @@ Contract LendingMarketplace(
     let lender = loan.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     loan.liquidate()
-    emit LoanLiquidated(loanId)
+    emit LoanLiquidated(loanId, callerAddress!(), blockTimeStamp!())
   }
 
   @using(updateFields = true)

@@ -23,12 +23,13 @@ function showWarningPopUp() {
   popUpStore.setPopUp({
     title: `You are about to delete ${props.activity.type} offer #${props.activity.id}`,
     type: 'warning',
-    message: ['\bAfter deleting there is no more way back and the offer will be destroyed.'],
+    message: ['\bThis action cannot be undone. The offer will be permanently deleted.'],
     onAcknowledged: agreeDelete,
     onCancel: popUpStore.closePopUp,
     showTerms: false,
     leftButtonTitle: 'Yes, Delete this',
-    rightButtonTitle: 'Cancel'
+    rightButtonTitle: 'Cancel',
+    showIcon: true
   })
 }
 
@@ -66,7 +67,7 @@ function agreeDelete() {
       @click="showWarningPopUp()"
     />
     <div class="flex flex-row items-center text-center space-x-[4px] justify-center text-[12px]">
-      <p class="text-core-light">By using this feature, you agree to LinxLabs</p>
+      <p class="text-core-light">By using this feature, you agree to Linx Labs</p>
       <button class="text-accent-3">Terms of Use</button>
     </div>
   </div>

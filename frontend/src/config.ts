@@ -1,26 +1,37 @@
 import type { Token } from '@/types'
 import { default as devnetTokens } from './devnet-token-list.json'
 import { ALPH_TOKEN_ID, type NetworkId, type Number256 } from '@alephium/web3'
-import { loadSettings } from '../../alephium.config'
 import { loadDeployments } from '../../artifacts/ts/deployments'
 
 export const tradeFee = 0.005
-export const domainURL = 'https://testnet.linxotc.com'
-//export const domainURL = 'localhost:5173'
-export const feeAddresses = [{
-  group: 0,
-  address: '1B1yNSA9FwLjUQggGzNvdUGUFq6iBvxyuzk5DGFjaWBfx'
-},{
-  group: 1,
-  address: '17siH7XPUdLr5PgituLjmn5eZqLVsuAcDoUB122u7bZZ8'
-},{
-  group: 2,
-  address: '15P5NoWK5rbyDa1EjFYcJx3JfVPZ59oX5yTRnKpXmUJqd'
-},{
-  group: 3,
-  address: '15zZTAK8idRqxT2HC8HRSC3hCDDKvh4oY6jtxKsJBGGzb'
-}]
+export const lendingFee = 50n
+export const feeAddresses = [
+  {
+    group: 0,
+    address: '1B1yNSA9FwLjUQggGzNvdUGUFq6iBvxyuzk5DGFjaWBfx'
+  },
+  {
+    group: 1,
+    address: '17siH7XPUdLr5PgituLjmn5eZqLVsuAcDoUB122u7bZZ8'
+  },
+  {
+    group: 2,
+    address: '15P5NoWK5rbyDa1EjFYcJx3JfVPZ59oX5yTRnKpXmUJqd'
+  },
+  {
+    group: 3,
+    address: '15zZTAK8idRqxT2HC8HRSC3hCDDKvh4oY6jtxKsJBGGzb'
+  }
+]
 export const useGasPayer = false
+
+export const anyToken: Token = {
+  name: 'Any token',
+  symbol: 'NONE',
+  contractId: '',
+  decimals: 18,
+  logoUri: '/images/tokens/NONE.png'
+}
 
 export const mainnetTokens: Token[] = [
   {
@@ -304,20 +315,12 @@ export const getTokens = () => {
 
 export function getDefaultNodeUrl(): string {
   const network = import.meta.env.VITE_NETWORK_ID
-  return network === 'devnet'
-    ? 'http://127.0.0.1:22973'
-    : network === 'testnet'
-      ? 'https://wallet-v20.testnet.alephium.org'
-      : 'https://wallet-v20.mainnet.alephium.org'
+  return network === 'devnet' ? 'http://127.0.0.1:22973' : import.meta.env.VITE_ALPH_NODE
 }
 
 export function getDefaultExplorerUrl(): string {
   const network = import.meta.env.VITE_NETWORK_ID
-  return network === 'devnet'
-    ? 'http://localhost:9090'
-    : network === 'testnet'
-      ? 'https://backend-v113.testnet.alephium.org'
-      : 'https://backend-v113.mainnet.alephium.org'
+  return network === 'devnet' ? 'http://localhost:9090' : import.meta.env.VITE_ALPH_EXPLORER_BACKEND
 }
 
 export interface MarketplaceConfig {
@@ -334,19 +337,20 @@ export interface MarketplaceConfig {
 
 export function getMarketplaceConfig(): MarketplaceConfig {
   const network = import.meta.env.VITE_NETWORK_ID
-  const settings = loadSettings(network as NetworkId)
-  const deployments = loadDeployments(network as NetworkId)
-  const marketPlace = deployments.contracts.LendingMarketplace.contractInstance
-  const groupIndex = marketPlace.groupIndex
-  const marketplaceAdminAddress = deployments.deployerAddress
+  const deployerAddress = import.meta.env.VITE_DEPLOYER_ADDRESS
+  const lendingEnabled = import.meta.env.VITE_P2P_LENDING_ENABLED === 'true'
+  const deployments = lendingEnabled ? loadDeployments(network as NetworkId, deployerAddress) : null
+  const marketPlace = deployments?.contracts.LendingMarketplace.contractInstance
+  const groupIndex = marketPlace?.groupIndex ?? 0
+  const marketplaceAdminAddress = deployments?.deployerAddress ?? ''
   return {
     network,
     groupIndex,
     marketplaceAdminAddress,
-    marketplaceContractId: marketPlace.contractId,
-    marketplaceContractAddress: marketPlace.address,
-    nftTemplateId: deployments.contracts.LendingOffer.contractInstance.contractId,
-    fee: settings.fee,
+    marketplaceContractId: marketPlace?.contractId ?? '',
+    marketplaceContractAddress: marketPlace?.address ?? '',
+    nftTemplateId: deployments?.contracts.LendingOffer.contractInstance.contractId ?? '',
+    fee: lendingFee,
     defaultNodeUrl: getDefaultNodeUrl(),
     defaultExplorerUrl: getDefaultExplorerUrl()
   }

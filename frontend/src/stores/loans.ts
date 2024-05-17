@@ -1,22 +1,28 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Loan } from '@/types'
-import { useAccountStore } from '.'
-import { getMarketplaceConfig } from '@/config'
-import { addressFromContractId, binToHex, contractIdFromAddress, decodeEvent } from '@alephium/web3'
+import type { Activity, Loan } from '@/types'
+import { getMarketplaceConfig, getTokens } from '@/config'
+import { ContractEvent, addressFromContractId, decodeEvent, prettifyTokenAmount } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
+import { useNodeStore } from './node'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
   const _loans = ref<Array<Loan>>([])
+  const userLoans = ref<Array<Activity>>([])
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
+  const error = ref<string | undefined>()
 
-  const store = useAccountStore()
+  let events = Array<ContractEvent>()
+  let createdLoans = Array<Loan>()
+
+  const store = useNodeStore()
   const config = getMarketplaceConfig()
   const marketplaceAddress = addressFromContractId(config.marketplaceContractId)
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function getSubcontractsAddresses() {
     const page = 1
     const limit = 20
@@ -42,7 +48,7 @@ export const useLoanStore = defineStore('loans', () => {
   async function getMarketplaceEvents() {
     const start = 0
     const limit = 20
-    async function go(start: number, limit: number, events: any[]) {
+    async function go(start: number, limit: number, events: ContractEvent[]) {
       const contractEvents = await store.nodeProvider!.events.getEventsContractContractaddress(marketplaceAddress, {
         start,
         limit
@@ -50,56 +56,169 @@ export const useLoanStore = defineStore('loans', () => {
       if (contractEvents.events.length === 0) {
         return events
       } else {
-        events = [...events, ...contractEvents.events]
+        const decodedEvents = contractEvents.events.map((event) =>
+          decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
+        )
+        events = [...events, ...decodedEvents]
         return go(contractEvents.nextStart, limit, events)
       }
     }
     return go(start, limit, [])
   }
 
-  async function fetchLoans() {
+  async function getAvailableLoans() {
     isLoading.value = true
-    const result = await getSubcontractsAddresses()
-    const subcontracts = new Map<string, number>(result.map((e) => [binToHex(contractIdFromAddress(e)), 1]))
-    const events = await getMarketplaceEvents()
-    loans.value = events
-      .map((event) =>
-        decodeEvent(LendingMarketplace.contract, LendingMarketplace.at(marketplaceAddress), event, event.eventIndex)
-      )
-      .filter(
-        (event) => event.name === 'OfferCreated' && subcontracts.has(event.fields['lendingOfferContractId'] as string)
-      )
-      .map((event) => {
-        return {
-          loanId: event.fields['lendingOfferContractId'] as string,
-          lender: event.fields['lender'] as string,
-          borrower: undefined,
-          loanToken: event.fields['lendingTokenId'] as string,
-          loanAmount: event.fields['lendingAmount'],
-          interest: event.fields['interestRate'] as bigint,
-          collateralToken: event.fields['collateralTokenId'] as string,
-          collateralAmount: event.fields['collateralAmount'] as bigint,
-          created: 0,
-          startDate: undefined,
-          duration: event.fields['duration'] as bigint
-        } as Loan
-      })
-    _loans.value = loans.value
+    await getLoans()
+    events = await getMarketplaceEvents()
+    const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
+    const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
+    const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
+    const active = events.filter((e) => e.name === 'LoanAccepted').map((e) => e.fields['loanId'] as String)
+    const closed = new Set([...cancelled, ...paid, ...liquidated, ...active])
+    const availableLoans = createdLoans.filter((loan) => !closed.has(loan.contractId))
+    loans.value = availableLoans
+    _loans.value = availableLoans
+    isLoading.value = false
+    return availableLoans
+  }
+
+  async function getLoansForUser(address: string) {
+    isLoading.value = true
+    if (loans.value.length === 0) {
+      await getAvailableLoans()
+    }
+    const tokenList = getTokens()
+    for (const i in loans.value) {
+      const loanExists = userLoans.value.findIndex((e) => e.id === Number(loans.value[i].id))
+      if (loans.value[i].borrower === address || loans.value[i].lender === address) {
+        if (loanExists === -1) {
+          const loanToken = tokenList.find((e) => e.contractId === loans.value[i].loanToken)
+          const collateralToken = tokenList.find((e) => e.contractId === loans.value[i].collateralToken)
+          userLoans.value.push({
+            type: 'Loan',
+            contractId: loans.value[i].contractId,
+            duration: Number(loans.value[i].duration),
+            remaining: getDueDate(loans.value[i]),
+            id: Number(loans.value[i].id),
+            offerToken: loanToken?.symbol!,
+            offerAmount: parseFloat(prettifyTokenAmount(loans.value[i].loanAmount, loanToken!.decimals)!),
+            requestToken: collateralToken?.symbol!,
+            requestAmount: parseFloat(prettifyTokenAmount(loans.value[i].collateralAmount, collateralToken!.decimals)!),
+            status: loans.value[i].borrower ? 'Active' : 'Open',
+            created: loans.value[i].created,
+            counterParty: loans.value[i].borrower
+          })
+        }
+      }
+    }
     isLoading.value = false
   }
 
-  function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
-    if (loanToken != undefined) {
-      loans.value = _loans.value.filter((e) => e.loanToken === loanToken)
-    } else if (collateralToken != undefined) {
-      loans.value = _loans.value.filter((e) => e.collateralToken === collateralToken)
-    } else if (durationDays != undefined) {
-      if (durationDays === 1) {
-        loans.value = _loans.value.filter((e) => e.duration <= 7)
-      } else {
-        loans.value = _loans.value.filter((e) => e.duration > durationDays)
-      }
+  function resetUserLoans() {
+    userLoans.value = []
+  }
+
+  function getDueDate(loan: Loan) {
+    const dueTimestamp = loan.created + Number(loan.duration) * 24 * 60 * 60 * 1000
+    const diff = dueTimestamp - Date.now()
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+    const hours = Math.floor(diff / (60 * 60 * 1000)) % 24
+    if (days > 0) {
+      return `${days} days`
+    } else if (days === 0 && hours > 0) {
+      return `${hours} hours`
     } else {
+      return 0
+    }
+  }
+
+  async function getLoans(marketplaceEvents?: ContractEvent[]) {
+    try {
+      if (!marketplaceEvents) {
+        events = await getMarketplaceEvents()
+      } else {
+        events = marketplaceEvents
+      }
+      const loans = events
+        .filter((event) => event.name === 'LoanDetails')
+        .map((event) => {
+          return {
+            id: event.fields['id'] as bigint,
+            contractId: event.fields['loanId'] as string,
+            lender: event.fields['lender'] as string,
+            borrower: undefined,
+            loanToken: event.fields['lendingTokenId'] as string,
+            loanAmount: event.fields['lendingAmount'],
+            interest: event.fields['interestRate'] as bigint,
+            collateralToken: event.fields['collateralTokenId'] as string,
+            collateralAmount: event.fields['collateralAmount'] as bigint,
+            created: 0,
+            startDate: undefined,
+            duration: event.fields['duration'] as bigint
+          } as Loan
+        })
+
+      const loanCreatedEvents = new Map(
+        events.filter((event) => event.name === 'LoanCreated').map((event) => [event.fields['loanId'], event])
+      )
+      const loanAcceptedEvents = new Map(
+        events.filter((event) => event.name === 'LoanAccepted').map((event) => [event.fields['loanId'], event])
+      )
+      loans.forEach((loan) => {
+        const createdEvent = loanCreatedEvents.get(loan.contractId)
+        if (createdEvent) {
+          loan.created = Number(createdEvent.fields['timestamp'] as bigint)
+          loan.id = createdEvent.fields['id'] as bigint
+        }
+        const acceptedEvent = loanAcceptedEvents.get(loan.contractId)
+        if (acceptedEvent) {
+          loan.borrower = acceptedEvent.fields['by'] as string
+          loan.startDate = Number(acceptedEvent.fields['timestamp'] as bigint)
+        }
+      })
+      createdLoans = loans
+      return loans
+    } catch (e) {
+      isLoading.value = false
+      error.value = 'Error fetching loans. Please try again later.'
+      return []
+    }
+  }
+
+  async function getLoan(contractId: string) {
+    isLoading.value = true
+    if (!createdLoans.length) {
+      await getLoans()
+    }
+    isLoading.value = false
+    return createdLoans.find((e) => e.contractId === contractId)
+  }
+
+  async function getLoanEvents(contractId: string, refresh = false) {
+    isLoading.value = true
+    if (!events.length || refresh) {
+      events = await getMarketplaceEvents()
+    }
+    isLoading.value = false
+    return events.filter((e) => e.fields['loanId'] === contractId).filter((e) => e.name !== 'LoanDetails')
+  }
+
+  function filterLoans(loanToken?: string, collateralToken?: string, durationDays?: number) {
+    loans.value = _loans.value
+    if (loanToken != undefined) {
+      loans.value = loans.value.filter((e) => e.loanToken === loanToken)
+    }
+    if (collateralToken != undefined) {
+      loans.value = loans.value.filter((e) => e.collateralToken === collateralToken)
+    }
+    if (durationDays != undefined) {
+      if (durationDays === 1) {
+        loans.value = loans.value.filter((e) => e.duration <= 7)
+      } else {
+        loans.value = loans.value.filter((e) => e.duration > durationDays)
+      }
+    }
+    if (!loanToken && !collateralToken && !durationDays) {
       loans.value = _loans.value
     }
   }
@@ -132,14 +251,13 @@ export const useLoanStore = defineStore('loans', () => {
       sortUpDown.value = category === 'interest' ? 'down' : 'up'
     }
     loans.value.sort((a, b) => {
-      // if (sortCategory.value === 'loanId') {
-      //   if (sortUpDown.value === 'up') {
-      //     return a.loanId - b.loanId
-      //   } else {
-      //     return b.loanId - a.loanId
-      //   }
-      // } else
-      if (sortCategory.value === 'loanAmount') {
+      if (sortCategory.value === 'id') {
+        if (sortUpDown.value === 'up') {
+          return compareBigInt(a.id, b.id, true)
+        } else {
+          return compareBigInt(b.id, a.id, false)
+        }
+      } else if (sortCategory.value === 'loanAmount') {
         if (sortUpDown.value === 'up') {
           return compareBigInt(a.loanAmount, b.loanAmount, true)
         } else {
@@ -169,7 +287,21 @@ export const useLoanStore = defineStore('loans', () => {
     })
   }
 
-  fetchLoans()
-
-  return { filterLoans, loans, sortLoans, sortCategory, fetchLoans, isLoading }
+  return {
+    filterLoans,
+    loans,
+    userLoans,
+    error,
+    sortLoans,
+    sortCategory,
+    getAvailableLoans,
+    isLoading,
+    getLoanEvents,
+    getLoan,
+    getLoans,
+    getLoansForUser,
+    getMarketplaceEvents,
+    getDueDate,
+    resetUserLoans
+  }
 })

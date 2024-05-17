@@ -16,7 +16,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="flex flex-row w-full items-center justify-between py-[14px] px-[19px]">
+  <div class="flex flex-row w-full items-center justify-between py-[14px] px-[19px] hover:bg-core-lightest">
     <p>{{ props.item }} {{ props.description }}</p>
     <font-awesome-icon
       :icon="['fal', 'circle-check']"

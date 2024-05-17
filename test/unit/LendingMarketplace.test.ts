@@ -9,7 +9,7 @@ import {
   ContractState,
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf } from '../../shared/utils'
@@ -174,8 +174,10 @@ describe('LendingMarketplace', () => {
     })
 
     it('creates a lending offer', async () => {
+      const blockTimeStamp = Date.now()
+      const totalLoans = 1n
       const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: fixture.selfState.fields,
+        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -191,11 +193,14 @@ describe('LendingMarketplace', () => {
           collateralAmount,
           interestRate,
           duration
-        }
+        },
+        blockTimeStamp
       })
-      expect(testResult.events.length).toEqual(2)
-      const offerCreatedEvent = testResult.events.find((e) => e.name === 'OfferCreated') as LendingMarketplaceTypes.OfferCreatedEvent
-      expect(offerCreatedEvent.fields).toEqual({
+
+      expect(testResult.events.length).toEqual(3)
+      const loanDetailsEvent = testResult.events.find((e) => e.name === 'LoanDetails') as LendingMarketplaceTypes.LoanDetailsEvent
+      expect(loanDetailsEvent.fields).toEqual({
+        loanId: binToHex(contractIdFromAddress(testResult.returns)),
         lendingTokenId,
         collateralTokenId,
         lendingAmount,
@@ -203,11 +208,19 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender: lender.address,
-        lendingOfferContractId: binToHex(contractIdFromAddress(testResult.returns))
+      })
+
+      const loanCreatedEvent = testResult.events.find((e) => e.name === 'LoanCreated') as LendingMarketplaceTypes.LoanCreatedEvent
+      expect(loanCreatedEvent.fields).toEqual({
+        loanId: binToHex(contractIdFromAddress(testResult.returns)),
+        id: totalLoans,
+        by: lender.address,
+        timestamp: BigInt(blockTimeStamp)
       })
 
       const lendingOfferState = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
       expect(lendingOfferState.fields).toEqual({
+        id: totalLoans,
         lender: lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -217,16 +230,17 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         borrower: lender.address,
-        loanTimeStamp: 0n
+        loanTimeStamp: BigInt(Math.floor(blockTimeStamp / 1000))
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(1n)
+      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
     })
 
     it('lending offers counter is incremented by one', async () => {
+      const totalLoans = 1n
       const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: { ...fixture.selfState.fields, totalLendingOffers: 1n },
+        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -245,7 +259,7 @@ describe('LendingMarketplace', () => {
         }
       })
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(2n)
+      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
     })
 
     it('fails if the interest calculation overflows', async () => {
@@ -334,11 +348,11 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         }
       })
-      const offerCancelledEvent = testResult.events.find((e) => e.name === 'OfferCancelled') as LendingMarketplaceTypes.OfferCancelledEvent
-      expect(offerCancelledEvent.fields.offerId).toEqual(offer.contractId)
+      const loanCancelledEvent = testResult.events.find((e) => e.name === 'LoanCancelled') as LendingMarketplaceTypes.LoanCancelledEvent
+      expect(loanCancelledEvent.fields.loanId).toEqual(offer.contractId)
       const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
       expect(contractDestroyedEvent?.fields['address']).toEqual(offer.address)
     })
@@ -369,7 +383,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         }
       })
       expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
@@ -401,7 +415,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: randomContractId()
+          loanId: randomContractId()
         }
       })
       await expect(testResult).rejects.toThrow(Error)
@@ -475,7 +489,7 @@ describe('LendingMarketplace', () => {
       expect(testResult).rejects.toThrowError(error)
     })
 
-    it('borrower receives tokens, collateral is locked, emits LoanStarted event', async () => {
+    it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
       const offer = createLendingOffer(lender.address, lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -489,7 +503,7 @@ describe('LendingMarketplace', () => {
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }]},
         marketplace
       )
-
+      const blockTimeStamp = Math.floor(Date.now())
       const testResult = await LendingMarketplace.tests.borrow({
         initialFields: marketplace.selfState.fields,
         address: marketplace.address,
@@ -502,11 +516,13 @@ describe('LendingMarketplace', () => {
         ],
         testArgs: {
           offerId: offer.contractId
-        }
+        },
+        blockTimeStamp
       })
-      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanStarted') as LendingMarketplaceTypes.LoanStartedEvent
+      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanAccepted') as LendingMarketplaceTypes.LoanAcceptedEvent
       expect(loanStartedEvent.fields.loanId).toEqual(offer.contractId)
-      expect(loanStartedEvent.fields.borrower).toEqual(borrower.address)
+      expect(loanStartedEvent.fields.by).toEqual(borrower.address)
+      expect(loanStartedEvent.fields.timestamp).toEqual(BigInt(blockTimeStamp))
       const contractBalance = testResult.txOutputs[0]
       expect(contractBalance.tokens![0]).toEqual({
         id: collateralTokenId,
@@ -546,30 +562,15 @@ describe('LendingMarketplace', () => {
         { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
         marketplace
       )
-      const loanTimeStamp = NOW
-      const result = await LendingOffer.tests.calculateInterestPayment({
-        initialFields: { ...offer.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
-        initialAsset: offer.selfState.asset,
-        address: offer.address,
-        existingContracts: offer.dependencies,
-        testArgs: {
-          currentBlockTimeStamp: BigInt(NOW),
-          loanTimestamp: BigInt(loanTimeStamp),
-          amount: offer.selfState.fields.lendingAmount,
-          interest: offer.selfState.fields.interestRate,
-          days: offer.selfState.fields.duration
-        }
-      })
-      const interestPayment = result.returns
+      const interest = (lendingAmount * interestRate * duration) / 10000n
       const testResult = await LendingMarketplace.tests.paybackLoan({
         initialFields: marketplace.selfState.fields,
         address: marketplace.address,
-        //blockTimeStamp: NOW,
         existingContracts: offer.states(),
         inputAssets: [
           {
             address: borrower.address,
-            asset: { alphAmount: ONE_ALPH, tokens: [ { id: lendingTokenId, amount: lendingAmount + interestPayment }] }
+            asset: { alphAmount: ONE_ALPH, tokens: [ { id: lendingTokenId, amount: lendingAmount + interest }] }
           }
         ],
         testArgs: {

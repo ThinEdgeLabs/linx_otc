@@ -20,8 +20,8 @@ function calculateResult() {
 </script>
 
 <template>
-  <section class="w-full flex flex-col bg-menu p-[30px] space-y-[20px] rounded-lg leading-snug">
-    <SectionTitle :title="`Preview P2P Swap`" :description="'Some useles lorum ipsum'" />
+  <section class="w-full flex flex-col bg-menu px-[10px] py-[30px] lg:p-[30px] space-y-[20px] rounded-lg leading-snug">
+    <SectionTitle :title="`Preview P2P Swap`" :description="''" />
     <div class="flex flex-col w-full space-y-[20px]">
       <div class="w-full bg-core-darkest p-[10px] flex flex-row justify-between items-center rounded-lg">
         <div class="flex flex-row space-x-[10px] item-center">

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { dummyActivity } from '@/dummyData'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import ActivityStatus from './ActivityStatus.vue'
 import ActivityFromToVue from './ActivityFromTo.vue'
@@ -7,28 +6,42 @@ import { shortenString } from '@/functions/stringUtils'
 import CustomButton from '../CustomButton.vue'
 import type { Activity } from '@/types'
 import ActivityID from './ActivityID.vue'
-import { ref } from 'vue'
-import ManageActivity from './ManageActivity.vue'
+import { onMounted } from 'vue'
+import { useLoanStore } from '@/stores/loans'
+import { useAccountStore } from '@/stores'
 
-defineEmits<{
-  (e: 'update:editActivity', activity: Activity): void
-}>()
+const loanStore = useLoanStore()
+const accountStore = useAccountStore()
 
-const activities = dummyActivity
+onMounted(async () => {
+  if (accountStore.account) {
+    await loanStore.getLoansForUser(accountStore.account.address)
+  }
+})
 
 function getButtonTitle(activity: Activity): string {
   if (activity.status === 'Open') {
     return 'Delete'
   } else if (activity.status === 'Expired') {
     return 'Claim'
-  } else {
+  } else if (activity.counterParty === accountStore.account?.address) {
     return 'Payback'
+  } else {
+    return 'View'
   }
 }
 </script>
 
 <template>
-  <div v-if="activities.length === 0" class="flex flex-col w-full h-full py-[15%] items-center">
+  <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px] pt-[30px]">
+    <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
+    <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
+  </section>
+  <div
+    v-if="!loanStore.isLoading && loanStore.userLoans.length === 0"
+    class="flex flex-col w-full h-full py-[15%] items-center"
+  >
+    <font-awesome-icon :icon="['fat', 'bell']" class="text-[38px] text-accent-3 pb-[30px]" />
     <div class="text-[22px] font-extrabold text-core-lightest">No active trades or loans</div>
     <div class="pb-[30px] text-core-light text-[14px]">Create a new loan or trade</div>
   </div>
@@ -38,9 +51,9 @@ function getButtonTitle(activity: Activity): string {
       <div class="text-[14px] text-core-light">All your current activity in one page</div>
     </div>
     <HorizontalDivider />
-    <div v-for="activity in activities" v-bind:key="activity.id">
+    <div v-for="activity in loanStore.userLoans" v-bind:key="activity.id">
       <div
-        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
+        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:px-[20px] lg:space-x-[30px] space-y-[20px] lg:space-y-0 group lg:hover:bg-core-darkest"
       >
         <div class="w-full flex flex-row justify-between items-center">
           <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
@@ -63,9 +76,8 @@ function getButtonTitle(activity: Activity): string {
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
             <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
-              {{ activity.remaining }}
+              {{ activity.status === 'Open' ? `${activity.duration} days` : activity.remaining }}
             </div>
-            <div class="text-core-light">DAYS</div>
           </div>
         </div>
         <div v-else class="w-full hidden lg:flex flex-col" :class="activity.counterParty ? 'visible' : 'invisible'">
@@ -75,11 +87,17 @@ function getButtonTitle(activity: Activity): string {
           </div>
         </div>
         <CustomButton
-          :class="activity.status != 'Pending' ? 'w-full lg:max-w-[134px] visible ' : 'invisible'"
+          :class="
+            activity.status != 'Pending'
+              ? activity.status === 'Open'
+                ? 'w-full lg:max-w-[134px] visible group-hover:bg-danger group-hover:text-core-lightest'
+                : 'w-full lg:max-w-[134px] visible group-hover:bg-accent-3'
+              : 'invisible'
+          "
           :title="getButtonTitle(activity)"
           :open="activity.status === 'Active' || activity.status === 'Open'"
           :delete="activity.status === 'Open'"
-          @click="$emit('update:editActivity', activity)"
+          @click="$router.push(`/lending/${activity.contractId}?return=dashboard`)"
         />
       </div>
       <HorizontalDivider />

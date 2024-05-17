@@ -93,6 +93,8 @@ describe('LendingOffer', () => {
 
   describe('take', () => {
     it('borrower provides collateral and receives the token', async () => {
+      const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
+
       fixture = createLendingOffer(
         lender.address,
         lendingTokenId,
@@ -102,7 +104,9 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender.address
+        lender.address,
+        undefined,
+        loanTimeStamp
       )
 
       const testResult = await LendingOffer.tests.take({
@@ -117,14 +121,14 @@ describe('LendingOffer', () => {
         callerAddress: marketplace.address,
         testArgs: { caller: borrower.address },
         address: fixture.address,
-        existingContracts: fixture.dependencies
+        existingContracts: fixture.dependencies,
       })
 
       const state = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
-      expect(state.fields.loanTimeStamp).toBeGreaterThan(0n)
+      expect(state.fields.loanTimeStamp).toEqual(loanTimeStamp)
     })
 
     it('fails if borrower provides less collateral', async () => {
@@ -318,9 +322,6 @@ describe('LendingOffer', () => {
   })
 
   describe('payback', () => {
-    const ONE_DAY = 86400
-    const NOW = Math.floor(Date.now() / 1000)
-
     it('lender receives the token + interest, borrower gets the collateral and loan is terminated', async () => {
       fixture = createLendingOffer(
         lender.address,
@@ -333,31 +334,14 @@ describe('LendingOffer', () => {
         duration,
         borrower.address
       )
-      const loanTimeStamp = NOW - ONE_DAY
-      const testResult = await LendingOffer.tests.calculateInterestPayment({
-        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
-        initialAsset: fixture.selfState.asset,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        testArgs: {
-          currentBlockTimeStamp: BigInt(NOW),
-          loanTimestamp: BigInt(loanTimeStamp),
-          amount: fixture.selfState.fields.lendingAmount,
-          interest: fixture.selfState.fields.interestRate,
-          days: fixture.selfState.fields.duration
-        }
-      })
-
-      const interestPayment = testResult.returns
-      expect(interestPayment).toEqual(6666666666666666666n)
-
+      const interestPayment = lendingAmount * interestRate / 10000n
       const paybackResult = await LendingOffer.tests.payback({
-        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
+        initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
           {
             address: borrower.address,
-            asset: { alphAmount: 10n ** 18n, tokens: [{ id: lendingTokenId, amount: lendingAmount + interestPayment + DUST_AMOUNT }] }
+            asset: { alphAmount: 10n ** 18n, tokens: [{ id: lendingTokenId, amount: lendingAmount + interestPayment }] }
           }
         ],
         address: fixture.address,
@@ -372,7 +356,11 @@ describe('LendingOffer', () => {
       const lenderReceivesTokens = lenderReceives[0].tokens?.find((t) => t.id === lendingTokenId)
       expect(lenderReceivesTokens?.amount).toBeGreaterThanOrEqual(lendingAmount + interestPayment)
       const borrowerReceives = paybackResult.txOutputs.filter((o) => o.address === borrower.address)
-      //TODO: check borrower receives collateral
+      const returnedCollateral = borrowerReceives[0].tokens![0]
+      expect(returnedCollateral).toEqual({
+        id: collateralTokenId,
+        amount: collateralAmount
+      })
     })
   })
 })
