@@ -88,7 +88,11 @@ function getButtonTitle(activity: Activity): string {
         </div>
         <CustomButton
           :class="
-            activity.status != 'Pending' ? 'w-full lg:max-w-[134px] visible group-hover:bg-accent-3' : 'invisible'
+            activity.status != 'Pending'
+              ? activity.status === 'Open'
+                ? 'w-full lg:max-w-[134px] visible group-hover:bg-danger group-hover:text-core-lightest'
+                : 'w-full lg:max-w-[134px] visible group-hover:bg-accent-3'
+              : 'invisible'
           "
           :title="getButtonTitle(activity)"
           :open="activity.status === 'Active' || activity.status === 'Open'"
