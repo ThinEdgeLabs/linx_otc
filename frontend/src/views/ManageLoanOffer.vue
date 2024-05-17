@@ -25,6 +25,7 @@ import router from '@/router'
 import { storeToRefs } from 'pinia'
 import LoanHistory from '@/components/lending/LoanHistory.vue'
 import WalletButton from '@/components/WalletButton.vue'
+import { useValidateGroup } from '@/composables/validateGroup'
 
 const route = useRoute()
 const contractId = route.params.loan as string
@@ -94,6 +95,9 @@ function calculateReceivedAmount(loan: Loan) {
 }
 
 async function borrow() {
+  if ((await useValidateGroup()) === false) {
+    return
+  }
   const config = getMarketplaceConfig()
   const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
   marketplace.contractId = config.marketplaceContractId

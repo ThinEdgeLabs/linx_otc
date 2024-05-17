@@ -66,5 +66,17 @@ export const useAccountStore = defineStore('account', () => {
     orderStore.resetOrder()
   }
 
-  return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect }
+  function reconnect() {
+    const wallet = account.value?.wallet
+    disconnect()
+    if (wallet === 'Extension') {
+      const extension = useExtensionStore()
+      extension.connectExtension()
+    } else if (wallet === 'WalletConnect') {
+      const wc = useWalletConnectStore()
+      wc.connectWalletConnect()
+    }
+  }
+
+  return { account, explorerProvider, nodeProvider, signer, setAccount, disconnect, reconnect }
 })

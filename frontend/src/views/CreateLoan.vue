@@ -21,6 +21,7 @@ import type { Status } from '../components/ApproveWallet.vue'
 import { convertAmountWithDecimals, type SignerProvider } from '@alephium/web3'
 import { usePopUpStore } from '../stores/popup'
 import router from '@/router'
+import { useValidateGroup } from '@/composables/validateGroup'
 
 const loanOfferStore = useLoanOrderStore()
 const accountStore = useAccountStore()
@@ -41,6 +42,9 @@ onMounted(() => {
 })
 
 async function createLoan() {
+  if ((await useValidateGroup()) === false) {
+    return
+  }
   if (
     loanOfferStore.order?.collateralAmount &&
     loanOfferStore.order?.collateralToken &&
