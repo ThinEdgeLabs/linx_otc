@@ -23,12 +23,13 @@ function showWarningPopUp() {
   popUpStore.setPopUp({
     title: `You are about to delete ${props.activity.type} offer #${props.activity.id}`,
     type: 'warning',
-    message: ['\bAfter deleting there is no more way back and the offer will be destroyed.'],
+    message: ['\bThis action cannot be undone. The offer will be permanently deleted.'],
     onAcknowledged: agreeDelete,
     onCancel: popUpStore.closePopUp,
     showTerms: false,
     leftButtonTitle: 'Yes, Delete this',
-    rightButtonTitle: 'Cancel'
+    rightButtonTitle: 'Cancel',
+    showIcon: true
   })
 }
 

@@ -85,7 +85,8 @@ async function createTrade() {
         leftButtonTitle: 'OK',
         type: 'warning',
         message: apiErrorHandler(e as string),
-        showTerms: false
+        showTerms: false,
+        showIcon: true
       })
       status.value = 'denied'
     }
@@ -96,7 +97,8 @@ async function createTrade() {
       leftButtonTitle: 'OK',
       type: 'warning',
       message: createErrorMessage(),
-      showTerms: false
+      showTerms: false,
+      showIcon: true
     })
   }
 }

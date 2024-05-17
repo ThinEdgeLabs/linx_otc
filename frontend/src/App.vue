@@ -27,11 +27,11 @@ onMounted(async () => {
   const hasApproved = localStorage.getItem('approveTerms')
   if (!hasApproved || hasApproved != deploymentNetwork) {
     popUpStore.setPopUp({
-      title: 'Welcome to LinxOTC',
+      title: 'Welcome to Linx OTC',
       type: 'warning',
       message: [
-        'Please be aware that LinxOTC is still in the BETA stage. This means there can be bugs, errors, and, even though we strive to deliver a safe DApp, contracts could potentially become compromised, which can result in losing all your funds.',
-        '\bLinxOTC is currently on TESTNET',
+        'Please be aware that Linx OTC is still in the BETA stage. This means there can be bugs, errors, and, even though we strive to deliver a safe DApp, contracts could potentially become compromised, which can result in losing all your funds.',
+        '\bLinx OTC is currently on TESTNET',
         '\bUse this DApp at your own risk'
       ],
       showTerms: true,

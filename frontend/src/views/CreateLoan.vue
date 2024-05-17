@@ -87,9 +87,10 @@ async function createLoan() {
       title: "Can't complete the loan offer",
       onAcknowledged: popUpStore.closePopUp,
       leftButtonTitle: 'OK',
-      type: 'warning',
       message: createErrorMessage(),
-      showTerms: false
+      showTerms: false,
+      showIcon: true,
+      type: 'warning'
     })
   }
 }
