@@ -51,7 +51,7 @@ menuItems.push(
 )
 
 function goToDocs() {
-  window.open('https://linx-labs.gitbook.io/linxotc-testnet/', '_blank')
+  window.open('https://linx-labs.gitbook.io/linxotc/v/p2p-trades-on-linxotc', '_blank')
 }
 </script>
 
