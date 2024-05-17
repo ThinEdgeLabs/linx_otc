@@ -10,6 +10,10 @@ import OrderTypeSelector from '@/components/activity/OrderTypeSelector.vue'
 const { filteredEvents, isLoading, error, setTypeFilter } = useActivity()
 const accountStore = useAccountStore()
 const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
+
+function openInExplorer(txId: string) {
+  window.open(`${explorerUrl}/transactions/${txId}`, '_blank')
+}
 </script>
 
 <template>
@@ -72,7 +76,12 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
 
           </div> -->
         </div>
-        <div class="space-y-4" v-for="event in filteredEvents" v-bind:key="event.txId">
+        <div
+          class="space-y-4"
+          v-for="event in filteredEvents"
+          v-bind:key="event.txId"
+          @click="openInExplorer(event.txId)"
+        >
           <div class="group lg:hover:bg-core-darkest cursor-pointer">
             <div class="grid lg:grid-cols-4 grid-cols-3 gap-x-1 items-stretch py-[10px] lg:p-[20px]">
               <div class="col-span-2 lg:col-span-1 flex flex-row items-center text-[16px]">
@@ -98,8 +107,6 @@ const explorerUrl = import.meta.env.VITE_ALPH_EXPLORER as string
               <div class="lg:flex hidden grow items-center">
                 <a
                   class="invisible group-hover:visible py-[10px] px-[20px] rounded-[20px] text-[16px] justify-center items-center bg-gradient-to-r from-accent-1 to-accent-2 text-white hover:bg-none hover:bg-accent-2"
-                  v-bind:href="`${explorerUrl}/transactions/${event.txId}`"
-                  target="_blank"
                   >View in explorer</a
                 >
               </div>

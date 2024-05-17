@@ -1,14 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Loan } from '@/types'
-import { getMarketplaceConfig } from '@/config'
-import { ContractEvent, addressFromContractId, decodeEvent } from '@alephium/web3'
+import type { Activity, Loan } from '@/types'
+import { getMarketplaceConfig, getTokens } from '@/config'
+import { ContractEvent, addressFromContractId, decodeEvent, prettifyTokenAmount } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 import { useNodeStore } from './node'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
   const _loans = ref<Array<Loan>>([])
+  const userLoans = ref<Array<Activity>>([])
   const sortCategory = ref('loanId')
   const sortUpDown = ref('up')
   const isLoading = ref<boolean>(false)
@@ -78,6 +79,56 @@ export const useLoanStore = defineStore('loans', () => {
     _loans.value = availableLoans
     isLoading.value = false
     return availableLoans
+  }
+
+  async function getLoansForUser(address: string) {
+    isLoading.value = true
+    if (loans.value.length === 0) {
+      await getAvailableLoans()
+    }
+    const tokenList = getTokens()
+    for (const i in loans.value) {
+      const loanExists = userLoans.value.findIndex((e) => e.id === Number(loans.value[i].id))
+      if (loans.value[i].borrower === address || loans.value[i].lender === address) {
+        if (loanExists === -1) {
+          const loanToken = tokenList.find((e) => e.contractId === loans.value[i].loanToken)
+          const collateralToken = tokenList.find((e) => e.contractId === loans.value[i].collateralToken)
+          userLoans.value.push({
+            type: 'Loan',
+            contractId: loans.value[i].contractId,
+            duration: Number(loans.value[i].duration),
+            remaining: getDueDate(loans.value[i]),
+            id: Number(loans.value[i].id),
+            offerToken: loanToken?.symbol!,
+            offerAmount: parseFloat(prettifyTokenAmount(loans.value[i].loanAmount, loanToken!.decimals)!),
+            requestToken: collateralToken?.symbol!,
+            requestAmount: parseFloat(prettifyTokenAmount(loans.value[i].collateralAmount, collateralToken!.decimals)!),
+            status: loans.value[i].borrower ? 'Active' : 'Open',
+            created: loans.value[i].created,
+            counterParty: loans.value[i].borrower
+          })
+        }
+      }
+    }
+    isLoading.value = false
+  }
+
+  function resetUserLoans() {
+    userLoans.value = []
+  }
+
+  function getDueDate(loan: Loan) {
+    const dueTimestamp = loan.created + Number(loan.duration) * 24 * 60 * 60 * 1000
+    const diff = dueTimestamp - Date.now()
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+    const hours = Math.floor(diff / (60 * 60 * 1000)) % 24
+    if (days > 0) {
+      return `${days} days`
+    } else if (days === 0 && hours > 0) {
+      return `${hours} hours`
+    } else {
+      return 0
+    }
   }
 
   async function getLoans(marketplaceEvents?: ContractEvent[]) {
@@ -238,6 +289,7 @@ export const useLoanStore = defineStore('loans', () => {
   return {
     filterLoans,
     loans,
+    userLoans,
     error,
     sortLoans,
     sortCategory,
@@ -246,6 +298,9 @@ export const useLoanStore = defineStore('loans', () => {
     getLoanEvents,
     getLoan,
     getLoans,
-    getMarketplaceEvents
+    getLoansForUser,
+    getMarketplaceEvents,
+    getDueDate,
+    resetUserLoans
   }
 })

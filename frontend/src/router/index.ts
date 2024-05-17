@@ -21,11 +21,11 @@ function getRoutes() {
       name: 'home',
       component: HomeView
     },
-    // {
-    //   path: '/dashboard',
-    //   name: 'dashboard',
-    //   component: DashboardView
-    // },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardView
+    },
     {
       path: '/activity',
       name: 'activity',

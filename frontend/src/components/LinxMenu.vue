@@ -16,10 +16,10 @@ interface MenuItemType {
 }
 
 const menuItems: MenuItemType[] = [
-  // {
-  //   title: 'Dashboard',
-  //   destination: '/dashboard'
-  // },
+  {
+    title: 'Dashboard',
+    destination: '/dashboard'
+  }
 ]
 import.meta.env.VITE_P2P_TRADING_ENABLED === 'true' &&
   menuItems.push({

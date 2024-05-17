@@ -6,28 +6,41 @@ import { shortenString } from '@/functions/stringUtils'
 import CustomButton from '../CustomButton.vue'
 import type { Activity } from '@/types'
 import ActivityID from './ActivityID.vue'
-import { ref } from 'vue'
-import ManageActivity from './ManageActivity.vue'
+import { onMounted } from 'vue'
+import { useLoanStore } from '@/stores/loans'
+import { useAccountStore } from '@/stores'
 
-defineEmits<{
-  (e: 'update:editActivity', activity: Activity): void
-}>()
+const loanStore = useLoanStore()
+const accountStore = useAccountStore()
 
-const activities = ref<Activity[]>([])
+onMounted(async () => {
+  if (accountStore.account) {
+    await loanStore.getLoansForUser(accountStore.account.address)
+  }
+})
 
 function getButtonTitle(activity: Activity): string {
   if (activity.status === 'Open') {
     return 'Delete'
   } else if (activity.status === 'Expired') {
     return 'Claim'
-  } else {
+  } else if (activity.counterParty === accountStore.account?.address) {
     return 'Payback'
+  } else {
+    return 'View'
   }
 }
 </script>
 
 <template>
-  <div v-if="activities.length === 0" class="flex flex-col w-full h-full py-[15%] items-center">
+  <section v-if="loanStore.isLoading" class="justify-center items-center text-center space-y-[30px] pt-[30px]">
+    <p class="text-[30px] text-core-lightest font-extrabold">Loading...</p>
+    <font-awesome-icon :icon="['fal', 'spinner-third']" spin class="text-accent-3 text-[60px]" />
+  </section>
+  <div
+    v-if="!loanStore.isLoading && loanStore.userLoans.length === 0"
+    class="flex flex-col w-full h-full py-[15%] items-center"
+  >
     <div class="text-[22px] font-extrabold text-core-lightest">No active trades or loans</div>
     <div class="pb-[30px] text-core-light text-[14px]">Create a new loan or trade</div>
   </div>
@@ -37,7 +50,7 @@ function getButtonTitle(activity: Activity): string {
       <div class="text-[14px] text-core-light">All your current activity in one page</div>
     </div>
     <HorizontalDivider />
-    <div v-for="activity in activities" v-bind:key="activity.id">
+    <div v-for="activity in loanStore.userLoans" v-bind:key="activity.id">
       <div
         class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
       >
@@ -62,9 +75,8 @@ function getButtonTitle(activity: Activity): string {
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
             <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
-              {{ activity.remaining }}
+              {{ activity.status === 'Open' ? activity.duration : activity.remaining }}
             </div>
-            <div class="text-core-light">DAYS</div>
           </div>
         </div>
         <div v-else class="w-full hidden lg:flex flex-col" :class="activity.counterParty ? 'visible' : 'invisible'">
@@ -78,7 +90,7 @@ function getButtonTitle(activity: Activity): string {
           :title="getButtonTitle(activity)"
           :open="activity.status === 'Active' || activity.status === 'Open'"
           :delete="activity.status === 'Open'"
-          @click="$emit('update:editActivity', activity)"
+          @click="$router.push(`/lending/${activity.contractId}?return=dashboard`)"
         />
       </div>
       <HorizontalDivider />
