@@ -75,7 +75,7 @@ async function handleAddress(pubKey: string) {
       </div>
       <a
         v-if="!props.isSender && !orderStore.order?.to"
-        href="https://linx-labs.gitbook.io/linxotc-testnet/v/find-your-public-key"
+        href="https://linx-labs.gitbook.io/linxotc"
         target="_blank"
         class="text-accent-3 text-[10px]"
         >How to find the publickey</a
