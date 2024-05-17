@@ -73,7 +73,8 @@ export const useLoanStore = defineStore('loans', () => {
     const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
     const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
     const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
-    const closed = new Set([...cancelled, ...paid, ...liquidated])
+    const active = events.filter((e) => e.name === 'LoanAccepted').map((e) => e.fields['loanId'] as String)
+    const closed = new Set([...cancelled, ...paid, ...liquidated, ...active])
     const availableLoans = createdLoans.filter((loan) => !closed.has(loan.contractId))
     loans.value = availableLoans
     _loans.value = availableLoans
