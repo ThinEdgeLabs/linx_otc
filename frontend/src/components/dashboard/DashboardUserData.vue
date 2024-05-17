@@ -41,6 +41,7 @@ function getButtonTitle(activity: Activity): string {
     v-if="!loanStore.isLoading && loanStore.userLoans.length === 0"
     class="flex flex-col w-full h-full py-[15%] items-center"
   >
+    <font-awesome-icon :icon="['fat', 'bell']" class="text-[38px] text-accent-3 pb-[30px]" />
     <div class="text-[22px] font-extrabold text-core-lightest">No active trades or loans</div>
     <div class="pb-[30px] text-core-light text-[14px]">Create a new loan or trade</div>
   </div>
@@ -52,7 +53,7 @@ function getButtonTitle(activity: Activity): string {
     <HorizontalDivider />
     <div v-for="activity in loanStore.userLoans" v-bind:key="activity.id">
       <div
-        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:p-[30px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
+        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:px-[20px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
       >
         <div class="w-full flex flex-row justify-between items-center">
           <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
