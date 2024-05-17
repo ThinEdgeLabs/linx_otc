@@ -30,8 +30,7 @@ onMounted(async () => {
       title: 'Welcome to Linx OTC',
       type: 'warning',
       message: [
-        'Please be aware that Linx OTC is still in the BETA stage. This means there can be bugs, errors, and, even though we strive to deliver a safe DApp, contracts could potentially become compromised, which can result in losing all your funds.',
-        '\bLinx OTC is currently on TESTNET',
+        'Please be aware that Linx OTC is still in the BETA phase. This means there may be bugs and errors. Despite our efforts to deliver a safe DApp, contracts could potentially become compromised, which could result in the loss of all your funds.',
         '\bUse this DApp at your own risk'
       ],
       showTerms: true,
