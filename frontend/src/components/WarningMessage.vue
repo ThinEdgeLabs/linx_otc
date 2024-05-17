@@ -31,15 +31,14 @@ const props = defineProps({
       </p>
     </div>
 
-    <div class="flex flex-row justify-center items-center w-full mt-[40px]">
+    <div class="flex flex-col justify-center items-center w-full mt-[40px]">
       <CustomButton :title="props.popUp.leftButtonTitle" @click="props.popUp.onAcknowledged()" :class="'lg:w-full'" />
       <CustomButton
         v-if="props.popUp.onCancel"
         :title="props.popUp.rightButtonTitle"
-        :delete="true"
         :open="true"
         @click="props.popUp.onCancel()"
-        :class="'lg:w-full'"
+        :class="'lg:w-full mt-[20px]'"
       />
     </div>
     <AgreeToTerms v-if="props.popUp.showTerms" :class="'mt-[20px]'" />
