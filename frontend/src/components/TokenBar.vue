@@ -176,6 +176,10 @@ function onMaxButtonClick() {
             : 'You request'
       }}
     </div>
+    <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
+      <p class="text-core-light">Available</p>
+      <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
+    </div>
     <div class="relative w-full">
       <div
         @click="!selectedToken ? toggleDropDown() : null"
