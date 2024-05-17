@@ -53,7 +53,7 @@ function getButtonTitle(activity: Activity): string {
     <HorizontalDivider />
     <div v-for="activity in loanStore.userLoans" v-bind:key="activity.id">
       <div
-        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:px-[20px] lg:space-x-[30px] space-y-[20px] lg:space-y-0"
+        class="w-full flex flex-col lg:flex-row lg:items-center py-[20px] lg:px-[20px] lg:space-x-[30px] space-y-[20px] lg:space-y-0 group lg:hover:bg-core-darkest"
       >
         <div class="w-full flex flex-row justify-between items-center">
           <ActivityID :date="new Date(activity.created)" :id="activity.id" :type="activity.type" />
@@ -76,7 +76,7 @@ function getButtonTitle(activity: Activity): string {
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
             <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
-              {{ activity.status === 'Open' ? activity.duration : activity.remaining }}
+              {{ activity.status === 'Open' ? `${activity.duration} days` : activity.remaining }}
             </div>
           </div>
         </div>
@@ -87,7 +87,13 @@ function getButtonTitle(activity: Activity): string {
           </div>
         </div>
         <CustomButton
-          :class="activity.status != 'Pending' ? 'w-full lg:max-w-[134px] visible ' : 'invisible'"
+          :class="
+            activity.status != 'Pending'
+              ? activity.status === 'Open'
+                ? 'w-full lg:max-w-[134px] visible group-hover:bg-danger group-hover:text-core-lightest'
+                : 'w-full lg:max-w-[134px] visible group-hover:bg-accent-3'
+              : 'invisible'
+          "
           :title="getButtonTitle(activity)"
           :open="activity.status === 'Active' || activity.status === 'Open'"
           :delete="activity.status === 'Open'"
