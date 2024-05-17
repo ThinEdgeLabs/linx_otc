@@ -165,20 +165,22 @@ function onMaxButtonClick() {
 
 <template>
   <section :v-bind="checkSelectedLoanTokens" class="flex flex-col space-y-[10px] text-[14px] cursor-pointer">
-    <div class="font-extrabold text-core-light">
-      {{
-        props.isSender
-          ? props.offerType === 'loan'
-            ? 'You offer to lend'
-            : 'You offer'
-          : props.offerType === 'loan'
-            ? 'You want as collateral'
-            : 'You request'
-      }}
-    </div>
-    <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
-      <p class="text-core-light">Available</p>
-      <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
+    <div class="flex justify-between">
+      <div class="font-extrabold text-core-light">
+        {{
+          props.isSender
+            ? props.offerType === 'loan'
+              ? 'You offer to lend'
+              : 'You offer'
+            : props.offerType === 'loan'
+              ? 'You want as collateral'
+              : 'You request'
+        }}
+      </div>
+      <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
+        <p class="text-core-light">Available</p>
+        <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
+      </div>
     </div>
     <div class="relative w-full">
       <div
