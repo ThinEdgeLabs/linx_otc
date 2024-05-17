@@ -76,7 +76,7 @@ function getButtonTitle(activity: Activity): string {
           <div class="text-[10px] text-core-light">DURATION</div>
           <div class="flex flex-row items-center text-[14px] space-x-[4px]">
             <div class="font-extrabold" :class="activity.remaining === 0 ? 'text-danger' : 'text-core-lightest'">
-              {{ activity.status === 'Open' ? activity.duration : activity.remaining }}
+              {{ activity.status === 'Open' ? `${activity.duration} days` : activity.remaining }}
             </div>
           </div>
         </div>
