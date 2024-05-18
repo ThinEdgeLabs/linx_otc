@@ -8,13 +8,18 @@ import { useAccountStore } from '@/stores'
 import { usePopUpStore } from '@/stores/popup'
 import { ref } from 'vue'
 import ValidationError from './ValidationError.vue'
+import { getPubKeyFromAddress } from '@/functions/utils'
 
 const orderStore = useOrderStore()
 const account = useAccountStore()
 const popUpStore = usePopUpStore()
 
 const errorMessage = ref<string | undefined>(undefined)
+const pubKeyErrorMessage = ref<string | undefined>(undefined)
 const inputValue = ref<string>('')
+const inputPubKey = ref<string>('')
+const getPubKey = ref<boolean>(false)
+const addressGroup = ref<number | undefined>(undefined)
 
 const props = defineProps({
   isSender: {
@@ -23,23 +28,20 @@ const props = defineProps({
   }
 })
 
-function pasteAddress() {
+function pasteAddress(isAddress: boolean) {
   navigator.clipboard.readText().then((text) => {
     // TODO: Handle valid / invalid address
-    handleAddress(text)
+    if (isAddress) {
+      handleAddress(text)
+    } else {
+      handlePubKey(text)
+    }
   })
 }
 
-async function handleAddress(pubKey: string) {
-  if (pubKey.length === 66) {
-    errorMessage.value = undefined
+async function handleAddress(address: string) {
+  if (address.length === 45) {
     const nodeStore = useNodeStore()
-    const address = addressFromPublicKey(pubKey)
-    if (address === account.account?.address) {
-      errorMessage.value = 'You cannot trade with yourself'
-      inputValue.value = ''
-      return
-    }
     const group = await nodeStore.getGroupForAddress(address)
     if (group.group != account.account?.group) {
       popUpStore.setPopUp({
@@ -47,7 +49,7 @@ async function handleAddress(pubKey: string) {
         message: [
           'P2P trades can only be created between addresses in the same group.',
           `\bYour address is in Group ${account.account?.group}`,
-          `\bThe public key you entered is in Group ${group.group}`,
+          `\bThe address you entered is in Group ${group.group}`,
           'You can move your balance to the group of the counterparty or ask the counterparty to move his/her funds.'
         ],
         onAcknowledged: () => popUpStore.closePopUp(),
@@ -58,11 +60,42 @@ async function handleAddress(pubKey: string) {
       inputValue.value = ''
       errorMessage.value = undefined
       return
+    } else {
+      addressGroup.value = group.group
     }
-    orderStore.setReceiver(address, group.group, pubKey)
+    const pubKey = await getPubKeyFromAddress(address)
+    if (!pubKey) {
+      console.log('no public key found for address')
+      getPubKey.value = true
+      inputValue.value = address
+      errorMessage.value = 'Could not find public key, please ask for a public key for this address.'
+      return
+    } else {
+      errorMessage.value = undefined
+      orderStore.setReceiver(address, group.group, pubKey)
+    }
   } else {
-    inputValue.value = pubKey
-    errorMessage.value = 'Invalid PublicKey'
+    inputValue.value = address
+    errorMessage.value = 'Invalid Address'
+  }
+}
+
+async function handlePubKey(pubKey: string) {
+  if (pubKey.length === 66) {
+    const address = addressFromPublicKey(pubKey)
+    if (address != inputValue.value) {
+      pubKeyErrorMessage.value = 'This publicKey does not belong to the entered address.'
+      inputPubKey.value = ''
+      return
+    } else {
+      orderStore.setReceiver(address, addressGroup.value!, pubKey)
+      getPubKey.value = false
+      errorMessage.value = undefined
+      pubKeyErrorMessage.value = undefined
+    }
+  } else {
+    inputPubKey.value = pubKey
+    errorMessage.value = 'Invalid Public Key'
   }
 }
 </script>
@@ -71,15 +104,8 @@ async function handleAddress(pubKey: string) {
   <section class="flex flex-col space-y-[10px] text-[14px]">
     <div class="flex flex-row space-x-[10px] justify-between">
       <div class="font-extrabold text-core-light">
-        {{ props.isSender ? 'Your address' : orderStore.order?.to ? 'Receiver address' : 'Receiver Public Key' }}
+        {{ props.isSender ? 'Your address' : 'Receiver address' }}
       </div>
-      <a
-        v-if="!props.isSender && !orderStore.order?.to"
-        href="https://linx-labs.gitbook.io/linxotc-testnet/v/find-your-public-key"
-        target="_blank"
-        class="text-accent-3 text-[10px]"
-        >How to find the publickey</a
-      >
     </div>
 
     <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core max-h-[52px]">
@@ -105,12 +131,55 @@ async function handleAddress(pubKey: string) {
         </div>
       </div>
       <font-awesome-icon
-        @click="pasteAddress()"
+        @click="pasteAddress(true)"
         v-if="!props.isSender"
         :icon="['fal', 'clipboard']"
         class="text-[18px] text-accent-3 max-w-[20px]"
       />
     </div>
-    <ValidationError :message="errorMessage" />
+    <div class="flex-col space-y-8 lg:space-y-2" :class="errorMessage ? 'flex' : 'hidden'">
+      <ValidationError :message="errorMessage" />
+      <a
+        v-if="getPubKey"
+        href="https://linx-labs.gitbook.io/linxotc-testnet/v/find-your-public-key"
+        target="_blank"
+        class="text-accent-3 text-[10px]"
+        >How to find the publickey</a
+      >
+    </div>
+
+    <div
+      v-if="getPubKey"
+      class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core max-h-[52px]"
+    >
+      <div class="flex flex-row space-x-[10px] items-center w-full">
+        <img src="@/assets/alph.png" class="w-[32px] h-[32px] rounded-full" />
+
+        <div v-if="isSender" class="flex flex-row justify-between w-full">
+          <p class="font-extrabold text-core-darkest text-[14px]">
+            {{ orderStore.order?.from ? shortenString(orderStore.order?.from, 16) : 'Connect wallet' }}
+          </p>
+          <p v-if="orderStore.order?.groupFrom != undefined">
+            {{ `Group ${orderStore.order.groupFrom}` }}
+          </p>
+        </div>
+        <div v-else class="flex flex-row items-center justify-between w-full">
+          <TextInput
+            :fieldType="'publicKey'"
+            :modelValue="
+              orderStore.order?.toPubKey != undefined ? shortenString(orderStore.order!.toPubKey, 16) : inputPubKey
+            "
+            @update:modelValue="handlePubKey($event)"
+          />
+        </div>
+      </div>
+      <font-awesome-icon
+        @click="pasteAddress(false)"
+        v-if="!props.isSender"
+        :icon="['fal', 'clipboard']"
+        class="text-[18px] text-accent-3 max-w-[20px]"
+      />
+    </div>
+    <ValidationError :message="pubKeyErrorMessage" />
   </section>
 </template>
