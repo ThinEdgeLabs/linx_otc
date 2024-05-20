@@ -68,7 +68,7 @@ async function handleAddress(address: string) {
       console.log('no public key found for address')
       getPubKey.value = true
       inputValue.value = address
-      errorMessage.value = 'Could not find public key, please ask for a public key for this address.'
+      errorMessage.value = 'Could not find public key, please ask for a public key for this address and paste it below.'
       return
     } else {
       errorMessage.value = undefined
