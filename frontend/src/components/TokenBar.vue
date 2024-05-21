@@ -23,10 +23,10 @@ const props = defineProps<{
 
 const errorMessage = ref<string | undefined>(undefined)
 
-onMounted(() => {
+onMounted( async () => {
   if (props.hideBalance) {
     // If the balance is hidden, we just need to display the list of tokens
-    tokens.value = getTokens()
+    tokens.value = await getTokens()
     return
   }
   watchEffect(() => {

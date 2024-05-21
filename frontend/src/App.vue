@@ -11,12 +11,18 @@ import { useAccountStore } from './stores'
 import { usePopUpStore } from './stores/popup'
 import PopUpView from './views/PopUpView.vue'
 import { getMarketplaceConfig } from './config'
+import { useTokenStore } from './stores/tokens'
 
 const popUpStore = usePopUpStore()
 const deploymentNetwork = getMarketplaceConfig().network
 
 onMounted(async () => {
   const wcStore = useWalletConnectStore()
+  const network = import.meta.env.VITE_NETWORK_ID
+  const tokenStore = useTokenStore()
+  if (!tokenStore.tokens) {
+    tokenStore.initTokens(network)
+  }
   wcStore.checkExistingWCConnection()
   const store = useAccountStore()
   if (!store.account?.isConnected) {
