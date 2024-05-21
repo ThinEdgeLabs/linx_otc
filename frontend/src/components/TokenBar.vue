@@ -29,10 +29,10 @@ onMounted( async () => {
     tokens.value = await getTokens()
     return
   }
-  watchEffect(() => {
+  watchEffect( async () => {
     if (!toValue(isLoading)) {
       if (toValue(balance)) {
-        const tokensList = getTokens()
+        const tokensList = await getTokens()
         const tokensWithBalance = []
         const alph: Token | undefined = tokensList.find((e) => e.contractId === ALPH_TOKEN_ID)
         const alphToken = { ...alph } as Token

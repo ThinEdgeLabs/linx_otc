@@ -38,7 +38,7 @@ export const useTokenStore = defineStore('tokens', () => {
   }
 
   async function getTokens(network: string) {
-    if (!tokens.value) {
+    if (tokens.value.length === 0) {
         await initTokens(network)
     }
     return tokens.value
