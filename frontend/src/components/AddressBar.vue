@@ -40,11 +40,12 @@ function pasteAddress(isAddress: boolean) {
 }
 
 async function handleAddress(address: string) {
+  inputPubKey.value = ''
+  getPubKey.value = false
+  errorMessage.value = undefined
+  pubKeyErrorMessage.value = undefined
+
   if (address.length === 45) {
-    inputPubKey.value = ''
-    getPubKey.value = false
-    errorMessage.value = undefined
-    pubKeyErrorMessage.value = undefined
     const nodeStore = useNodeStore()
     const group = await nodeStore.getGroupForAddress(address)
     if (group.group != account.account?.group) {
