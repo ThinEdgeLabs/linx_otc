@@ -6,7 +6,6 @@ import { useLoanOrderStore } from '../stores/loanOrder'
 import { useAccountStore } from '../stores/account'
 import WalletButton from '../components/WalletButton.vue'
 import DurationSelect from '../components/lending/DurationSelect.vue'
-import RatingSelect from '../components/lending/RatingSelect.vue'
 import HorizontalDivider from '../components/HorizontalDivider.vue'
 import ApproveWallet from '../components/ApproveWallet.vue'
 import { onMounted, ref } from 'vue'
@@ -137,11 +136,11 @@ function createErrorMessage(): Array<string> {
         :description="'Lend your tokens to other users and earn interest. You can set the accepted collateral, interest rate and the duration of the loan.'"
         @update:go-back="router.push('/lending')"
       />
-      <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
+      <div class="w-full flex flex-col lg:flex-row items-start space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
         <TokenBar :class="'w-full'" :is-sender="true" :offer-type="'loan'" :validate-input="true" />
         <InterestField />
       </div>
-      <div class="w-full flex flex-col lg:flex-row items-center space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
+      <div class="w-full flex flex-col lg:flex-row items-start space-y-[20px] lg:space-y-0 lg:space-x-[30px]">
         <TokenBar
           :class="'w-full'"
           :is-sender="false"

@@ -5,7 +5,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="h-[14px] text-danger text-[12px]" :class="props.message ? 'flex' : 'hidden'">
+  <div class="h-[14px] text-danger text-[12px]" :class="props.message ? 'flex' : 'invisible'">
     {{ props.message }}
   </div>
 </template>
