@@ -52,7 +52,9 @@ export const getTokens = async () => {
     const tokens = Array.from(devnetTokens as Token[])
     tokens.unshift(alph)
     return tokens
-  } 
+  } else {
+    return []
+  }
 }
 
 export function getDefaultNodeUrl(): string {

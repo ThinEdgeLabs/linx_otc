@@ -5,7 +5,7 @@ import { Token } from '@/types'
 
 
 export const useTokenStore = defineStore('tokens', () => {
-  const tokens = ref<Array<Token> | undefined>(undefined)
+  const tokens = ref<Array<Token>>([])
 
   async function initTokens(network: string) {
     try {
@@ -13,9 +13,6 @@ export const useTokenStore = defineStore('tokens', () => {
         if (res.ok) {
             const tokensList = await res.json()
             for (const token of tokensList.tokens) {
-                if (!tokens.value) {
-                    tokens.value = []
-                }
                 tokens.value.push({
                     symbol: token.symbol,
                     name: token.name,
@@ -27,9 +24,6 @@ export const useTokenStore = defineStore('tokens', () => {
         }
         // Add custom token not on the github repository
         if (network === 'testnet') {
-            if (!tokens.value) {
-                tokens.value = []
-            }
             tokens.value.push({ 
                 symbol: 'TST-1',
                 name: 'TestToken-1',
@@ -41,7 +35,6 @@ export const useTokenStore = defineStore('tokens', () => {
     } catch (error) {
         console.log('Unable to get tokens list', error)
     }
-
   }
 
   async function getTokens(network: string) {
