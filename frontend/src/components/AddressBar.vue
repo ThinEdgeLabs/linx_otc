@@ -41,6 +41,10 @@ function pasteAddress(isAddress: boolean) {
 
 async function handleAddress(address: string) {
   if (address.length === 45) {
+    inputPubKey.value = ''
+    getPubKey.value = false
+    errorMessage.value = undefined
+    pubKeyErrorMessage.value = undefined
     const nodeStore = useNodeStore()
     const group = await nodeStore.getGroupForAddress(address)
     if (group.group != account.account?.group) {
@@ -180,6 +184,6 @@ async function handlePubKey(pubKey: string) {
         class="text-[18px] text-accent-3 max-w-[20px]"
       />
     </div>
-    <ValidationError :message="pubKeyErrorMessage" />
+    <ValidationError :message="pubKeyErrorMessage" v-if="pubKeyErrorMessage"/>
   </section>
 </template>

@@ -39,7 +39,8 @@ async function createTrade() {
     tradeStore.order.amountTo &&
     tradeStore.order.to &&
     tradeStore.order.tokenFrom &&
-    tradeStore.order.tokenTo
+    tradeStore.order.tokenTo &&
+    tradeStore.order.toPubKey
   ) {
     try {
       status.value = 'approve'
@@ -128,6 +129,9 @@ function createErrorMessage(): Array<string> {
     errorList.push('Please set an amount you want to receive.')
   }
   if (!tradeStore.order?.to) {
+    errorList.push('Please enter the address of the counterparty')
+  }
+  if (!tradeStore.order?.toPubKey) {
     errorList.push('Please enter the public key of the counterparty')
   }
   return errorList
