@@ -15,7 +15,7 @@ function toggleModal() {
   <button
     v-if="!account.account?.isConnected"
     @click="toggleModal"
-    class="px-[60px] py-[15px] rounded-full bg-gradient-to-r from-accent-1 to-accent-2 text-[16px] leading-snug text-core-lightest hover:bg-none hover:bg-accent-3 w-full lg:w-auto"
+    class="px-[40px] py-[15px] rounded-full bg-gradient-to-r from-accent-1 to-accent-2 text-[14px] leading-snug text-core-lightest hover:bg-none hover:bg-accent-3 w-full lg:w-auto"
   >
     Connect wallet
   </button>
