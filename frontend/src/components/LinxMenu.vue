@@ -100,7 +100,7 @@ function goToDocs() {
           :is-selected="$route.fullPath === item.destination"
         ></MenuItem>
       </div>
-      <div class="pr-[30px] lg:pr-0">
+      <div class="pl-[40px] pr-[30px] lg:pr-0">
         <WalletButton @click="showSideBar = false" />
       </div>
     </nav>
