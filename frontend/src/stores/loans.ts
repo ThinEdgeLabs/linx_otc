@@ -125,10 +125,8 @@ export const useLoanStore = defineStore('loans', () => {
 
   function getDueDate(loan: Loan) {
     const dueTimestamp = loan.startDate! + Number(loan.duration) * 24 * 60 * 60 * 1000
-    console.log(dueTimestamp)
     const diff = dueTimestamp - Date.now()
     const days = Math.floor(diff / (24 * 60 * 60 * 1000))
-    console.log(days)
     const hours = Math.floor(diff / (60 * 60 * 1000)) % 24
     if (days > 0) {
       return `${days} days`
