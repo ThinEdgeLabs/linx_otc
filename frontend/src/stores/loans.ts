@@ -68,8 +68,7 @@ export const useLoanStore = defineStore('loans', () => {
 
   async function getAvailableLoans() {
     isLoading.value = true
-    await getLoans()
-    events = await getMarketplaceEvents()
+    const createdLoans = await getLoans()
     const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
     const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
     const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
@@ -84,29 +83,35 @@ export const useLoanStore = defineStore('loans', () => {
 
   async function getLoansForUser(address: string) {
     isLoading.value = true
-    if (loans.value.length === 0) {
-      await getAvailableLoans()
+    if (createdLoans.length === 0) {
+      createdLoans = await getLoans()
     }
-    const tokenList = getTokens()
-    for (const i in loans.value) {
-      const loanExists = userLoans.value.findIndex((e) => e.id === Number(loans.value[i].id))
-      if (loans.value[i].borrower === address || loans.value[i].lender === address) {
+    const cancelled = events.filter((e) => e.name === 'LoanCancelled').map((e) => e.fields['loanId'] as String)
+    const paid = events.filter((e) => e.name === 'LoanPaid').map((e) => e.fields['loanId'] as String)
+    const liquidated = events.filter((e) => e.name === 'LoanLiquidated').map((e) => e.fields['loanId'] as String)
+    const closed = new Set([...cancelled, ...paid, ...liquidated])
+    const activeLoans = createdLoans.filter((loan) => !closed.has(loan.contractId))
+
+    const tokenList = await getTokens()
+    for (const i in activeLoans) {
+      const loanExists = userLoans.value.findIndex((e) => e.id === Number(activeLoans[i].id))
+      if (activeLoans[i].borrower === address || activeLoans[i].lender === address) {
         if (loanExists === -1) {
-          const loanToken = tokenList.find((e) => e.contractId === loans.value[i].loanToken)
-          const collateralToken = tokenList.find((e) => e.contractId === loans.value[i].collateralToken)
+          const loanToken = tokenList.find((e) => e.contractId === activeLoans[i].loanToken)
+          const collateralToken = tokenList.find((e) => e.contractId === activeLoans[i].collateralToken)
           userLoans.value.push({
             type: 'Loan',
-            contractId: loans.value[i].contractId,
-            duration: Number(loans.value[i].duration),
-            remaining: getDueDate(loans.value[i]),
-            id: Number(loans.value[i].id),
+            contractId: activeLoans[i].contractId,
+            duration: Number(activeLoans[i].duration),
+            remaining: getDueDate(activeLoans[i]),
+            id: Number(activeLoans[i].id),
             offerToken: loanToken?.symbol!,
-            offerAmount: parseFloat(prettifyTokenAmount(loans.value[i].loanAmount, loanToken!.decimals)!),
+            offerAmount: parseFloat(prettifyTokenAmount(activeLoans[i].loanAmount, loanToken!.decimals)!),
             requestToken: collateralToken?.symbol!,
-            requestAmount: parseFloat(prettifyTokenAmount(loans.value[i].collateralAmount, collateralToken!.decimals)!),
-            status: loans.value[i].borrower ? 'Active' : 'Open',
-            created: loans.value[i].created,
-            counterParty: loans.value[i].borrower
+            requestAmount: parseFloat(prettifyTokenAmount(activeLoans[i].collateralAmount, collateralToken!.decimals)!),
+            status: activeLoans[i].borrower ? 'Active' : 'Open',
+            created: activeLoans[i].created,
+            counterParty: activeLoans[i].borrower
           })
         }
       }

@@ -60,7 +60,6 @@ export function useActivity() {
 
   const { account } = storeToRefs(useAccountStore())
   const loansStore = useLoanStore()
-  const config = getMarketplaceConfig()
 
   function isActivityEvent(event: ContractEvent) {
     return (
@@ -89,11 +88,11 @@ export function useActivity() {
     }
   }
 
-  function makeActivityEvent(event: ContractEvent, loan: Loan) {
-    const collateralToken = getTokens().find((e) => e.contractId === loan?.collateralToken) ?? {
+  function makeActivityEvent(event: ContractEvent, loan: Loan, tokens: Token[]) {
+    const collateralToken = tokens.find((e) => e.contractId === loan?.collateralToken) ?? {
       logoUri: '/images/tokens/nologo.png'
     }
-    const borrowedToken = getTokens().find((e) => e.contractId === loan?.loanToken) ?? {
+    const borrowedToken = tokens.find((e) => e.contractId === loan?.loanToken) ?? {
       logoUri: '/images/tokens/nologo.png'
     }
     return {
@@ -127,12 +126,13 @@ export function useActivity() {
 
   async function fetchP2PLendingEvents() {
     const marketplaceEvents = await loansStore.getMarketplaceEvents()
+    const tokens = await getTokens()
     const loans = new Map((await loansStore.getLoans(marketplaceEvents)).map((loan) => [loan.contractId, loan]))
     return marketplaceEvents
       .filter((event) => isActivityEvent(event) && event.fields['by'] === account.value?.address)
       .map((event) => {
         const loan = loans.get(event.fields['loanId'] as string)
-        return makeActivityEvent(event, loan!)
+        return makeActivityEvent(event, loan!, tokens)
       })
       .sort((a, b) => b.timestamp - a.timestamp)
   }
@@ -177,6 +177,7 @@ export function useActivity() {
   async function fetchP2PSwapsEvents() {
     const feeAddress = feeAddresses.find((e) => e.group === account.value?.group)?.address
     const transactions = await getTransactions(feeAddress!)
+    const tokens = await getTokens()
     for (const i in transactions) {
       const swappedTokens = []
       const inputs = transactions[i].inputs
@@ -192,9 +193,9 @@ export function useActivity() {
       for (const b in outputs) {
         if (outputs[b].address === feeAddress) {
           if (outputs[b].tokens && outputs[b].tokens!.length > 0) {
-            swappedTokens.push(getTokens().find((e) => e.contractId === outputs[b].tokens![0].id) ?? anyToken)
+            swappedTokens.push(tokens.find((e) => e.contractId === outputs[b].tokens![0].id) ?? anyToken)
           } else {
-            swappedTokens.push(getTokens().find((e) => e.symbol === 'ALPH'))
+            swappedTokens.push(tokens.find((e) => e.symbol === 'ALPH'))
           }
         }
       }

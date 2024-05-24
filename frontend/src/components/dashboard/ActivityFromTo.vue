@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { getTokens } from '@/config'
+import { Token } from '@/types'
+import { on } from 'events'
+import { onMounted, ref } from 'vue'
 
 const props = defineProps({
   token: {
@@ -16,7 +19,11 @@ const props = defineProps({
   }
 })
 
-const tokens = getTokens()
+const tokens = ref<Token[]>([])
+
+onMounted(async () => {
+  tokens.value = await getTokens()
+})
 </script>
 
 <template>
