@@ -133,7 +133,7 @@ function createErrorMessage(): Array<string> {
     >
       <ComponentTitle
         :title="'Create new loan offer'"
-        :description="'Lend your tokens to other users and earn interest. You can set the accepted collateral, interest rate and the duration of the loan.'"
+        :description="'Lend your tokens to other users and earn interest.'"
         @update:go-back="router.push('/lending')"
       />
       <div class="w-full flex flex-col lg:flex-row items-start space-y-[20px] lg:space-y-0 lg:space-x-[30px]">

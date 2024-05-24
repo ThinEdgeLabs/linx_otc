@@ -34,13 +34,20 @@ export const anyToken: Token = {
   logoUri: '/images/tokens/NONE.png'
 }
 
+export const undefinedToken = {
+  contractId: 'unknown',
+  symbol: 'unknown',
+  name: 'unknown',
+  decimals: 18,
+  logoUri: '/images/tokens/nologo.png'
+}
 
 export const getTokens = async () => {
   const network = import.meta.env.VITE_NETWORK_ID
   const tokenStore = useTokenStore()
   if (network === 'testnet' || network === 'mainnet') {
-    const tokenList =  await tokenStore.getTokens(network)
-    return tokenList
+    const tokenList = await tokenStore.getTokens(network)
+    return Array.from(tokenList)
   } else if (network === 'devnet') {
     const alph = {
       symbol: 'ALPH',

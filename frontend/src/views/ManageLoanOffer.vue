@@ -15,7 +15,7 @@ import {
   prettifyTokenAmount,
   web3
 } from '@alephium/web3'
-import { getMarketplaceConfig, getTokens } from '../config'
+import { getMarketplaceConfig, getTokens, undefinedToken } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { waitTxConfirmed } from '@alephium/cli'
 import { useAccountStore, useLoanStore } from '../stores'
@@ -68,23 +68,16 @@ const canBorrow = computed(() => loanStatus.value === 'Available' && !isLender.v
 const canRepay = computed(() => loanStatus.value === 'Active' && isBorrower.value)
 const canDelete = computed(() => loanStatus.value === 'Available' && isLender.value)
 
-const undefinedToken = {
-  contractId: 'unknown',
-  symbol: 'unknown',
-  name: 'unknown',
-  decimals: 18,
-  logoUri: '/images/tokens/nologo.png'
-}
-
-const collateralToken = ref<Token>(undefinedToken)
-const loanToken = ref<Token>(undefinedToken)
+const collateralToken = ref<Token | undefined>()
+const loanToken = ref<Token | undefined>()
 
 onMounted(async () => {
   try {
+    const tokens = await getTokens()
     loan.value = await loanStore.getLoan(contractId)
     events.value = await loanStore.getLoanEvents(contractId, true)
-    collateralToken.value = getTokens().find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
-    loanToken.value = getTokens().find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
+    collateralToken.value = tokens.find((e) => e.contractId === loan.value?.collateralToken) ?? undefinedToken
+    loanToken.value = tokens.find((e) => e.contractId === loan.value?.loanToken) ?? undefinedToken
   } catch (err) {
     console.log('err', err)
   }
@@ -192,7 +185,7 @@ function reset() {
 </script>
 
 <template>
-  <div class="w-full py-[30px]">
+  <div v-if="collateralToken && loanToken" class="w-full py-[30px]">
     <section
       v-if="loan"
       class="w-full h-full flex flex-col lg:flex-row space-y-[30px] lg:space-y-0 lg:space-x-[30px] leading-snug"
@@ -212,14 +205,14 @@ function reset() {
             <div class="flex flex-col">
               <div class="grid grid-cols-2 w-full items-center">
                 <div class="flex flex-row space-x-[10px] item-center">
-                  <img :src="`${loanToken.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
+                  <img :src="`${loanToken!.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
-                        {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
+                        {{ prettifyTokenAmount(loan.loanAmount, loanToken!.decimals) }}
                       </p>
-                      <p class="text-core-light">{{ loanToken.symbol }}</p>
+                      <p class="text-core-light">{{ loanToken!.symbol }}</p>
                     </div>
                   </div>
                 </div>
@@ -230,8 +223,8 @@ function reset() {
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">
                       INTEREST
-                      {{ calculateInterest(loan.interest, loan.loanAmount, loanToken.decimals) }}
-                      {{ loanToken.symbol }}
+                      {{ calculateInterest(loan.interest, loan.loanAmount, loanToken!.decimals) }}
+                      {{ loanToken!.symbol }}
                     </p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
@@ -245,14 +238,14 @@ function reset() {
               <div class="border-dashed border-r border-accent-3 h-[20px] w-[30px]"></div>
               <div class="grid grid-cols-2 w-full items-center">
                 <div class="flex flex-row space-x-[10px] item-center">
-                  <img :src="`${collateralToken.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
+                  <img :src="`${collateralToken!.logoUri}`" class="w-[60px] h-[60px] rounded-full" />
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">COLLATERAL</p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
-                        {{ prettifyTokenAmount(loan.collateralAmount, collateralToken.decimals) }}
+                        {{ prettifyTokenAmount(loan.collateralAmount, collateralToken!.decimals) }}
                       </p>
-                      <p class="text-core-light">{{ collateralToken.symbol }}</p>
+                      <p class="text-core-light">{{ collateralToken!.symbol }}</p>
                     </div>
                   </div>
                 </div>
@@ -319,14 +312,14 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You send'"
-            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
-            :amount_description="collateralToken.symbol"
+            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken!.decimals) ?? '0'"
+            :amount_description="collateralToken!.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
-            :amount="prettifyExactAmount(calculateReceivedAmount(loan), loanToken.decimals) ?? '0'"
-            :amount_description="loanToken.symbol"
+            :amount="prettifyExactAmount(calculateReceivedAmount(loan), loanToken!.decimals) ?? '0'"
+            :amount_description="loanToken!.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
@@ -339,16 +332,16 @@ function reset() {
           <LoanPreviewLabel
             :title="'You send (loan + interest)'"
             :amount="`${
-              parseBalance(Number(loan.loanAmount), loanToken.decimals)! +
-                calculateInterest(loan.interest, loan.loanAmount, loanToken.decimals) ?? '0'
+              parseBalance(Number(loan.loanAmount), loanToken!.decimals)! +
+                calculateInterest(loan.interest, loan.loanAmount, loanToken!.decimals) ?? '0'
             }`"
-            :amount_description="loanToken.symbol"
+            :amount_description="loanToken!.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive (collateral)'"
-            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken.decimals) ?? '0'"
-            :amount_description="collateralToken.symbol"
+            :amount="prettifyExactAmount(loan.collateralAmount, collateralToken!.decimals) ?? '0'"
+            :amount_description="collateralToken!.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
@@ -358,8 +351,8 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel
             :title="'You receive'"
-            :amount="prettifyExactAmount(loan.loanAmount, loanToken.decimals) ?? '0'"
-            :amount_description="loanToken.symbol"
+            :amount="prettifyExactAmount(loan.loanAmount, loanToken!.decimals) ?? '0'"
+            :amount_description="loanToken!.symbol"
           />
           <HorizontalDivider />
           <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
