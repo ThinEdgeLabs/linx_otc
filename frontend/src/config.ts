@@ -5,7 +5,7 @@ import { loadDeployments } from '../../artifacts/ts/deployments'
 import { useTokenStore } from './stores/tokens'
 
 export const tradeFee = 0.005
-export const lendingFee = 50n
+export const lendingFee = 0n
 export const feeAddresses = [
   {
     group: 0,
