@@ -103,7 +103,7 @@ export const useLoanStore = defineStore('loans', () => {
             type: 'Loan',
             contractId: activeLoans[i].contractId,
             duration: Number(activeLoans[i].duration),
-            remaining: getDueDate(activeLoans[i]),
+            remaining: activeLoans[i] .borrower ? getDueDate(activeLoans[i]) : undefined,
             id: Number(activeLoans[i].id),
             offerToken: loanToken?.symbol!,
             offerAmount: parseFloat(prettifyTokenAmount(activeLoans[i].loanAmount, loanToken!.decimals)!),
