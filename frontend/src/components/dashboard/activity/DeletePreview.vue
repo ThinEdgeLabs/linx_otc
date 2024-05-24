@@ -51,7 +51,7 @@ function agreeDelete() {
       <HorizontalDivider />
       <LoanPreviewLabel :title="'P2P Fee'" :amount="'FREE'" />
       <HorizontalDivider />
-      <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+      <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'16'" :amount_description="'seconds'" />
     </div>
     <CustomButton
       :title="

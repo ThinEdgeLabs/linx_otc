@@ -5,7 +5,7 @@ import CustomButton from '../components/CustomButton.vue'
 import ComponentTitle from '../components/ComponentTitle.vue'
 import { computed, onMounted, ref } from 'vue'
 import ApproveWallet, { type Status } from '../components/ApproveWallet.vue'
-import { calculateApr, convertBasisPointsToPercentage, calculateInterest, parseBalance } from '../functions/utils'
+import { convertBasisPointsToPercentage, calculateInterest, parseBalance } from '../functions/utils'
 import type { Loan, Token } from '../types'
 import {
   ContractEvent,
@@ -223,14 +223,12 @@ function reset() {
                   <div class="flex flex-col text-start justify-center">
                     <p class="text-[10px] lg:text-[12px] text-core-light">
                       INTEREST
-                      {{ calculateInterest(loan.interest, loan.loanAmount, loanToken!.decimals) }}
-                      {{ loanToken!.symbol }}
                     </p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
-                        {{ prettifyTokenAmount(calculateApr(loan), 18) }}
+                        {{ calculateInterest(loan.interest, loan.loanAmount, loanToken!.decimals) }}
                       </p>
-                      <p class="text-core-light">% APR</p>
+                      <p class="text-core-light">{{ loanToken!.symbol }}</p>
                     </div>
                   </div>
                 </div>

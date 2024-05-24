@@ -162,7 +162,7 @@ function createErrorMessage(): Array<string> {
         <div class="flex flex-row justify-between">
           <p class="font-semibold text-core-light">Interest % over Loan</p>
           <p class="font-extrabold text-core-lightest">
-            {{ (((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) * 100).toFixed(2) }}
+            {{ ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) -1)* 100).toFixed(2) }}
             %
           </p>
         </div>
@@ -175,7 +175,7 @@ function createErrorMessage(): Array<string> {
           <p class="font-extrabold text-core-lightest">
             {{
               (
-                ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0)) * 100) /
+                ((((loanOfferStore.order?.interest ?? 0) / (loanOfferStore.order?.loanAmount ?? 0) - 1) * 100) /
                   (loanOfferStore.order?.duration ?? 0)) *
                 365
               ).toFixed(2)

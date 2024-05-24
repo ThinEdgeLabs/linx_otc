@@ -15,10 +15,6 @@ const accountStore = useAccountStore()
 const collateralToken = ref<Token | undefined>(undefined)
 const loanToken = ref<Token | undefined>(undefined)
 
-function getAnnualisedInterest() {
-  return (loanOrder.order!.interest / loanOrder.order!.loanAmount / loanOrder.order!.duration) * 365
-}
-
 onMounted(async () => {
   const tokens = await getTokens()
   collateralToken.value =
@@ -78,19 +74,13 @@ onMounted(async () => {
     <HorizontalDivider />
     <LoanPreviewLabel
       :title="'Interest'"
-      :amount="loanOrder.order!.interest.toString()"
+      :amount="(loanOrder.order!.interest - loanOrder.order!.loanAmount).toString()"
       :amount_description="loanOrder.order!.loanToken?.symbol"
-    />
-    <HorizontalDivider />
-    <LoanPreviewLabel
-      :title="'Annualised Interest'"
-      :amount="getAnnualisedInterest().toFixed(2)"
-      :amount_description="'% APR'"
     />
     <HorizontalDivider />
     <LoanPreviewLabel :title="'P2P Fee'" :amount="'FREE'" />
     <HorizontalDivider />
-    <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+    <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'16'" :amount_description="'seconds'" />
     <!-- <HorizontalDivider />
     <LoanPreviewLabel
       :title="'Minumum Rating Borrower'"

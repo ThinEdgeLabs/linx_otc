@@ -3,7 +3,6 @@ import CustomButton from '@/components/CustomButton.vue'
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
 import type { Token, Loan } from '@/types'
 import { prettifyTokenAmount } from '@alephium/web3'
-import { calculateApr } from '@/functions/utils'
 
 const props = defineProps<{
   loan: Loan
@@ -39,7 +38,7 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
           <div class="font-extrabold text-core-lightest">
             {{ prettifyTokenAmount(loan.loanAmount, loanToken.decimals) }}
           </div>
-          <div class="text-core-light">{{ loanToken?.name }}</div>
+          <div class="text-core-light">{{ loanToken?.symbol }}</div>
         </div>
       </div>
       <div class="w-full flex flex-row items-center space-x-[10px] text-[14px]">
@@ -56,12 +55,6 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
         <div class="text-core-light">Days</div>
       </div>
       <div class="w-full flex flex-col">
-        <div class="flex flex-row text-[14px]">
-          <div class="font-extrabold text-core-lightest">
-            {{ prettifyTokenAmount(calculateApr(props.loan), loanToken.decimals) }}
-          </div>
-          <div class="text-core-light">% APR</div>
-        </div>
         <div class="text-core-light text-[12px]">
           {{ prettifyTokenAmount((props.loan.interest * props.loan.loanAmount) / 10000n, loanToken.decimals) }}
           {{ loanToken.symbol }}
