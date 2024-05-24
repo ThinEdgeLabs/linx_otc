@@ -1,10 +1,4 @@
-import {
-  web3,
-  Project,
-  ONE_ALPH,
-  ContractState,
-  DUST_AMOUNT,
-} from '@alephium/web3'
+import { web3, Project, ONE_ALPH, ContractState } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
@@ -32,7 +26,7 @@ describe('LendingOffer', () => {
   })
 
   beforeEach(async () => {
-    [lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
+    ;[lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
     lendingAmount = expandTo18Decimals(1000n)
@@ -105,9 +99,10 @@ describe('LendingOffer', () => {
         interestRate,
         duration,
         lender.address,
-        undefined,
-        loanTimeStamp
+        undefined
       )
+
+      expect(fixture.selfState.fields.loanTimeStamp).toBe(0n)
 
       const testResult = await LendingOffer.tests.take({
         initialFields: fixture.selfState.fields,
@@ -121,7 +116,7 @@ describe('LendingOffer', () => {
         callerAddress: marketplace.address,
         testArgs: { caller: borrower.address },
         address: fixture.address,
-        existingContracts: fixture.dependencies,
+        existingContracts: fixture.dependencies
       })
 
       const state = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
@@ -231,36 +226,36 @@ describe('LendingOffer', () => {
     const NOW = Math.floor(Date.now() / 1000)
 
     it('lender receives collateral and loan is terminated', async () => {
-        fixture = createLendingOffer(
-          lender.address,
-          lendingTokenId,
-          collateralTokenId,
-          marketplace.contractId,
-          lendingAmount,
-          collateralAmount,
-          interestRate,
-          duration,
-          borrower.address
-        )
-        const unixTimeInPast = NOW - (ONE_DAY * Number(duration) + 1)
-        const testResult = await LendingOffer.tests.liquidate({
-          initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) },
-          initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
-          inputAssets: [
-            {
-              address: lender.address,
-              asset: { alphAmount: 10n ** 18n }
-            }
-          ],
-          address: fixture.address,
-          callerAddress: marketplace.address,
-          existingContracts: fixture.dependencies
-        })
+      fixture = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address
+      )
+      const unixTimeInPast = NOW - (ONE_DAY * Number(duration) + 1)
+      const testResult = await LendingOffer.tests.liquidate({
+        initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) },
+        initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: 10n ** 18n }
+          }
+        ],
+        address: fixture.address,
+        callerAddress: marketplace.address,
+        existingContracts: fixture.dependencies
+      })
 
-        expect(testResult.events.length).toEqual(1)
-        expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
-        const receivedCollateral = testResult.txOutputs[0].tokens?.find((t) => t.id === collateralTokenId)
-        expect(receivedCollateral?.amount).toEqual(collateralAmount)
+      expect(testResult.events.length).toEqual(1)
+      expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
+      const receivedCollateral = testResult.txOutputs[0].tokens?.find((t) => t.id === collateralTokenId)
+      expect(receivedCollateral?.amount).toEqual(collateralAmount)
     })
 
     it('fails if the loan is not overdue', async () => {
@@ -334,7 +329,7 @@ describe('LendingOffer', () => {
         duration,
         borrower.address
       )
-      const interestPayment = lendingAmount * interestRate / 10000n
+      const interestPayment = (lendingAmount * interestRate) / 10000n
       const paybackResult = await LendingOffer.tests.payback({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },

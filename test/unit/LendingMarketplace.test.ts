@@ -6,7 +6,7 @@ import {
   ONE_ALPH,
   contractIdFromAddress,
   binToHex,
-  ContractState,
+  ContractState
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
@@ -92,7 +92,7 @@ describe('LendingMarketplace', () => {
     let admin: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
+      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
       fixture = createLendingMarketplace(admin.address)
     })
 
@@ -129,7 +129,7 @@ describe('LendingMarketplace', () => {
     let admin: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
+      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
       fixture = createLendingMarketplace(admin.address)
     })
 
@@ -139,7 +139,7 @@ describe('LendingMarketplace', () => {
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
-        inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH }}],
+        inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH } }],
         testArgs: { enabled: false }
       })
       const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
@@ -152,7 +152,7 @@ describe('LendingMarketplace', () => {
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
-        inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH }}],
+        inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
         testArgs: { enabled: false }
       })
       await expectAssertionError(
@@ -169,7 +169,7 @@ describe('LendingMarketplace', () => {
     let lender: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
+      ;[admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
       fixture = createLendingMarketplace(admin.address)
     })
 
@@ -198,7 +198,9 @@ describe('LendingMarketplace', () => {
       })
 
       expect(testResult.events.length).toEqual(3)
-      const loanDetailsEvent = testResult.events.find((e) => e.name === 'LoanDetails') as LendingMarketplaceTypes.LoanDetailsEvent
+      const loanDetailsEvent = testResult.events.find(
+        (e) => e.name === 'LoanDetails'
+      ) as LendingMarketplaceTypes.LoanDetailsEvent
       expect(loanDetailsEvent.fields).toEqual({
         loanId: binToHex(contractIdFromAddress(testResult.returns)),
         lendingTokenId,
@@ -207,10 +209,12 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender: lender.address,
+        lender: lender.address
       })
 
-      const loanCreatedEvent = testResult.events.find((e) => e.name === 'LoanCreated') as LendingMarketplaceTypes.LoanCreatedEvent
+      const loanCreatedEvent = testResult.events.find(
+        (e) => e.name === 'LoanCreated'
+      ) as LendingMarketplaceTypes.LoanCreatedEvent
       expect(loanCreatedEvent.fields).toEqual({
         loanId: binToHex(contractIdFromAddress(testResult.returns)),
         id: totalLoans,
@@ -230,7 +234,7 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         borrower: lender.address,
-        loanTimeStamp: BigInt(Math.floor(blockTimeStamp / 1000))
+        loanTimeStamp: 0n
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
@@ -282,9 +286,7 @@ describe('LendingMarketplace', () => {
           duration: 365n
         }
       })
-      await expect(
-        testResult,
-      ).rejects.toThrow(Error)
+      await expect(testResult).rejects.toThrow(Error)
     })
     it('fails if lending is disabled', async () => {
       const lendingEnabled = false
@@ -318,12 +320,14 @@ describe('LendingMarketplace', () => {
     let lender: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
+      ;[admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
       marketplace = createLendingMarketplace(admin.address)
     })
 
     it('cancels an existing offer', async () => {
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -351,14 +355,18 @@ describe('LendingMarketplace', () => {
           loanId: offer.contractId
         }
       })
-      const loanCancelledEvent = testResult.events.find((e) => e.name === 'LoanCancelled') as LendingMarketplaceTypes.LoanCancelledEvent
+      const loanCancelledEvent = testResult.events.find(
+        (e) => e.name === 'LoanCancelled'
+      ) as LendingMarketplaceTypes.LoanCancelledEvent
       expect(loanCancelledEvent.fields.loanId).toEqual(offer.contractId)
       const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
       expect(contractDestroyedEvent?.fields['address']).toEqual(offer.address)
     })
 
     it('fails if caller is not the lender', async () => {
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -386,11 +394,17 @@ describe('LendingMarketplace', () => {
           loanId: offer.contractId
         }
       })
-      expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly)
+      )
     })
 
     it('fails if offer does not exist', async () => {
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -429,44 +443,46 @@ describe('LendingMarketplace', () => {
     let borrower: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
       marketplace = createLendingMarketplace(admin.address)
     })
 
     it('fails if borrower is the lender', async () => {
-        const offer = createLendingOffer(lender.address, lendingTokenId,
-          collateralTokenId,
-          marketplace.contractId,
-          lendingAmount,
-          collateralAmount,
-          interestRate,
-          duration,
-          borrower.address,
-          undefined,
-          undefined,
-          undefined,
-          marketplace
-        )
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address,
+        undefined,
+        undefined,
+        undefined,
+        marketplace
+      )
 
-        const testResult = LendingMarketplace.tests.borrow({
-          initialFields: marketplace.selfState.fields,
-          address: marketplace.address,
-          existingContracts: offer.states(),
-          inputAssets: [
-            {
-              address: lender.address,
-              asset: { alphAmount: ONE_ALPH }
-            }
-          ],
-          testArgs: {
-            offerId: offer.contractId
+      const testResult = LendingMarketplace.tests.borrow({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        existingContracts: offer.states(),
+        inputAssets: [
+          {
+            address: lender.address,
+            asset: { alphAmount: ONE_ALPH }
           }
-        })
-        await expectAssertionError(
-          testResult,
-          marketplace.address,
-          Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
-        )
+        ],
+        testArgs: {
+          offerId: offer.contractId
+        }
+      })
+      await expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
+      )
     })
 
     it('fails if the offer does not exist', async () => {
@@ -490,7 +506,9 @@ describe('LendingMarketplace', () => {
     })
 
     it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -500,7 +518,7 @@ describe('LendingMarketplace', () => {
         lender.address,
         undefined,
         undefined,
-        { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }]},
+        { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         marketplace
       )
       const blockTimeStamp = Math.floor(Date.now())
@@ -519,7 +537,9 @@ describe('LendingMarketplace', () => {
         },
         blockTimeStamp
       })
-      const loanStartedEvent = testResult.events.find((e) => e.name === 'LoanAccepted') as LendingMarketplaceTypes.LoanAcceptedEvent
+      const loanStartedEvent = testResult.events.find(
+        (e) => e.name === 'LoanAccepted'
+      ) as LendingMarketplaceTypes.LoanAcceptedEvent
       expect(loanStartedEvent.fields.loanId).toEqual(offer.contractId)
       expect(loanStartedEvent.fields.by).toEqual(borrower.address)
       expect(loanStartedEvent.fields.timestamp).toEqual(BigInt(blockTimeStamp))
@@ -543,13 +563,15 @@ describe('LendingMarketplace', () => {
     let borrower: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
       marketplace = createLendingMarketplace(admin.address)
     })
 
     it('emits LoanPaid event', async () => {
       const NOW = Math.floor(Date.now() / 1000)
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -559,7 +581,7 @@ describe('LendingMarketplace', () => {
         borrower.address,
         undefined,
         BigInt(NOW),
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
+        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         marketplace
       )
       const interest = (lendingAmount * interestRate * duration) / 10000n
@@ -570,21 +592,25 @@ describe('LendingMarketplace', () => {
         inputAssets: [
           {
             address: borrower.address,
-            asset: { alphAmount: ONE_ALPH, tokens: [ { id: lendingTokenId, amount: lendingAmount + interest }] }
+            asset: { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount + interest }] }
           }
         ],
         testArgs: {
           loanId: offer.contractId
         }
       })
-      const loanPaidEvent = testResult.events.find((e) => e.name === 'LoanPaid') as LendingMarketplaceTypes.LoanPaidEvent
+      const loanPaidEvent = testResult.events.find(
+        (e) => e.name === 'LoanPaid'
+      ) as LendingMarketplaceTypes.LoanPaidEvent
       expect(loanPaidEvent.fields.loanId).toEqual(offer.contractId)
       const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
       expect(contractDestroyedEvent?.fields['address']).toEqual(offer.address)
     })
 
     it('fails if not borrower', async () => {
-      const offer = createLendingOffer(lender.address, lendingTokenId,
+      const offer = createLendingOffer(
+        lender.address,
+        lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
         lendingAmount,
@@ -639,14 +665,14 @@ describe('LendingMarketplace', () => {
     })
   })
 
-  describe('paybackLoan', () => {
+  describe('liquidateLoan', () => {
     let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
     let admin: PrivateKeyWallet
     let lender: PrivateKeyWallet
     let borrower: PrivateKeyWallet
 
     beforeAll(async () => {
-      [admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
       marketplace = createLendingMarketplace(admin.address)
     })
 
@@ -663,7 +689,7 @@ describe('LendingMarketplace', () => {
         borrower.address,
         undefined,
         undefined,
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
+        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         marketplace
       )
 
@@ -682,7 +708,9 @@ describe('LendingMarketplace', () => {
         }
       })
 
-      const event = testResult.events.find((e) => e.name == 'LoanLiquidated') as LendingMarketplaceTypes.LoanLiquidatedEvent
+      const event = testResult.events.find(
+        (e) => e.name == 'LoanLiquidated'
+      ) as LendingMarketplaceTypes.LoanLiquidatedEvent
       expect(event.fields.loanId).toEqual(offer.contractId)
     })
 
@@ -699,7 +727,7 @@ describe('LendingMarketplace', () => {
         borrower.address,
         undefined,
         undefined,
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }]},
+        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         marketplace
       )
 
@@ -717,7 +745,11 @@ describe('LendingMarketplace', () => {
           loanId: offer.contractId
         }
       })
-      expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly)
+      )
     })
 
     it('fails if loan does not exist', async () => {
