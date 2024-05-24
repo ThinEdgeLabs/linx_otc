@@ -210,7 +210,7 @@ function reset() {
                     <p class="text-[10px] lg:text-[12px] text-core-light">LENDING</p>
                     <div class="flex flex-row items-center space-x-[10px] text-[14px] lg:text-[18px]">
                       <p class="font-extrabold text-core-lightest">
-                        {{ prettifyTokenAmount(loan.loanAmount, loanToken!.decimals) }}
+                        {{ prettifyExactAmount(loan.loanAmount, loanToken!.decimals) }}
                       </p>
                       <p class="text-core-light">{{ loanToken!.symbol }}</p>
                     </div>
