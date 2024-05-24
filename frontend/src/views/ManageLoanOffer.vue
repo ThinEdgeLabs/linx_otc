@@ -322,7 +322,7 @@ function reset() {
           <HorizontalDivider />
           <LoanPreviewLabel :title="'P2P Fee'" :amount="convertBasisPointsToPercentage(config.fee as bigint)" />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'16'" :amount_description="'seconds'" />
         </div>
 
         <div v-if="canRepay && !waitingForTxConfirmation" class="flex flex-col space-y-[15px] mb-[30px]">
@@ -342,7 +342,7 @@ function reset() {
             :amount_description="collateralToken!.symbol"
           />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'16'" :amount_description="'seconds'" />
         </div>
 
         <div v-if="canDelete && !waitingForTxConfirmation" class="flex flex-col space-y-[15px] mb-[30px]">
@@ -353,7 +353,7 @@ function reset() {
             :amount_description="loanToken!.symbol"
           />
           <HorizontalDivider />
-          <LoanPreviewLabel :title="'Estimated time'" :amount="'60'" :amount_description="'seconds'" />
+          <LoanPreviewLabel :title="'Estimated time'" :amount="'16'" :amount_description="'seconds'" />
         </div>
 
         <WalletButton v-if="!account?.isConnected" />
