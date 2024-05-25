@@ -111,6 +111,13 @@ async function handlePubKey(pubKey: string) {
       <div class="font-extrabold text-core-light">
         {{ props.isSender ? 'Your address' : 'Receiver address' }}
       </div>
+      <a
+        v-if="!props.isSender && !orderStore.order?.to"
+        href="https://linx-labs.gitbook.io/linxotc"
+        target="_blank"
+        class="text-accent-3 text-[10px]"
+        >How to find the publickey</a
+      >
     </div>
 
     <div class="flex flex-row w-full p-[10px] rounded-lg bg-white justify-between items-center text-core max-h-[52px]">
