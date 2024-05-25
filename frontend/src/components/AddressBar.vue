@@ -146,7 +146,7 @@ async function handlePubKey(pubKey: string) {
       <ValidationError :message="errorMessage" />
       <a
         v-if="getPubKey"
-        href="https://linx-labs.gitbook.io/linxotc-testnet/v/find-your-public-key"
+        href="https://docs.linxlabs.org/linx-otc/p2p-trading/how-to-find-your-public-key"
         target="_blank"
         class="text-accent-3 text-[10px]"
         >How to find the publickey</a
@@ -185,6 +185,6 @@ async function handlePubKey(pubKey: string) {
         class="text-[18px] text-accent-3 max-w-[20px]"
       />
     </div>
-    <ValidationError :message="pubKeyErrorMessage" v-if="pubKeyErrorMessage"/>
+    <ValidationError :message="pubKeyErrorMessage" v-if="pubKeyErrorMessage" />
   </section>
 </template>
