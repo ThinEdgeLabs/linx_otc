@@ -51,7 +51,7 @@ menuItems.push(
 )
 
 function goToDocs() {
-  window.open('https://linx-labs.gitbook.io/linxotc/v/p2p-trades-on-linxotc', '_blank')
+  window.open('https://docs.linxlabs.org/linx-otc/p2p-trading', '_blank')
 }
 </script>
 
@@ -73,7 +73,7 @@ function goToDocs() {
       />
     </div>
     <nav
-      class="absolute lg:pt-0 lg:px-0 sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full space-x-[20px] h-screen lg:h-auto overflow-y-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px] z-20"
+      class="absolute lg:pt-0 lg:px-0 sidebar fixed lg:relative lg:flex flex-row text-white items-center justify-between lg:w-full h-screen lg:h-auto transition-transform -translate-x-full lg:translate-x-0 space-y-[20px] z-20"
       :class="{
         'absolute -translate-x-0 left-[75%] w-[75%] top-0 bg-core-darkest': showSideBar,
         'left-0': !showSideBar
@@ -82,14 +82,14 @@ function goToDocs() {
       <RouterLink :to="'/'">
         <LinxOTCLogo :class="'invisible lg:visible lg:pt-[10px]'" @click="selectedMenuItem = 'Home'" />
       </RouterLink>
-      <div @click="showSideBar = !showSideBar" class="visible lg:invisible flex items-center space-x-[17px]">
+      <div @click="showSideBar = !showSideBar" class="lg:hidden flex items-center space-x-[17px]">
         <font-awesome-icon :icon="['fal', 'times']" class="text-core-lightest text-[28px]" />
 
         <div class="text-white font-extrabold text-[22px]">Menu</div>
       </div>
 
       <div
-        class="flex flex-col lg:flex-row justify-center pl-[40px] space-y-[30px] pt-[30px] lg:pt-0 lg:pl-0 lg:space-x-[40px] lg:space-y-0 z-20"
+        class="flex flex-col lg:flex-row justify-center pl-[40px] space-y-[30px] pt-[30px] lg:pt-0 lg:space-x-[20px] lg:space-y-0 z-20"
       >
         <MenuItem
           @click="item.title === 'Docs' ? goToDocs() : (selectedMenuItem = item.title), (showSideBar = false)"
@@ -100,7 +100,7 @@ function goToDocs() {
           :is-selected="$route.fullPath === item.destination"
         ></MenuItem>
       </div>
-      <div class="pr-[30px] lg:pr-0">
+      <div class="pl-[40px] pr-[30px] lg:pr-0">
         <WalletButton @click="showSideBar = false" />
       </div>
     </nav>

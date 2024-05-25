@@ -23,16 +23,16 @@ const props = defineProps<{
 
 const errorMessage = ref<string | undefined>(undefined)
 
-onMounted(() => {
+onMounted( async () => {
   if (props.hideBalance) {
     // If the balance is hidden, we just need to display the list of tokens
-    tokens.value = getTokens()
+    tokens.value = await getTokens()
     return
   }
-  watchEffect(() => {
+  watchEffect( async () => {
     if (!toValue(isLoading)) {
       if (toValue(balance)) {
-        const tokensList = getTokens()
+        const tokensList = await getTokens()
         const tokensWithBalance = []
         const alph: Token | undefined = tokensList.find((e) => e.contractId === ALPH_TOKEN_ID)
         const alphToken = { ...alph } as Token
@@ -177,7 +177,7 @@ function onMaxButtonClick() {
               : 'You request'
         }}
       </div>
-      <div v-if="selectedToken" class="flex flex-row items-center space-x-[4px] text-[12px]">
+      <div v-if="selectedToken && !hideBalance" class="flex flex-row items-center space-x-[4px] text-[12px]">
         <p class="text-core-light">Available</p>
         <p class="text-core-lightest font-extrabold">{{ selectedToken.balance?.balanceHint }}</p>
       </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps({ modelValue: String })
+defineProps({ modelValue: String, fieldType: { type: String, default: 'address' } })
 defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
@@ -10,7 +10,7 @@ defineEmits<{
     <input
       class="remove-arrow outline-none w-full font-extrabold text-core-darkest text-[14px]"
       :value="modelValue"
-      :placeholder="'Enter receiver PUBLIC KEY'"
+      :placeholder="fieldType === 'address' ? 'Enter receiver address' : 'Enter receiver PUBLIC KEY'"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     />
   </div>

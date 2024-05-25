@@ -11,12 +11,18 @@ import { useAccountStore } from './stores'
 import { usePopUpStore } from './stores/popup'
 import PopUpView from './views/PopUpView.vue'
 import { getMarketplaceConfig } from './config'
+import { useTokenStore } from './stores/tokens'
 
 const popUpStore = usePopUpStore()
 const deploymentNetwork = getMarketplaceConfig().network
 
 onMounted(async () => {
   const wcStore = useWalletConnectStore()
+  const network = import.meta.env.VITE_NETWORK_ID
+  const tokenStore = useTokenStore()
+  if (!tokenStore.tokens) {
+    tokenStore.initTokens(network)
+  }
   wcStore.checkExistingWCConnection()
   const store = useAccountStore()
   if (!store.account?.isConnected) {
@@ -31,6 +37,7 @@ onMounted(async () => {
       type: 'warning',
       message: [
         'Please be aware that Linx OTC is still in the BETA phase. This means there may be bugs and errors. Despite our efforts to deliver a safe DApp, contracts could potentially become compromised, which could result in the loss of all your funds.',
+        '\bLinx OTC is currently on TESTNET',
         '\bLinx Labs is not responsible for any loss of funds, use this DApp at your own risk.'
       ],
       showTerms: true,

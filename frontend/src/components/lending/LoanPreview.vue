@@ -5,31 +5,29 @@ import { useAccountStore } from '@/stores/account'
 import { shortenString } from '@/functions/stringUtils'
 import HorizontalDivider from '../HorizontalDivider.vue'
 import LoanPreviewLabel from './LoanPreviewLabel.vue'
-import { getTokens } from '@/config'
+import { getTokens, undefinedToken } from '@/config'
+import { onMounted, ref } from 'vue'
+import { Token } from '@/types'
 
 const loanOrder = useLoanOrderStore()
 const accountStore = useAccountStore()
 
-function getAnnualisedInterest() {
-  return (loanOrder.order!.interest / loanOrder.order!.loanAmount / loanOrder.order!.duration) * 365
-}
+const collateralToken = ref<Token | undefined>(undefined)
+const loanToken = ref<Token | undefined>(undefined)
 
-const collateralToken = getTokens().find((e) => e.contractId === loanOrder.order?.collateralToken?.contractId) ?? {
-  symbol: 'unknown',
-  name: 'unknown',
-  decimals: 18,
-  logoUri: '/images/tokens/nologo.png'
-}
-const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loanToken?.contractId) ?? {
-  symbol: 'unknown',
-  name: 'unknown',
-  decimals: 18,
-  logoUri: '/images/tokens/nologo.png'
-}
+onMounted(async () => {
+  const tokens = await getTokens()
+  collateralToken.value =
+    tokens.find((e) => e.contractId === loanOrder.order?.collateralToken?.contractId) ?? undefinedToken
+  loanToken.value = tokens.find((e) => e.contractId === loanOrder.order?.loanToken?.contractId) ?? undefinedToken
+})
 </script>
 
 <template>
-  <section class="w-full lg:max-w-[489px] flex flex-col bg-menu p-[30px] space-y-[20px] rounded-lg leading-snug">
+  <section
+    v-if="collateralToken && loanToken"
+    class="w-full lg:max-w-[489px] flex flex-col bg-menu p-[30px] space-y-[20px] rounded-lg leading-snug"
+  >
     <SectionTitle :title="`Preview loan offer`" :description="''" />
     <div class="flex flex-col w-full">
       <div class="w-full bg-core-darkest p-[10px] rounded-lg flex flex-row justify-between items-center">
@@ -76,19 +74,13 @@ const loanToken = getTokens().find((e) => e.contractId === loanOrder.order?.loan
     <HorizontalDivider />
     <LoanPreviewLabel
       :title="'Interest'"
-      :amount="loanOrder.order!.interest.toString()"
+      :amount="(loanOrder.order!.interest - loanOrder.order!.loanAmount).toString()"
       :amount_description="loanOrder.order!.loanToken?.symbol"
-    />
-    <HorizontalDivider />
-    <LoanPreviewLabel
-      :title="'Annualised Interest'"
-      :amount="getAnnualisedInterest().toFixed(2)"
-      :amount_description="'% APR'"
     />
     <HorizontalDivider />
     <LoanPreviewLabel :title="'P2P Fee'" :amount="'FREE'" />
     <HorizontalDivider />
-    <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+    <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'16'" :amount_description="'seconds'" />
     <!-- <HorizontalDivider />
     <LoanPreviewLabel
       :title="'Minumum Rating Borrower'"

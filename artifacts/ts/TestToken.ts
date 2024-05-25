@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as TestTokenContractJson } from "../test/TestToken.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -76,6 +78,14 @@ class Factory extends ContractFactory<
   TestTokenInstance,
   TestTokenTypes.Fields
 > {
+  encodeFields(fields: TestTokenTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      []
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as TestTokenTypes.Fields;
   }
@@ -133,7 +143,8 @@ export const TestToken = new Factory(
   Contract.fromJson(
     TestTokenContractJson,
     "",
-    "0831d766037e7873066276e891997881e8787f4fb4bd9d154925d80869efa129"
+    "f9dac4e7d0bf28a2bc019f43138339e23afadde322d50441cdfe029993bf35f3",
+    []
   )
 );
 

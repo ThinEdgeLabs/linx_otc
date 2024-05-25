@@ -21,7 +21,7 @@ export async function useValidateGroup() {
       rightButtonTitle: 'Close',
       onCancel: () => popUpStore.closePopUp(),
       message: [
-        `Your account's group does not match the marketplace's group. Please switch to an account in group ${marketPlaceGroup} to proceed.`
+        `Your account's group does not match the marketplace's group. Please switch to an account in Group ${marketPlaceGroup} to proceed.`
       ],
       showTerms: false,
       showIcon: true,

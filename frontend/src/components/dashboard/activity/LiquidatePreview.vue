@@ -39,7 +39,7 @@ const props = defineProps({
         :amount_description="props.activity.requestToken"
       />
       <HorizontalDivider />
-      <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'60'" :amount_description="'seconds'" />
+      <LoanPreviewLabel :title="'Estimated time to create order'" :amount="'16'" :amount_description="'seconds'" />
     </div>
     <CustomButton
       :title="

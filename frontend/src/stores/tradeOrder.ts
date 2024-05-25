@@ -75,14 +75,18 @@ export const useOrderStore = defineStore('order', () => {
 
     const feeAddress = feeAddresses.find((f) => f.group === order.value!.groupFrom)!.address
 
+    const tradeFeeFrom = order.value!.tokenFrom!.decimals > 0 ? tradeFee : order.value!.amountFrom > 200 ? tradeFee : 0
+    const tradeFeeTo = order.value!.tokenTo!.decimals > 0 ? tradeFee : order.value!.amountTo > 200 ? tradeFee : 0
+
     const offerAmount = convertAmountWithDecimals(
-      order.value!.amountFrom * (1 - tradeFee),
+      order.value!.amountFrom * (1 - tradeFeeFrom),
       order.value!.tokenFrom!.decimals
     )
     const requestAmount = convertAmountWithDecimals(
-      order.value!.amountTo * (1 - tradeFee),
+      order.value!.amountTo * (1 - tradeFeeTo),
       order.value!.tokenTo!.decimals
     )
+    
     const feeRequester = convertAmountWithDecimals(order.value!.amountFrom * tradeFee, order.value!.tokenFrom!.decimals)
     const feeRecipient = convertAmountWithDecimals(order.value!.amountTo * tradeFee, order.value!.tokenTo!.decimals)
 
@@ -99,14 +103,6 @@ export const useOrderStore = defineStore('order', () => {
               ...(order.value!.tokenFrom!.symbol != 'ALPH' && {
                 tokens: [{ id: order.value!.tokenFrom!.contractId, amount: offerAmount!.toString() }]
               })
-            },
-            {
-              address: feeAddress,
-              ...(order.value!.tokenFrom!.symbol === 'ALPH' && { attoAlphAmount: feeRequester!.toString() }),
-              ...(order.value!.tokenFrom!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
-              ...(order.value!.tokenFrom!.symbol != 'ALPH' && {
-                tokens: [{ id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }]
-              })
             }
           ],
           ...(useGasPayer && { gasAmount: 0 })
@@ -120,14 +116,6 @@ export const useOrderStore = defineStore('order', () => {
               ...(order.value!.tokenTo!.symbol != 'ALPH' && { attoAlphAmount: DUST_AMOUNT }),
               ...(order.value!.tokenTo!.symbol != 'ALPH' && {
                 tokens: [{ id: order.value!.tokenTo!.contractId, amount: requestAmount!.toString() }]
-              })
-            },
-            {
-              address: feeAddress,
-              ...(order.value!.tokenTo!.symbol === 'ALPH' && { attoAlphAmount: feeRecipient!.toString() }),
-              ...(order.value!.tokenTo!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
-              ...(order.value!.tokenTo!.symbol != 'ALPH' && {
-                tokens: [{ id: order.value!.tokenTo!.contractId, amount: feeRecipient!.toString() }]
               })
             }
           ],
@@ -147,6 +135,29 @@ export const useOrderStore = defineStore('order', () => {
         gasAmount: 75000
       })
     }
+
+    if (tradeFeeFrom > 0) {
+      tx.from[0].destinations.push({
+        address: feeAddress,
+        ...(order.value!.tokenFrom!.symbol === 'ALPH' && { attoAlphAmount: feeRequester!.toString() }),
+        ...(order.value!.tokenFrom!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
+        ...(order.value!.tokenFrom!.symbol != 'ALPH' && {
+          tokens: [{ id: order.value!.tokenFrom!.contractId, amount: feeRequester!.toString() }]
+        })
+      })
+    }
+
+    if (tradeFeeTo > 0) {
+      tx.from[1].destinations.push({
+        address: feeAddress,
+        ...(order.value!.tokenTo!.symbol === 'ALPH' && { attoAlphAmount: feeRecipient!.toString() }),
+        ...(order.value!.tokenTo!.symbol != 'ALPH' && { attoAlphAmount: '0' }),
+        ...(order.value!.tokenTo!.symbol != 'ALPH' && {
+          tokens: [{ id: order.value!.tokenTo!.contractId, amount: feeRecipient!.toString() }]
+        })
+      })
+    }
+
     const unsignedTx = await node.nodeProvider!.transactions.postTransactionsBuildMultiAddresses(
       tx as node.BuildMultiAddressesTransaction
     )

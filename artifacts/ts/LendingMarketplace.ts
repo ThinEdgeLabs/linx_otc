@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as LendingMarketplaceContractJson } from "../LendingMarketplace.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -151,6 +153,14 @@ class Factory extends ContractFactory<
   LendingMarketplaceInstance,
   LendingMarketplaceTypes.Fields
 > {
+  encodeFields(fields: LendingMarketplaceTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      []
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as LendingMarketplaceTypes.Fields;
   }
@@ -321,7 +331,8 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "9bd3d73316eee09f73462dabf34ec4fb1d1315e011666561a0a42657394b39be"
+    "c97347fba2fc3a7e65a88876a0c1fc138cce83fda13b60ca3b2515e11f6efb87",
+    []
   )
 );
 
