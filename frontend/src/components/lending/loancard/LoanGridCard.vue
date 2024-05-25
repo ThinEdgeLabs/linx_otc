@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import HorizontalDivider from '@/components/HorizontalDivider.vue'
-import { shortenString } from '@/functions/stringUtils'
-import { calculateApr } from '@/functions/utils'
 import type { Loan, Token } from '@/types'
 import { prettifyTokenAmount } from '@alephium/web3'
 import CustomButton from '@/components/CustomButton.vue'
@@ -67,16 +65,11 @@ const loanToken = props.tokens.get(props.loan.loanToken) ?? {
       </div>
       <div class="border border-r-2 border-core-darkest -mt-3 -mb-3" />
       <div class="w-full flex flex-col items-center justify-center">
+        <p class="text-[10px]">INTEREST</p>
         <p class="text-[10px] text-core-light">
           {{ prettifyTokenAmount((props.loan.interest * props.loan.loanAmount) / 10000n, loanToken.decimals) }}
           {{ loanToken.symbol }}
         </p>
-        <div class="flex flex-row text-[12px] space-x-1">
-          <p class="text-core-lightest font-extrabold">
-            {{ prettifyTokenAmount(calculateApr(props.loan), loanToken.decimals) }}
-          </p>
-          <p class="text-core-light">% APR</p>
-        </div>
       </div>
     </div>
   </div>

@@ -21,12 +21,12 @@ import { default as RepayLoanScriptJson } from "../scripts/RepayLoan.ral.json";
 export const Borrow = new ExecutableScript<{
   offerId: HexString;
   lendingMarketplace: HexString;
-}>(Script.fromJson(BorrowScriptJson, ""));
+}>(Script.fromJson(BorrowScriptJson, "", []));
 
 export const CancelOffer = new ExecutableScript<{
   marketplace: HexString;
   offerId: HexString;
-}>(Script.fromJson(CancelOfferScriptJson, ""));
+}>(Script.fromJson(CancelOfferScriptJson, "", []));
 
 export const CreateOffer = new ExecutableScript<{
   lendingTokenId: HexString;
@@ -36,22 +36,22 @@ export const CreateOffer = new ExecutableScript<{
   interestRate: bigint;
   duration: bigint;
   lendingMarketplace: HexString;
-}>(Script.fromJson(CreateOfferScriptJson, ""));
+}>(Script.fromJson(CreateOfferScriptJson, "", []));
 
 export const GetToken = new ExecutableScript<{
   token: HexString;
   sender: Address;
   amount: bigint;
-}>(Script.fromJson(GetTokenScriptJson, ""));
+}>(Script.fromJson(GetTokenScriptJson, "", []));
 
 export const LiquidateLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
-}>(Script.fromJson(LiquidateLoanScriptJson, ""));
+}>(Script.fromJson(LiquidateLoanScriptJson, "", []));
 
 export const RepayLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
   borrowedTokenId: HexString;
   amount: bigint;
-}>(Script.fromJson(RepayLoanScriptJson, ""));
+}>(Script.fromJson(RepayLoanScriptJson, "", []));

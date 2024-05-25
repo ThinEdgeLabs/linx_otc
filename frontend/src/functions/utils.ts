@@ -1,5 +1,6 @@
+import { getMarketplaceConfig } from '@/config'
 import type { Loan } from '@/types'
-import { binToHex } from '@alephium/web3'
+import { binToHex, hexToBinUnsafe } from '@alephium/web3'
 import blake from 'blakejs'
 
 export async function sleep(ms: number) {
@@ -94,4 +95,35 @@ export async function fetchLink(hash: string) {
   } else {
     throw Error(res.statusText)
   }
+}
+
+export async function fetchTransactions(address: string, page?: number, limit?: number) {
+  const config = getMarketplaceConfig()
+  const transactions = await fetch(
+    `${config.defaultExplorerUrl}/addresses/${address}/transactions?page=${page ?? 1}&limit=${limit ?? 10}`
+  )
+    .then(async (e) => await e.json())
+    .catch((e) => console.log(`Error fetching transactions for address: ${address}`, e))
+  return transactions
+}
+
+export async function getPubKeyFromAddress(address: string) {
+  const transactions = await fetchTransactions(address, 1, 25)
+  if (transactions.length === 0) {
+    return null
+  }
+  for (const i in transactions) {
+    const inputs = transactions[i].inputs
+    for (const a in inputs) {
+      const txInput = inputs[a]
+      if (txInput.address === address) {
+        const txType = hexToBinUnsafe(txInput.unlockScript)[0]
+        if (txType === 0x00) {
+          const pubKeyBin = hexToBinUnsafe(txInput.unlockScript).slice(1)
+          return binToHex(pubKeyBin)
+        }
+      }
+    }
+  }
+  return null
 }

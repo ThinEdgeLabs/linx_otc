@@ -9,7 +9,7 @@ Contract LendingOffer(
   interestRate: U256, // in basis points
   duration: U256, // in days
   mut borrower: Address,
-  loanTimeStamp: U256 // in seconds
+  mut loanTimeStamp: U256 // in seconds
 ) extends LendingMarketplaceUtils() {
 
   enum ErrorCodes {
@@ -70,6 +70,7 @@ Contract LendingOffer(
 
     // TODO: Pay the fee to the marketplace
 
+    loanTimeStamp = blockTimeStampInSeconds()
     borrower = caller
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)

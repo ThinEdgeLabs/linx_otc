@@ -2,9 +2,11 @@
 import SimpleTokenSelector from '@/components/SimpleTokenSelector.vue'
 import DurationSelector from '@/components/DurationSelector.vue'
 import { useLoanStore } from '@/stores/loans'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getTokens } from '@/config'
 import type { Token } from '@/types/token'
+import { useTokenStore } from '@/stores/tokens'
+import { anyToken } from '@/config'
 
 const loanStore = useLoanStore()
 
@@ -19,20 +21,16 @@ const props = defineProps({
   }
 })
 
-const tokenList = getTokens()
-const anyToken: Token = {
-  name: 'Any token',
-  symbol: 'NONE',
-  contractId: '',
-  decimals: 18,
-  logoUri: '/images/tokens/NONE.png'
-}
-
-tokenList.unshift(anyToken)
-
 const selectedLoanToken = ref<Token>(anyToken)
 const selectedCollateralToken = ref<Token>(anyToken)
 const selectedDuration = ref<number | undefined>(undefined)
+const tokenList = ref<Token[]>([])
+
+onMounted(async () => {
+  const tokens = await getTokens()
+  tokens.unshift(anyToken)
+  tokenList.value = tokens
+})
 
 function setSelectedLoanToken(token: Token) {
   selectedLoanToken.value = token
