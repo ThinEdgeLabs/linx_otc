@@ -5,6 +5,7 @@ import { getMarketplaceConfig, getTokens } from '@/config'
 import { ContractEvent, addressFromContractId, decodeEvent, prettifyTokenAmount } from '@alephium/web3'
 import { LendingMarketplace } from '../../../artifacts/ts'
 import { useNodeStore } from './node'
+import { removeDuplicatesFromLoanArray } from '@/functions/utils'
 
 export const useLoanStore = defineStore('loans', () => {
   const loans = ref<Array<Loan>>([])
@@ -75,10 +76,30 @@ export const useLoanStore = defineStore('loans', () => {
     const active = events.filter((e) => e.name === 'LoanAccepted').map((e) => e.fields['loanId'] as String)
     const closed = new Set([...cancelled, ...paid, ...liquidated, ...active])
     const availableLoans = createdLoans.filter((loan) => !closed.has(loan.contractId))
-    loans.value = availableLoans
-    _loans.value = availableLoans
+    const filteredLoans = removeDuplicatesFromLoanArray(availableLoans)
+    const finalLoanList : Array<Loan> = []
+    for (const i in filteredLoans) {  
+      const loan = filteredLoans[i] as Loan
+      const newLoan : Loan = {
+        id: BigInt(loan.id),
+        contractId: loan.contractId,
+        lender: loan.lender,
+        borrower: undefined,
+        loanToken: loan.loanToken,
+        loanAmount: BigInt(loan.loanAmount),
+        interest: BigInt(loan.interest),
+        collateralToken: loan.collateralToken,
+        collateralAmount: BigInt(loan.collateralAmount),
+        created: loan.created,
+        startDate: undefined,
+        duration: BigInt(loan.duration)
+      } 
+      finalLoanList.push(newLoan)
+    }
+    loans.value = finalLoanList
+    _loans.value = finalLoanList
     isLoading.value = false
-    return availableLoans
+    return finalLoanList
   }
 
   async function getLoansForUser(address: string) {

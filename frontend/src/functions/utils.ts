@@ -127,3 +127,10 @@ export async function getPubKeyFromAddress(address: string) {
   }
   return null
 }
+
+export function removeDuplicatesFromLoanArray(array: Loan[]) {
+  const jsonObject = array.map(JSON.stringify as any)
+  const uniqueSet = new Set(jsonObject)
+  const uniqueArray = Array.from(uniqueSet).map(JSON.parse as any)
+  return uniqueArray
+}
