@@ -47,7 +47,15 @@ export const getTokens = async () => {
   const tokenStore = useTokenStore()
   if (network === 'testnet' || network === 'mainnet') {
     const tokenList = await tokenStore.getTokens(network)
-    return Array.from(tokenList)
+    const tokenListArray = Array.from(tokenList)
+    tokenListArray.push({
+      symbol: 'OGALF',
+      name: 'OG ALF',
+      contractId: 'c0c0af7a481e3e50c50e418bf8ff6923dc4d878ac3744474e8c708a8adccfb00',
+      decimals: 0,
+      logoUri: 'https://raw.githubusercontent.com/alephium/tokens-meta/master/logos/ALF.png'
+    })
+    return tokenListArray
   } else if (network === 'devnet') {
     const alph = {
       symbol: 'ALPH',
