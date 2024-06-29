@@ -12,11 +12,10 @@ export const useStatsStore = defineStore('stats', () => {
   const stats = ref<Statistics | undefined>()
 
   async function getPrice() {
-    const cgPriceData = await fetch('https://api.mobula.io/api/1/market/pair?blockchain=alephium&asset=alephium   ')
-    const res = await cgPriceData.json()
-    console.log()
+    const priceData = await fetch('https://api.linxotc.com/price/alephium')
+    const res = await priceData.json()
     stats.value = {
-      price: res.data.price as number
+      price: res.price as number
     }
   }
 
