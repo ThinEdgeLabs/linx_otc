@@ -18,7 +18,7 @@
     "deploy:tokens": "npx ts-node scripts/devnet.ts",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
-    "test": "npx @alephium/cli test"
+    "test": "npx @alephium/cli test -v"
   },
   "dependencies": {
     "@alephium/cli": "^1.0.0",

@@ -1,9 +1,15 @@
-import { ALPH_TOKEN_ID, ONE_ALPH, addressFromContractId, contractIdFromAddress, web3 } from '@alephium/web3'
+import {
+  ALPH_TOKEN_ID,
+  ZERO_ADDRESS,
+  addressFromContractId,
+  contractIdFromAddress,
+  waitForTxConfirmation,
+  web3
+} from '@alephium/web3'
 import { getSigners, testNodeWallet } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
 import { LendingMarketplaceInstance, LendingOffer, LendingOfferInstance } from '../../artifacts/ts'
-import { waitTxConfirmed } from '@alephium/cli'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('LendingMarketplace', () => {
@@ -15,10 +21,8 @@ describe('LendingMarketplace', () => {
   beforeAll(async () => {
     signer = await testNodeWallet()
     marketplace = new LendingMarketplaceHelper(signer)
-    await marketplace.buildProject()
     await marketplace.create()
     expect(marketplace.contractId).toBeDefined()
-    console.log('LendingMarketplace contractId:', marketplace.contractId)
     lendingTokenId = await deployTestToken(signer)
   })
 
@@ -26,8 +30,7 @@ describe('LendingMarketplace', () => {
     const provider = web3.getCurrentNodeProvider()
     const address = (await signer.getSelectedAccount()).address
 
-    const balance = await balanceOf(lendingTokenId, address)
-    console.log(`Lender balance: ${balance}`)
+    // const balance = await balanceOf(lendingTokenId, address)
 
     const lendingAmount = 1000n
     const collateralAmount = 2000n
@@ -43,7 +46,7 @@ describe('LendingMarketplace', () => {
       interestRate,
       duration
     )
-    await waitTxConfirmed(provider, txId, 1, 1000)
+    await waitForTxConfirmation(txId, 1, 1000)
     const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
     const loanAddress = txDetails.generatedOutputs[0].address
     const loanId = Buffer.from(contractIdFromAddress(loanAddress)).toString('hex')
@@ -78,7 +81,7 @@ describe('LendingMarketplace', () => {
       collateralAmount,
       interestRate,
       duration,
-      borrower: lender,
+      borrower: ZERO_ADDRESS,
       loanTimeStamp: 0n
     })
     expect(lendingOfferState.asset.tokens).toEqual([{ id: lendingTokenId, amount: lendingAmount }])
@@ -116,7 +119,8 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitTxConfirmed(provider, txId, 1, 1000)
+
+      await waitForTxConfirmation(txId, 1, 1000)
 
       expect(await balanceOf(lendingTokenId, lender.address)).toEqual(startingAlphBalance - lendingAmount)
 
@@ -124,7 +128,7 @@ describe('LendingMarketplace', () => {
       const lendingOfferAddress = txDetails.generatedOutputs[0].address
 
       const { txId: cancelOfferTxId } = await marketplace.cancelOffer(lender, lendingOfferAddress)
-      await waitTxConfirmed(provider, cancelOfferTxId, 1, 1000)
+      await waitForTxConfirmation(cancelOfferTxId, 1, 1000)
 
       expect(await balanceOf(lendingTokenId, lender.address)).toBeGreaterThan(0n)
       await expect(new LendingOfferInstance(lendingOfferAddress).fetchState()).rejects.toThrow(Error)
@@ -140,7 +144,7 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitTxConfirmed(provider, txId, 1, 1000)
+      await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const lendingOfferAddress = txDetails.generatedOutputs[0].address
       await expect(marketplace.cancelOffer(borrower, lendingOfferAddress)).rejects.toThrow(Error)
@@ -156,13 +160,13 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitTxConfirmed(provider, txId, 1, 1000)
+      await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const loanId = txDetails.generatedOutputs[0].address
-      const balance = await balanceOf(ALPH_TOKEN_ID, borrower.address)
-      console.log(`Borrower ALPH balance: ${balance}`)
+      // const balance = await balanceOf(ALPH_TOKEN_ID, borrower.address)
+      // console.log(`Borrower ALPH balance: ${balance}`)
       const { txId: takeOfferTxId } = await marketplace.takeOffer(borrower, loanId, ALPH_TOKEN_ID, collateralAmount)
-      await waitTxConfirmed(provider, takeOfferTxId, 1, 1000)
+      await waitForTxConfirmation(takeOfferTxId, 1, 1000)
       await expect(marketplace.cancelOffer(lender, loanId)).rejects.toThrow(Error)
     })
   })

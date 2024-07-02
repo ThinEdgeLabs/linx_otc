@@ -1,6 +1,5 @@
 import {
   web3,
-  Project,
   TestContractParams,
   addressFromContractId,
   ONE_ALPH,
@@ -13,6 +12,7 @@ import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf } from '../../shared/utils'
+import { ZERO_ADDRESS } from '@alephium/web3'
 
 describe('LendingMarketplace', () => {
   let lendingTokenId: string
@@ -24,7 +24,6 @@ describe('LendingMarketplace', () => {
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
 
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
@@ -233,7 +232,7 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower: lender.address,
+        borrower: ZERO_ADDRESS,
         loanTimeStamp: 0n
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
@@ -334,7 +333,7 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender.address,
+        ZERO_ADDRESS,
         undefined,
         undefined,
         undefined,
@@ -515,7 +514,7 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender.address,
+        ZERO_ADDRESS,
         undefined,
         undefined,
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
@@ -769,6 +768,26 @@ describe('LendingMarketplace', () => {
       })
 
       expect(testResult).rejects.toThrowError()
+    })
+  })
+
+  describe('blockTimeStampInSeconds', () => {
+    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
+    let admin: PrivateKeyWallet
+
+    beforeAll(async () => {
+      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
+      marketplace = createLendingMarketplace(admin.address)
+    })
+
+    it('returns the current block timestamp in seconds', async () => {
+      const timestamp = Date.now()
+      const testResult = await LendingMarketplace.tests.blockTimeStampInSeconds({
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
+        blockTimeStamp: timestamp
+      })
+      expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
     })
   })
 })

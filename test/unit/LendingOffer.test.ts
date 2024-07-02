@@ -1,4 +1,4 @@
-import { web3, Project, ONE_ALPH, ContractState } from '@alephium/web3'
+import { web3, ONE_ALPH, ContractState, ZERO_ADDRESS } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
@@ -22,7 +22,6 @@ describe('LendingOffer', () => {
     admin = testAddress
     marketplace = createLendingMarketplace(admin)
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
   })
 
   beforeEach(async () => {
@@ -98,7 +97,7 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender.address,
+        'tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq',
         undefined
       )
 
@@ -189,7 +188,6 @@ describe('LendingOffer', () => {
 
   describe('cancel', () => {
     it('cancels the offer', async () => {
-      const borrowerAddress = lender.address
       fixture = createLendingOffer(
         lender.address,
         lendingTokenId,
@@ -199,7 +197,7 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrowerAddress
+        ZERO_ADDRESS
       )
 
       const testResult = await LendingOffer.tests.cancel({
@@ -215,8 +213,6 @@ describe('LendingOffer', () => {
         address: fixture.address,
         existingContracts: fixture.dependencies
       })
-
-      console.log(testResult.events)
       expect(testResult.events.find((e) => e.name === 'ContractDestroyed')).toBeDefined()
     })
   })

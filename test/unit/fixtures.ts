@@ -47,8 +47,8 @@ export function createLendingOffer(
       collateralAmount: collateralAmount ?? 2000n,
       interestRate: interestRate ?? 2000n,
       duration: duration ?? 30n,
-      borrower: borrower ?? testAddress,
-      loanTimeStamp: loanTimeStamp ?? 0n,
+      borrower: borrower ?? ZERO_ADDRESS,
+      loanTimeStamp: loanTimeStamp ?? 0n
     },
     asset,
     address
@@ -56,11 +56,7 @@ export function createLendingOffer(
   return new ContractFixture(contractState, marketContractFixture?.states() ?? [], address)
 }
 
-export function createLendingMarketplace(
-  admin: string,
-  contractId?: string,
-  lendingEnabled?: boolean
-) {
+export function createLendingMarketplace(admin: string, contractId?: string, lendingEnabled?: boolean) {
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
   const lendingOfferTemplate = createLendingOffer()
   const contractState = LendingMarketplace.stateForTest(
