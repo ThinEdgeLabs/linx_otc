@@ -64,17 +64,20 @@ Contract LendingOffer(
   }
 
   @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
-  pub fn take(caller: Address) -> () {
+  pub fn borrow(caller: Address) -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
     assert!(borrower == nullContractAddress!(), ErrorCodes.LoanIsActive)
 
-    // TODO: Pay the fee to the marketplace
+    let marketplace = LendingMarketplace(marketplaceContractId)
+    let marketplaceFee = calculateMarketplaceFee(lendingAmount, marketplace.getFeeRate())
+    let receivedAmount = lendingAmount - marketplaceFee
 
     loanTimeStamp = blockTimeStampInSeconds()
     borrower = caller
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
-    transferTokenFromSelf!(borrower, lendingTokenId, lendingAmount)
+    transferTokenFromSelf!(borrower, lendingTokenId, receivedAmount)
+    transferTokenFromSelf!(contractIdToAddress!(marketplaceContractId), lendingTokenId, marketplaceFee)
   }
 
   @using(assetsInContract = true)
@@ -97,11 +100,10 @@ Contract LendingOffer(
 
   @using(assetsInContract = true)
   pub fn liquidate() -> () {
+    //Note: At the moment anyone can liquidate the loan if it's overdue
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(borrower != lender, ErrorCodes.LoanNotActive)
-
-    let currentBlockTimeStamp = blockTimeStampInSeconds()
-    assert!(currentBlockTimeStamp > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
+    assert!(borrower != nullContractAddress!(), ErrorCodes.LoanNotActive)
+    assert!(blockTimeStampInSeconds() > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
 
     destroySelf!(lender)
   }
