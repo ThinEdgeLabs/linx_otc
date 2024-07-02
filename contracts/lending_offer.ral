@@ -77,6 +77,7 @@ Contract LendingOffer(
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, receivedAmount)
+    //TODO: Figure out how to handle the limit of 8 tokens stored in the contract
     transferTokenFromSelf!(contractIdToAddress!(marketplaceContractId), lendingTokenId, marketplaceFee)
   }
 
