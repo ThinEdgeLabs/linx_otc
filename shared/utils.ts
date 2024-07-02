@@ -1,5 +1,15 @@
-import { ContractState, DUST_AMOUNT, ExecuteScriptResult, SignerProvider, binToHex, contractIdFromAddress, node, number256ToBigint, web3 } from "@alephium/web3"
-import { GetToken, TestToken } from "../artifacts/ts"
+import {
+  ContractState,
+  DUST_AMOUNT,
+  ExecuteScriptResult,
+  SignerProvider,
+  binToHex,
+  contractIdFromAddress,
+  node,
+  number256ToBigint,
+  web3
+} from '@alephium/web3'
+import { GetToken, TestToken } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'
 
@@ -9,7 +19,7 @@ export async function deployTestToken(signer: SignerProvider): Promise<string> {
       symbol: '',
       name: '',
       decimals: 18n,
-      totalSupply: 1n << 255n,
+      totalSupply: 1n << 255n
     },
     issueTokenAmount: 1n << 255n
   })
@@ -40,7 +50,7 @@ export function contractBalanceOf(state: ContractState, tokenId: string): bigint
 }
 
 export function expandTo18Decimals(num: bigint | number): bigint {
-  return BigInt(num) * (10n ** 18n)
+  return BigInt(num) * 10n ** 18n
 }
 
 function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {

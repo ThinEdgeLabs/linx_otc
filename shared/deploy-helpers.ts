@@ -1,4 +1,4 @@
-import { SignerProvider, Project, NodeProvider } from '@alephium/web3'
+import { SignerProvider } from '@alephium/web3'
 
 export class DeployHelpers {
   signer: SignerProvider
@@ -9,7 +9,7 @@ export class DeployHelpers {
     // this.nodeProvider = signer.nodeProvider!
   }
 
-  async buildProject(errorOnWarnings = true): Promise<void> {
-    await Project.build({ errorOnWarnings })
-  }
+  // async buildProject(errorOnWarnings = true): Promise<void> {
+  //   await Project.build({ errorOnWarnings })
+  // }
 }
