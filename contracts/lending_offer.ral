@@ -66,7 +66,7 @@ Contract LendingOffer(
   @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
   pub fn take(caller: Address) -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.LoanIsActive)
+    assert!(borrower == nullContractAddress!(), ErrorCodes.LoanIsActive)
 
     // TODO: Pay the fee to the marketplace
 
@@ -80,7 +80,7 @@ Contract LendingOffer(
   @using(assetsInContract = true)
   pub fn cancel() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
-    assert!(lender == borrower, ErrorCodes.LoanIsActive)
+    assert!(borrower == nullContractAddress!(), ErrorCodes.LoanIsActive)
     destroySelf!(lender)
   }
 
