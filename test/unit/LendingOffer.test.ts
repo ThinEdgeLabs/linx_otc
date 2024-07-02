@@ -84,8 +84,8 @@ describe('LendingOffer', () => {
     })
   })
 
-  describe('take', () => {
-    it('borrower provides collateral and receives the token', async () => {
+  describe('borrow', () => {
+    it('borrower provides collateral and receives the amount minus protocol fee', async () => {
       const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
 
       fixture = createLendingOffer(
@@ -97,13 +97,14 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        'tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq',
-        undefined
+        ZERO_ADDRESS,
+        undefined,
+        0n,
+        undefined,
+        marketplace
       )
-
       expect(fixture.selfState.fields.loanTimeStamp).toBe(0n)
-
-      const testResult = await LendingOffer.tests.take({
+      const testResult = await LendingOffer.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -118,7 +119,9 @@ describe('LendingOffer', () => {
         existingContracts: fixture.dependencies
       })
 
-      const state = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
+      const state = testResult.contracts.find(
+        (c) => c.contractId === fixture.contractId
+      ) as ContractState<LendingOfferTypes.Fields>
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
@@ -138,7 +141,7 @@ describe('LendingOffer', () => {
         lender.address
       )
       const providedCollateral = collateralAmount / 2n
-      const testResult = LendingOffer.tests.take({
+      const testResult = LendingOffer.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -167,7 +170,7 @@ describe('LendingOffer', () => {
         duration,
         testAddress
       )
-      const testResult = LendingOffer.tests.take({
+      const testResult = LendingOffer.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -293,7 +296,7 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        lender.address
+        ZERO_ADDRESS
       )
       const testResult = LendingOffer.tests.liquidate({
         initialFields: fixture.selfState.fields,

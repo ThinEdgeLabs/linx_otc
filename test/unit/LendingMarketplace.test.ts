@@ -49,7 +49,7 @@ describe('LendingMarketplace', () => {
           lendingOfferTemplateId: randomContractId(),
           admin: testAddress,
           totalLendingOffers: 0n,
-          fee: 100n,
+          feeRate: 100n,
           lendingEnabled: true
         },
         inputAssets: [{ address: testAddress, asset: { alphAmount: 10n ** 18n } }],
@@ -96,24 +96,24 @@ describe('LendingMarketplace', () => {
     })
 
     it('updates the marketplace fee', async () => {
-      const testResult = await LendingMarketplace.tests.updateFee({
+      const testResult = await LendingMarketplace.tests.updateFeeRate({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { newFee: 300n }
+        testArgs: { value: 300n }
       })
       const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.fee).toEqual(300n)
+      expect(marketplaceState.fields.feeRate).toEqual(300n)
     })
     it('fails if not admin', async () => {
       const notAdmin = testAddress
-      const testResult = LendingMarketplace.tests.updateFee({
+      const testResult = LendingMarketplace.tests.updateFeeRate({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { newFee: 300n }
+        testArgs: { value: 300n }
       })
       await expectAssertionError(
         testResult,
@@ -139,7 +139,7 @@ describe('LendingMarketplace', () => {
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { enabled: false }
+        testArgs: { value: false }
       })
       const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
       expect(marketplaceState.fields.lendingEnabled).toEqual(false)
@@ -152,7 +152,7 @@ describe('LendingMarketplace', () => {
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { enabled: false }
+        testArgs: { value: false }
       })
       await expectAssertionError(
         testResult,
@@ -289,7 +289,7 @@ describe('LendingMarketplace', () => {
     })
     it('fails if lending is disabled', async () => {
       const lendingEnabled = false
-      const fixture = createLendingMarketplace(admin.address, undefined, lendingEnabled)
+      const fixture = createLendingMarketplace(admin.address, undefined, undefined, lendingEnabled)
       const testResult = LendingMarketplace.tests.createLendingOffer({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
