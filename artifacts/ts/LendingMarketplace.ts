@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -134,6 +137,34 @@ export namespace LendingMarketplaceTypes {
       }>;
       result: CallContractResult<Address>;
     };
+    borrow: {
+      params: CallContractParams<{ offerId: HexString }>;
+      result: CallContractResult<null>;
+    };
+    cancelOffer: {
+      params: CallContractParams<{ loanId: HexString }>;
+      result: CallContractResult<null>;
+    };
+    paybackLoan: {
+      params: CallContractParams<{ loanId: HexString }>;
+      result: CallContractResult<null>;
+    };
+    liquidateLoan: {
+      params: CallContractParams<{ loanId: HexString }>;
+      result: CallContractResult<null>;
+    };
+    updateAdmin: {
+      params: CallContractParams<{ newAdmin: Address }>;
+      result: CallContractResult<null>;
+    };
+    updateFee: {
+      params: CallContractParams<{ newFee: bigint }>;
+      result: CallContractResult<null>;
+    };
+    updateLendingEnabled: {
+      params: CallContractParams<{ enabled: boolean }>;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -147,6 +178,93 @@ export namespace LendingMarketplaceTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    blockTimeStampInSeconds: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    calculateInterestPayment: {
+      params: SignExecuteContractMethodParams<{
+        currentBlockTimeStamp: bigint;
+        loanTimestamp: bigint;
+        amount: bigint;
+        interest: bigint;
+        days: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    calculateTotalInterestPayment: {
+      params: SignExecuteContractMethodParams<{
+        amount: bigint;
+        interest: bigint;
+        days: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    calculateMarketplaceFee: {
+      params: SignExecuteContractMethodParams<{
+        amount: bigint;
+        feeRate: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getAdmin: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getTotalLendingOffers: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getFee: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    createLendingOffer: {
+      params: SignExecuteContractMethodParams<{
+        lendingTokenId: HexString;
+        collateralTokenId: HexString;
+        lendingAmount: bigint;
+        collateralAmount: bigint;
+        interestRate: bigint;
+        duration: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    borrow: {
+      params: SignExecuteContractMethodParams<{ offerId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    cancelOffer: {
+      params: SignExecuteContractMethodParams<{ loanId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    paybackLoan: {
+      params: SignExecuteContractMethodParams<{ loanId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    liquidateLoan: {
+      params: SignExecuteContractMethodParams<{ loanId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    updateAdmin: {
+      params: SignExecuteContractMethodParams<{ newAdmin: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    updateFee: {
+      params: SignExecuteContractMethodParams<{ newFee: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
+    updateLendingEnabled: {
+      params: SignExecuteContractMethodParams<{ enabled: boolean }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -175,13 +293,13 @@ class Factory extends ContractFactory<
     LoanLiquidated: 6,
   };
   consts = {
-    Day: BigInt(86400),
+    Day: BigInt("86400"),
     ErrorCodes: {
-      AdminAllowedOnly: BigInt(0),
-      LendingDisabled: BigInt(1),
-      LenderAllowedOnly: BigInt(2),
-      BorrowerAllowedOnly: BigInt(3),
-      LenderNotAllowed: BigInt(4),
+      AdminAllowedOnly: BigInt("0"),
+      LendingDisabled: BigInt("1"),
+      LenderAllowedOnly: BigInt("2"),
+      BorrowerAllowedOnly: BigInt("3"),
+      LenderNotAllowed: BigInt("4"),
     },
   };
 
@@ -196,7 +314,12 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "blockTimeStampInSeconds", params);
+      return testMethod(
+        this,
+        "blockTimeStampInSeconds",
+        params,
+        getContractByCodeHash
+      );
     },
     calculateInterestPayment: async (
       params: TestContractParamsWithoutMaps<
@@ -210,7 +333,12 @@ class Factory extends ContractFactory<
         }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "calculateInterestPayment", params);
+      return testMethod(
+        this,
+        "calculateInterestPayment",
+        params,
+        getContractByCodeHash
+      );
     },
     calculateTotalInterestPayment: async (
       params: TestContractParamsWithoutMaps<
@@ -218,7 +346,12 @@ class Factory extends ContractFactory<
         { amount: bigint; interest: bigint; days: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "calculateTotalInterestPayment", params);
+      return testMethod(
+        this,
+        "calculateTotalInterestPayment",
+        params,
+        getContractByCodeHash
+      );
     },
     calculateMarketplaceFee: async (
       params: TestContractParamsWithoutMaps<
@@ -226,7 +359,12 @@ class Factory extends ContractFactory<
         { amount: bigint; feeRate: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "calculateMarketplaceFee", params);
+      return testMethod(
+        this,
+        "calculateMarketplaceFee",
+        params,
+        getContractByCodeHash
+      );
     },
     getAdmin: async (
       params: Omit<
@@ -234,7 +372,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<Address>> => {
-      return testMethod(this, "getAdmin", params);
+      return testMethod(this, "getAdmin", params, getContractByCodeHash);
     },
     getTotalLendingOffers: async (
       params: Omit<
@@ -242,7 +380,12 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getTotalLendingOffers", params);
+      return testMethod(
+        this,
+        "getTotalLendingOffers",
+        params,
+        getContractByCodeHash
+      );
     },
     getFee: async (
       params: Omit<
@@ -250,7 +393,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getFee", params);
+      return testMethod(this, "getFee", params, getContractByCodeHash);
     },
     createLendingOffer: async (
       params: TestContractParamsWithoutMaps<
@@ -265,7 +408,12 @@ class Factory extends ContractFactory<
         }
       >
     ): Promise<TestContractResultWithoutMaps<Address>> => {
-      return testMethod(this, "createLendingOffer", params);
+      return testMethod(
+        this,
+        "createLendingOffer",
+        params,
+        getContractByCodeHash
+      );
     },
     borrow: async (
       params: TestContractParamsWithoutMaps<
@@ -273,7 +421,7 @@ class Factory extends ContractFactory<
         { offerId: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "borrow", params);
+      return testMethod(this, "borrow", params, getContractByCodeHash);
     },
     cancelOffer: async (
       params: TestContractParamsWithoutMaps<
@@ -281,7 +429,7 @@ class Factory extends ContractFactory<
         { loanId: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "cancelOffer", params);
+      return testMethod(this, "cancelOffer", params, getContractByCodeHash);
     },
     paybackLoan: async (
       params: TestContractParamsWithoutMaps<
@@ -289,7 +437,7 @@ class Factory extends ContractFactory<
         { loanId: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "paybackLoan", params);
+      return testMethod(this, "paybackLoan", params, getContractByCodeHash);
     },
     liquidateLoan: async (
       params: TestContractParamsWithoutMaps<
@@ -297,7 +445,7 @@ class Factory extends ContractFactory<
         { loanId: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "liquidateLoan", params);
+      return testMethod(this, "liquidateLoan", params, getContractByCodeHash);
     },
     updateAdmin: async (
       params: TestContractParamsWithoutMaps<
@@ -305,7 +453,7 @@ class Factory extends ContractFactory<
         { newAdmin: Address }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "updateAdmin", params);
+      return testMethod(this, "updateAdmin", params, getContractByCodeHash);
     },
     updateFee: async (
       params: TestContractParamsWithoutMaps<
@@ -313,7 +461,7 @@ class Factory extends ContractFactory<
         { newFee: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "updateFee", params);
+      return testMethod(this, "updateFee", params, getContractByCodeHash);
     },
     updateLendingEnabled: async (
       params: TestContractParamsWithoutMaps<
@@ -321,7 +469,12 @@ class Factory extends ContractFactory<
         { enabled: boolean }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "updateLendingEnabled", params);
+      return testMethod(
+        this,
+        "updateLendingEnabled",
+        params,
+        getContractByCodeHash
+      );
     },
   };
 }
@@ -331,7 +484,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "c97347fba2fc3a7e65a88876a0c1fc138cce83fda13b60ca3b2515e11f6efb87",
+    "382fa1e40c177bc4dd495a466b6220d059c1991fb4041257280464b4f2785c55",
     []
   )
 );
@@ -461,7 +614,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  methods = {
+  view = {
     blockTimeStampInSeconds: async (
       params?: LendingMarketplaceTypes.CallMethodParams<"blockTimeStampInSeconds">
     ): Promise<
@@ -560,6 +713,227 @@ export class LendingMarketplaceInstance extends ContractInstance {
         "createLendingOffer",
         params,
         getContractByCodeHash
+      );
+    },
+    borrow: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"borrow">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"borrow">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "borrow",
+        params,
+        getContractByCodeHash
+      );
+    },
+    cancelOffer: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"cancelOffer">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"cancelOffer">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "cancelOffer",
+        params,
+        getContractByCodeHash
+      );
+    },
+    paybackLoan: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"paybackLoan">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"paybackLoan">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "paybackLoan",
+        params,
+        getContractByCodeHash
+      );
+    },
+    liquidateLoan: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"liquidateLoan">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"liquidateLoan">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "liquidateLoan",
+        params,
+        getContractByCodeHash
+      );
+    },
+    updateAdmin: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"updateAdmin">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"updateAdmin">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "updateAdmin",
+        params,
+        getContractByCodeHash
+      );
+    },
+    updateFee: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"updateFee">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"updateFee">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "updateFee",
+        params,
+        getContractByCodeHash
+      );
+    },
+    updateLendingEnabled: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"updateLendingEnabled">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"updateLendingEnabled">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "updateLendingEnabled",
+        params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  transact = {
+    blockTimeStampInSeconds: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"blockTimeStampInSeconds">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"blockTimeStampInSeconds">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "blockTimeStampInSeconds",
+        params
+      );
+    },
+    calculateInterestPayment: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"calculateInterestPayment">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"calculateInterestPayment">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "calculateInterestPayment",
+        params
+      );
+    },
+    calculateTotalInterestPayment: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"calculateTotalInterestPayment">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"calculateTotalInterestPayment">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "calculateTotalInterestPayment",
+        params
+      );
+    },
+    calculateMarketplaceFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"calculateMarketplaceFee">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"calculateMarketplaceFee">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "calculateMarketplaceFee",
+        params
+      );
+    },
+    getAdmin: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getAdmin">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"getAdmin">> => {
+      return signExecuteMethod(LendingMarketplace, this, "getAdmin", params);
+    },
+    getTotalLendingOffers: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getTotalLendingOffers">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getTotalLendingOffers">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getTotalLendingOffers",
+        params
+      );
+    },
+    getFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getFee">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"getFee">> => {
+      return signExecuteMethod(LendingMarketplace, this, "getFee", params);
+    },
+    createLendingOffer: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"createLendingOffer">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"createLendingOffer">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "createLendingOffer",
+        params
+      );
+    },
+    borrow: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"borrow">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"borrow">> => {
+      return signExecuteMethod(LendingMarketplace, this, "borrow", params);
+    },
+    cancelOffer: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"cancelOffer">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"cancelOffer">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "cancelOffer", params);
+    },
+    paybackLoan: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"paybackLoan">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"paybackLoan">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "paybackLoan", params);
+    },
+    liquidateLoan: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"liquidateLoan">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"liquidateLoan">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "liquidateLoan",
+        params
+      );
+    },
+    updateAdmin: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateAdmin">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"updateAdmin">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "updateAdmin", params);
+    },
+    updateFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateFee">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"updateFee">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "updateFee", params);
+    },
+    updateLendingEnabled: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateLendingEnabled">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"updateLendingEnabled">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "updateLendingEnabled",
+        params
       );
     },
   };

@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.6",
+  "version": "v3.2.0",
   "name": "RepayLoan",
   "bytecodeTemplate": "01010300000009b4{2}{3}a3{1}0d0c{0}010a",
   "fieldsSig": {
@@ -25,9 +25,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

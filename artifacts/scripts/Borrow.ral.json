@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.6",
+  "version": "v3.2.0",
   "name": "Borrow",
   "bytecodeTemplate": "01010300030015{0}17000c0d1600010717010c0d160001091702b416011602a3{0}0d0c{1}0108",
   "fieldsSig": {
@@ -19,9 +19,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

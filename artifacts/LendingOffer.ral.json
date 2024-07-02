@@ -1,8 +1,8 @@
 {
-  "version": "v2.14.6",
+  "version": "v3.2.0",
   "name": "LendingOffer",
-  "bytecode": "0b13164042405f407440824090409e40ac40ba40c840d640eb40f9410741154143415e418941b8010000000109d3f5f09369561343e82d0d13203b2e02010005070113d3cb25b2a8160016012b1705160216032c1367102d1706160616052c138001518016042c2d0201000303010ad3afb49010160213800151802c0c160016011602000102010002020107d3f620a25b160016012c1367102d02010000000103d389148c31ce0002010000000103d3e7228672ce0102010000000103d3102cc693ce0202010000000103d3b3f25115ce0302010000000103d30218fd99ce0502010000000103d35409971bce0602010000000103d34bdd6dfece0702010000000107d392ef9a72ce05ce072c1367102d02010000000103d31af0ff4ace0802010000000103d3c3fc000aa00002010000000103d3721b9ae2a00102010101010017d37b53ef9db3ce04410c7bce01a000450d7b0000a1011600a100a000ce03ce06aca000ce02ce05ab01020000000dd3a7633c58b3ce04410c7bce01a000450d7bce01b0010100010015d35524a2adb3ce04410c7b000b1700a000ce01ce02ce0516002aaaa000ce03ce06abce01b0010200010018d367f64a14b3ce04410c7ba000ce01460e7b000017001600a001ce0813800151802c2a330f7bce01b0",
-  "codeHash": "da01da494ee16ccc225afa92600848cb744fece3d483c7a2e33a184c2105ad84",
+  "bytecode": "0b13164042405f407440824090409e40ac40ba40c840d640eb40f9410741154142415c418741b6010000000109d3f5f09369561343e82d0d13203b2e02010005070113d3cb25b2a8160016012b1705160216032c1367102d1706160616052c138001518016042c2d0201000303010ad3afb49010160213800151802c0c160016011602000102010002020107d3f620a25b160016012c1367102d02010000000103d389148c31ce0002010000000103d3e7228672ce0102010000000103d3102cc693ce0202010000000103d3b3f25115ce0302010000000103d30218fd99ce0502010000000103d35409971bce0602010000000103d34bdd6dfece0702010000000107d392ef9a72ce05ce072c1367102d02010000000103d31af0ff4ace0802010000000103d3c3fc000aa00002010000000103d3721b9ae2a00102010101010017d37b53ef9db3ce04410c7ba000ca450d7b0000a1011600a100a000ce03ce06aca000ce02ce05ab01020000000dd3a7633c58b3ce04410c7ba000ca450d7bce01b0010100010015d35524a2adb3ce04410c7b000b1700a000ce01ce02ce0516002aaaa000ce03ce06abce01b0010200010018d367f64a14b3ce04410c7ba000ce01460e7b000017001600a001ce0813800151802c2a330f7bce01b0",
+  "codeHash": "d2c432f8018e11a345993f86b0a43104035c6c00c5157269dbf833a0ba1d08b6",
   "fieldsSig": {
     "names": [
       "id",
@@ -48,9 +48,6 @@
   "functions": [
     {
       "name": "blockTimeStampInSeconds",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -60,9 +57,6 @@
     },
     {
       "name": "calculateInterestPayment",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "currentBlockTimeStamp",
         "loanTimestamp",
@@ -90,9 +84,6 @@
     },
     {
       "name": "calculateTotalInterestPayment",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "amount",
         "interest",
@@ -114,9 +105,6 @@
     },
     {
       "name": "calculateMarketplaceFee",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "amount",
         "feeRate"
@@ -135,9 +123,6 @@
     },
     {
       "name": "getId",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -147,9 +132,6 @@
     },
     {
       "name": "getLender",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -159,9 +141,6 @@
     },
     {
       "name": "getLendingTokenId",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -171,9 +150,6 @@
     },
     {
       "name": "getCollateralTokenId",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -183,9 +159,6 @@
     },
     {
       "name": "getLendingAmount",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -195,9 +168,6 @@
     },
     {
       "name": "getCollateralAmount",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -207,9 +177,6 @@
     },
     {
       "name": "getInterestRate",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -219,9 +186,6 @@
     },
     {
       "name": "getInterest",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -231,9 +195,6 @@
     },
     {
       "name": "getDuration",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -243,9 +204,6 @@
     },
     {
       "name": "getBorrower",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -255,9 +213,6 @@
     },
     {
       "name": "getLoanTimeStamp",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -267,9 +222,6 @@
     },
     {
       "name": "take",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": true,
-      "isPublic": true,
       "paramNames": [
         "caller"
       ],
@@ -283,9 +235,6 @@
     },
     {
       "name": "cancel",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": true,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -293,9 +242,6 @@
     },
     {
       "name": "payback",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": true,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -303,9 +249,6 @@
     },
     {
       "name": "liquidate",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": true,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
