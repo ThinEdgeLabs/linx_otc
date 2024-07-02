@@ -2,7 +2,7 @@ Contract LendingMarketplace(
   lendingOfferTemplateId: ByteVec,
   mut admin: Address,
   mut totalLendingOffers: U256,
-  mut fee: U256,
+  mut feeRate: U256, // in basis points
   mut lendingEnabled: Bool
 ) extends LendingMarketplaceUtils() {
 
@@ -44,8 +44,8 @@ Contract LendingMarketplace(
     return totalLendingOffers
   }
 
-  pub fn getFee() -> U256 {
-    return fee
+  pub fn getFeeRate() -> U256 {
+    return feeRate
   }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
@@ -80,12 +80,14 @@ Contract LendingMarketplace(
   @using(preapprovedAssets = true)
   pub fn borrow(offerId: ByteVec) -> () {
     let offer = LendingOffer(offerId)
+    let caller = callerAddress!()
     let lender = offer.getLender()
+    checkCaller!(caller != lender, ErrorCodes.LenderNotAllowed)
+
     let collateralTokenId = offer.getCollateralTokenId()
     let collateralAmount = offer.getCollateralAmount()
-    checkCaller!(callerAddress!() != lender, ErrorCodes.LenderNotAllowed)
-    let caller = callerAddress!()
-    offer.take{caller -> collateralTokenId: collateralAmount}(caller)
+    offer.borrow{caller -> collateralTokenId: collateralAmount}(caller)
+
     emit LoanAccepted(offerId, caller, blockTimeStamp!())
   }
 
@@ -127,15 +129,16 @@ Contract LendingMarketplace(
   }
 
   @using(updateFields = true)
-  pub fn updateFee(newFee: U256) -> () {
+  pub fn updateFeeRate(value: U256) -> () {
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
 
-    fee = newFee
+    feeRate = value
   }
 
   @using(updateFields = true)
-  pub fn updateLendingEnabled(enabled: Bool) -> () {
+  pub fn updateLendingEnabled(value: Bool) -> () {
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
-    lendingEnabled = enabled
+
+    lendingEnabled = value
   }
 }

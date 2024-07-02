@@ -16,7 +16,7 @@ Abstract Contract LendingMarketplaceUtils() {
     return calculateInterestPayment(days * Day, 0, amount, interest, days)
   }
 
-  pub fn calculateMarketplaceFee(amount: U256, feeRate: U256) -> U256 {
-    return amount * feeRate / 10000
+  pub fn calculateMarketplaceFee(amount: U256, feeRateValue: U256) -> U256 {
+    return amount * feeRateValue / 10000
   }
 }
