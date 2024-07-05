@@ -173,6 +173,10 @@ export namespace LendingMarketplaceTypes {
       }>;
       result: CallContractResult<null>;
     };
+    deposit: {
+      params: CallContractParams<{ tokenId: HexString; amount: bigint }>;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -271,6 +275,13 @@ export namespace LendingMarketplaceTypes {
     withdraw: {
       params: SignExecuteContractMethodParams<{
         to: Address;
+        tokenId: HexString;
+        amount: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    deposit: {
+      params: SignExecuteContractMethodParams<{
         tokenId: HexString;
         amount: bigint;
       }>;
@@ -500,6 +511,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "withdraw", params, getContractByCodeHash);
     },
+    deposit: async (
+      params: TestContractParamsWithoutMaps<
+        LendingMarketplaceTypes.Fields,
+        { tokenId: HexString; amount: bigint }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
+      return testMethod(this, "deposit", params, getContractByCodeHash);
+    },
   };
 }
 
@@ -508,7 +527,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "",
-    "db7bc4a79ee28fa821c69a8ed9d24be24d095ed83948643f536bf1017fc82c9d",
+    "56c6207221f5edab2503e22c71e33cd527a225d24db46d19ea458264dd3a33aa",
     []
   )
 );
@@ -829,6 +848,17 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    deposit: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"deposit">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"deposit">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "deposit",
+        params,
+        getContractByCodeHash
+      );
+    },
   };
 
   transact = {
@@ -982,6 +1012,11 @@ export class LendingMarketplaceInstance extends ContractInstance {
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"withdraw">
     ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"withdraw">> => {
       return signExecuteMethod(LendingMarketplace, this, "withdraw", params);
+    },
+    deposit: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"deposit">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"deposit">> => {
+      return signExecuteMethod(LendingMarketplace, this, "deposit", params);
     },
   };
 

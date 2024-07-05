@@ -5,7 +5,6 @@ import {
   SignerProvider,
   binToHex,
   contractIdFromAddress,
-  node,
   number256ToBigint,
   web3
 } from '@alephium/web3'
@@ -34,7 +33,7 @@ export async function getToken(signer: SignerProvider, tokenId: string, amount: 
       sender: (await signer.getSelectedAccount()).address,
       amount
     },
-    attoAlphAmount: DUST_AMOUNT * 2n
+    attoAlphAmount: DUST_AMOUNT
   })
 }
 
@@ -51,10 +50,6 @@ export function contractBalanceOf(state: ContractState, tokenId: string): bigint
 
 export function expandTo18Decimals(num: bigint | number): bigint {
   return BigInt(num) * 10n ** 18n
-}
-
-function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
-  return txStatus.type === 'Confirmed'
 }
 
 export function randomContractId(): string {

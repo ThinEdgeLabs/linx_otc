@@ -46,7 +46,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         lendingOfferTemplateId: lendingOfferDeployTx.contractInstance.contractId,
         admin: adminAddress,
         totalLendingOffers: 0n,
-        fee: 100n,
+        feeRate: 100n,
         lendingEnabled: true
       }
     })
@@ -93,7 +93,7 @@ export class LendingMarketplaceHelper extends DeployHelpers {
     })
   }
 
-  async takeOffer(
+  async borrow(
     signer: SignerProvider,
     offerId: string,
     collateralTokenId: string,
