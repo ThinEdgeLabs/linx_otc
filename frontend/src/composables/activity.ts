@@ -1,4 +1,4 @@
-import { anyToken, feeAddresses, getMarketplaceConfig, getTokens } from '@/config'
+import { anyToken, feeAddresses, getTokens } from '@/config'
 import { fetchTransactions } from '@/functions/utils'
 import { useAccountStore, useLoanStore } from '@/stores'
 import { Loan, Token } from '@/types'
@@ -148,9 +148,9 @@ export function useActivity() {
     }
   }
 
-  function setStatusFilter(statusType: string) {
-    // TODO: create a filter for tx status, need tx status in activity event
-  }
+  // function setStatusFilter(statusType: string) {
+  // TODO: create a filter for tx status, need tx status in activity event
+  // }
 
   async function getTransactions(feeAddress: string) {
     const tradeTransactions: Array<Transaction> = []
@@ -180,15 +180,15 @@ export function useActivity() {
     const tokens = await getTokens()
     for (const i in transactions) {
       const swappedTokens = []
-      const inputs = transactions[i].inputs
+      // const inputs = transactions[i].inputs
       const outputs = transactions[i].outputs
       // Set balance change
-      for (const a in inputs) {
-        const address = inputs[a].address
-        const alphBalance = inputs[a].attoAlphAmount
-        const tokens = inputs[a].tokens
-        // TODO: Handle balance from in/output
-      }
+      // for (const a in inputs) {
+      // const address = inputs[a].address
+      // const alphBalance = inputs[a].attoAlphAmount
+      // const tokens = inputs[a].tokens
+      // TODO: Handle balance from in/output
+      // }
       // Get tokens
       for (const b in outputs) {
         if (outputs[b].address === feeAddress) {
@@ -224,7 +224,7 @@ export function useActivity() {
     error,
     events,
     filteredEvents,
-    setTypeFilter,
-    setStatusFilter
+    setTypeFilter
+    // setStatusFilter
   }
 }

@@ -1,12 +1,9 @@
-import { Deployer, DeployFunction, Network } from '@alephium/cli'
+import { Deployer, DeployFunction } from '@alephium/cli'
 import { Settings } from '../alephium.config'
 import { LendingOffer } from '../artifacts/ts'
 import { ZERO_ADDRESS } from '@alephium/web3'
 
-const deployLendingOfferTemplate: DeployFunction<Settings> = async (
-  deployer: Deployer,
-  network: Network<Settings>
-): Promise<void> => {
+const deployLendingOfferTemplate: DeployFunction<Settings> = async (deployer: Deployer): Promise<void> => {
   const result = await deployer.deployContract(LendingOffer, {
     initialFields: {
       id: 0n,
@@ -19,7 +16,7 @@ const deployLendingOfferTemplate: DeployFunction<Settings> = async (
       interestRate: 0n,
       duration: 0n,
       borrower: ZERO_ADDRESS,
-      loanTimeStamp: 0n,
+      loanTimeStamp: 0n
     }
   })
   const contractId = result.contractInstance.contractId
