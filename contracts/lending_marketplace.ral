@@ -148,4 +148,9 @@ Contract LendingMarketplace(
 
     transferTokenFromSelf!(to, tokenId, amount)
   }
+
+  @using(payToContractOnly = true, preapprovedAssets = true, checkExternalCaller = false)
+  pub fn deposit(tokenId: ByteVec, amount: U256) -> () {
+    transferTokenToSelf!(callerAddress!(), tokenId, amount)
+  }
 }
