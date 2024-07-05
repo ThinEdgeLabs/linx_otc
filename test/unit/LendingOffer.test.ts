@@ -17,10 +17,11 @@ describe('LendingOffer', () => {
   let collateralAmount: bigint
   let interestRate: bigint
   let duration: bigint
+  const feeRate: bigint = 100n
 
   beforeAll(async () => {
     admin = testAddress
-    marketplace = createLendingMarketplace(admin)
+    marketplace = createLendingMarketplace(admin, feeRate)
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   })
 
@@ -126,6 +127,10 @@ describe('LendingOffer', () => {
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
       expect(state.fields.loanTimeStamp).toEqual(loanTimeStamp)
+      const marketplaceState = testResult.contracts.find(
+        (c) => c.contractId === marketplace.contractId
+      ) as ContractState<LendingMarketplaceTypes.Fields>
+      expect(contractBalanceOf(marketplaceState, lendingTokenId)).toEqual((lendingAmount * feeRate) / 10000n)
     })
 
     it('fails if borrower provides less collateral', async () => {

@@ -1,6 +1,6 @@
-import { Asset, ContractState, Fields, ONE_ALPH, ZERO_ADDRESS, addressFromContractId } from '@alephium/web3'
+import { Asset, ContractState, Fields, ZERO_ADDRESS, addressFromContractId } from '@alephium/web3'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOffer } from '../../artifacts/ts'
-import { randomContractAddress, randomContractId, testAddress } from '@alephium/web3-test'
+import { randomContractAddress, testAddress } from '@alephium/web3-test'
 
 export class ContractFixture<F extends Fields> {
   selfState: ContractState<F>

@@ -440,10 +440,11 @@ describe('LendingMarketplace', () => {
     let admin: PrivateKeyWallet
     let lender: PrivateKeyWallet
     let borrower: PrivateKeyWallet
+    const feeRate = 100n
 
     beforeAll(async () => {
       ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address)
+      marketplace = createLendingMarketplace(admin.address, feeRate)
     })
 
     it('fails if borrower is the lender', async () => {
@@ -550,7 +551,7 @@ describe('LendingMarketplace', () => {
       const borrowerBalance = testResult.txOutputs[1]
       expect(borrowerBalance.tokens![0]).toEqual({
         id: lendingTokenId,
-        amount: lendingAmount
+        amount: lendingAmount - (feeRate * lendingAmount) / 10000n
       })
     })
   })
