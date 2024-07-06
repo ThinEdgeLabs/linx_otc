@@ -12,6 +12,10 @@ import { GetToken, TestToken } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'
 
+export const gasPrice = 100000000000n
+export const maxGasPerTx = 5000000n
+export const defaultGasFee = gasPrice * maxGasPerTx
+
 export async function deployTestToken(signer: SignerProvider): Promise<string> {
   const result = await TestToken.deploy(signer, {
     initialFields: {
@@ -46,6 +50,10 @@ export async function balanceOf(tokenId: string, address: string): Promise<bigin
 export function contractBalanceOf(state: ContractState, tokenId: string): bigint {
   const token = state.asset.tokens?.find((t) => t.id === tokenId)
   return token === undefined ? 0n : number256ToBigint(token.amount)
+}
+
+export function contractBalanceOfAlph(state: ContractState): bigint {
+  return number256ToBigint(state.asset.alphAmount)
 }
 
 export function expandTo18Decimals(num: bigint | number): bigint {

@@ -11,6 +11,7 @@ import {
   SignerProvider,
   HexString,
 } from "@alephium/web3";
+import { getContractByCodeHash } from "./contracts";
 import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
 import { default as CancelOfferScriptJson } from "../scripts/CancelOffer.ral.json";
 import { default as CreateOfferScriptJson } from "../scripts/CreateOffer.ral.json";
@@ -21,12 +22,12 @@ import { default as RepayLoanScriptJson } from "../scripts/RepayLoan.ral.json";
 export const Borrow = new ExecutableScript<{
   offerId: HexString;
   lendingMarketplace: HexString;
-}>(Script.fromJson(BorrowScriptJson, "", []));
+}>(Script.fromJson(BorrowScriptJson, "", []), getContractByCodeHash);
 
 export const CancelOffer = new ExecutableScript<{
   marketplace: HexString;
   offerId: HexString;
-}>(Script.fromJson(CancelOfferScriptJson, "", []));
+}>(Script.fromJson(CancelOfferScriptJson, "", []), getContractByCodeHash);
 
 export const CreateOffer = new ExecutableScript<{
   lendingTokenId: HexString;
@@ -36,22 +37,22 @@ export const CreateOffer = new ExecutableScript<{
   interestRate: bigint;
   duration: bigint;
   lendingMarketplace: HexString;
-}>(Script.fromJson(CreateOfferScriptJson, "", []));
+}>(Script.fromJson(CreateOfferScriptJson, "", []), getContractByCodeHash);
 
 export const GetToken = new ExecutableScript<{
   token: HexString;
   sender: Address;
   amount: bigint;
-}>(Script.fromJson(GetTokenScriptJson, "", []));
+}>(Script.fromJson(GetTokenScriptJson, "", []), getContractByCodeHash);
 
 export const LiquidateLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
-}>(Script.fromJson(LiquidateLoanScriptJson, "", []));
+}>(Script.fromJson(LiquidateLoanScriptJson, "", []), getContractByCodeHash);
 
 export const RepayLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
   borrowedTokenId: HexString;
   amount: bigint;
-}>(Script.fromJson(RepayLoanScriptJson, "", []));
+}>(Script.fromJson(RepayLoanScriptJson, "", []), getContractByCodeHash);
