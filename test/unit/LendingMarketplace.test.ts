@@ -5,13 +5,15 @@ import {
   ONE_ALPH,
   contractIdFromAddress,
   binToHex,
-  ContractState
+  ContractState,
+  ALPH_TOKEN_ID,
+  DUST_AMOUNT
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { contractBalanceOf } from '../../shared/utils'
+import { contractBalanceOf, contractBalanceOfAlph, defaultGasFee, expandTo18Decimals } from '../../shared/utils'
 import { ZERO_ADDRESS } from '@alephium/web3'
 
 describe('LendingMarketplace', () => {
@@ -789,6 +791,85 @@ describe('LendingMarketplace', () => {
         blockTimeStamp: timestamp
       })
       expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
+    })
+  })
+
+  describe('widthdraw', () => {
+    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
+    let admin: PrivateKeyWallet
+    let withdrawer: PrivateKeyWallet
+
+    beforeAll(async () => {
+      ;[admin, withdrawer] = await getSigners(2, ONE_ALPH * 1000n, 0)
+      fixture = createLendingMarketplace(admin.address)
+    })
+
+    it('withdraws ALPH from the contract to caller', async () => {
+      const initialBalance = ONE_ALPH * 5n
+      const amount = ONE_ALPH
+      const to = admin.address
+      const inputAmount = ONE_ALPH
+
+      const result = await LendingMarketplace.tests.withdraw({
+        initialFields: fixture.selfState.fields,
+        initialAsset: { alphAmount: initialBalance },
+        inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
+        testArgs: {
+          to: to,
+          tokenId: ALPH_TOKEN_ID,
+          amount: amount
+        }
+      })
+      expect(contractBalanceOfAlph(result.contracts[0])).toEqual(initialBalance - amount)
+      const output = result.txOutputs[0]
+      expect(output.address).toEqual(to)
+      expect(output.alphAmount).toEqual(inputAmount - defaultGasFee + amount)
+      expect(output.tokens).toEqual([])
+    })
+
+    it('withdraws tokens from the contract to a diff address than caller', async () => {
+      const randomTokenId = randomContractId()
+      const initialTokenBalance = expandTo18Decimals(10)
+      const initialAlphBalance = ONE_ALPH * 5n
+      const inputAmount = ONE_ALPH * 2n
+      const to = withdrawer.address
+      const amount = expandTo18Decimals(5)
+      const result = await LendingMarketplace.tests.withdraw({
+        address: fixture.address,
+        initialFields: fixture.selfState.fields,
+        initialAsset: { alphAmount: initialAlphBalance, tokens: [{ id: randomTokenId, amount: initialTokenBalance }] },
+        inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
+        testArgs: {
+          to: to,
+          tokenId: randomTokenId,
+          amount: amount
+        }
+      })
+      expect(contractBalanceOf(result.contracts[0], randomTokenId)).toEqual(initialTokenBalance - amount)
+      const tokenOutput = result.txOutputs[0]
+      expect(tokenOutput.address).toEqual(to)
+      expect(tokenOutput.alphAmount).toEqual(DUST_AMOUNT)
+      expect(tokenOutput.tokens).toEqual([{ id: randomTokenId, amount: amount }])
+      const alphOutput = result.txOutputs[1]
+      expect(alphOutput.address).toEqual(admin.address)
+      expect(alphOutput.alphAmount).toEqual(inputAmount - defaultGasFee - DUST_AMOUNT)
+      expect(alphOutput.tokens).toEqual([])
+    })
+
+    it('fails if not admin', async () => {
+      const to = withdrawer.address
+      const result = LendingMarketplace.tests.withdraw({
+        address: fixture.address,
+        initialFields: fixture.selfState.fields,
+        initialAsset: { alphAmount: ONE_ALPH * 2n },
+        inputAssets: [{ address: withdrawer.address, asset: { alphAmount: ONE_ALPH } }],
+        testArgs: {
+          to: to,
+          tokenId: ALPH_TOKEN_ID,
+          amount: ONE_ALPH
+        }
+      })
+      await expectAssertionError(result, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly))
     })
   })
 })

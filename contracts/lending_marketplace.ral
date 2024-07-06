@@ -142,9 +142,13 @@ Contract LendingMarketplace(
     lendingEnabled = value
   }
 
-  @using(assetsInContract = true)
+  @using(assetsInContract = true, preapprovedAssets = true)
   pub fn withdraw(to: Address, tokenId: ByteVec, amount: U256) -> () {
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+
+    if (callerAddress!() != to) {
+      transferToken!(callerAddress!(), to, ALPH, dustAmount!())
+    }
 
     transferTokenFromSelf!(to, tokenId, amount)
   }
