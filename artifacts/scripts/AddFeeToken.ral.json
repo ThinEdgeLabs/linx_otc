@@ -1,0 +1,28 @@
+{
+  "version": "v3.3.0",
+  "name": "AddFeeToken",
+  "bytecodeTemplate": "01010300000008b4d1a2{1}0d0c{0}0111",
+  "fieldsSig": {
+    "names": [
+      "marketplace",
+      "tokenId"
+    ],
+    "types": [
+      "LendingMarketplace",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

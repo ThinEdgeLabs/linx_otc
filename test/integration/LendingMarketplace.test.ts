@@ -6,14 +6,14 @@ import {
   waitForTxConfirmation,
   web3
 } from '@alephium/web3'
-import { getSigners, testNodeWallet } from '@alephium/web3-test'
+import { getSigners } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
 import { LendingMarketplace, LendingMarketplaceInstance, LendingOffer, LendingOfferInstance } from '../../artifacts/ts'
-import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('LendingMarketplace', () => {
-  let signer: NodeWallet
+  let admin: PrivateKeyWallet
   let lendingTokenId: string
   let marketplaceHelper: LendingMarketplaceHelper
   let marketplaceInstance: LendingMarketplaceInstance
@@ -28,20 +28,19 @@ describe('LendingMarketplace', () => {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
 
   beforeAll(async () => {
-    signer = await testNodeWallet()
-    ;[lender, borrower] = await getSigners(2, expandTo18Decimals(100n), group)
-    marketplaceHelper = new LendingMarketplaceHelper(signer)
-    marketplaceInstance = await (await marketplaceHelper.create()).contractInstance
+    ;[admin, lender, borrower] = await getSigners(3, expandTo18Decimals(100n), group)
+    marketplaceHelper = new LendingMarketplaceHelper(admin)
+    marketplaceInstance = (await marketplaceHelper.create()).contractInstance
     expect(marketplaceHelper.contractId).toBeDefined()
-    lendingTokenId = await deployTestToken(signer)
+    lendingTokenId = await deployTestToken(admin)
     await getToken(lender, lendingTokenId, expandTo18Decimals(1000n))
   })
 
   describe('createLendingOffer', () => {
     it('should create a lending offer', async () => {
-      const lender = (await signer.getSelectedAccount()).address
+      const lender = (await admin.getSelectedAccount()).address
       const { txId } = await marketplaceHelper.createOffer(
-        signer,
+        admin,
         lendingTokenId,
         ALPH_TOKEN_ID,
         lendingAmount,
@@ -213,6 +212,42 @@ describe('LendingMarketplace', () => {
       ).returns
       expect(state.asset.alphAmount).toEqual(fee)
       expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount - fee)
+    })
+  })
+
+  describe('fee tokens', () => {
+    test('only admin can add and remove a fee token', async () => {
+      await expect(marketplaceHelper.addFeeToken(lender, lendingTokenId)).rejects.toThrow(Error)
+      await expect(marketplaceHelper.removeFeeToken(lender, lendingTokenId)).rejects.toThrow(Error)
+    })
+    test('can add and remove a fee token', async () => {
+      expect(
+        (
+          await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
+            args: { tokenId: lendingTokenId }
+          })
+        ).returns
+      ).toBe(false)
+
+      await marketplaceHelper.addFeeToken(admin, lendingTokenId)
+
+      expect(
+        (
+          await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
+            args: { tokenId: lendingTokenId }
+          })
+        ).returns
+      ).toBe(true)
+
+      await marketplaceHelper.removeFeeToken(admin, lendingTokenId)
+
+      expect(
+        (
+          await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
+            args: { tokenId: lendingTokenId }
+          })
+        ).returns
+      ).toBe(false)
     })
   })
 })

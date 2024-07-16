@@ -1,0 +1,7 @@
+TxScript AddFeeToken(marketplace: LendingMarketplace, tokenId: ByteVec) {
+  marketplace.addFeeToken{callerAddress!() -> ALPH: minimalContractDeposit!()}(tokenId)
+}
+
+TxScript RemoveFeeToken(marketplace: LendingMarketplace, tokenId: ByteVec) {
+  marketplace.removeFeeToken(tokenId)
+}

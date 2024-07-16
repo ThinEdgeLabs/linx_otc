@@ -2,6 +2,7 @@ import {
   DUST_AMOUNT,
   DeployContractResult,
   ExecuteScriptResult,
+  MINIMAL_CONTRACT_DEPOSIT,
   ONE_ALPH,
   SignerProvider,
   ZERO_ADDRESS
@@ -158,7 +159,8 @@ export class LendingMarketplaceHelper {
       initialFields: {
         marketplace: this.contractId!,
         tokenId
-      }
+      },
+      attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT
     })
   }
 

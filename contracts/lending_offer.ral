@@ -101,7 +101,7 @@ Contract LendingOffer(
 
   @using(assetsInContract = true)
   pub fn liquidate() -> () {
-    //Note: At the moment anyone can liquidate the loan if it's overdue
+    // Note: Anyone can liquidate the loan if it's overdue
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
     assert!(borrower != nullContractAddress!(), ErrorCodes.LoanNotActive)
     assert!(blockTimeStampInSeconds() > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)

@@ -6,6 +6,9 @@ Contract LendingMarketplace(
   mut lendingEnabled: Bool
 ) extends LendingMarketplaceUtils() {
 
+  //mapping[ByteVec, Bool] tokensWithPriceFeeds
+  mapping[ByteVec, Bool] feeTokens
+
   event AdminUpdated(
     previous: Address,
     new: Address
@@ -123,7 +126,6 @@ Contract LendingMarketplace(
   @using(updateFields = true)
   pub fn updateAdmin(newAdmin: Address) -> () {
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
-
     emit AdminUpdated(admin, newAdmin)
     admin = newAdmin
   }
@@ -156,5 +158,20 @@ Contract LendingMarketplace(
   @using(payToContractOnly = true, preapprovedAssets = true, checkExternalCaller = false)
   pub fn deposit(tokenId: ByteVec, amount: U256) -> () {
     transferTokenToSelf!(callerAddress!(), tokenId, amount)
+  }
+
+  @using(preapprovedAssets = true)
+  pub fn addFeeToken(tokenId: ByteVec) -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    feeTokens.insert!(callerAddress!(), tokenId, true)
+  }
+
+  pub fn removeFeeToken(tokenId: ByteVec) -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    feeTokens.remove!(callerAddress!(), tokenId)
+  }
+
+  pub fn isFeeToken(tokenId: ByteVec) -> Bool {
+    return feeTokens.contains!(tokenId)
   }
 }
