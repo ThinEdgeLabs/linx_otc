@@ -6,7 +6,6 @@ import {
   SignerProvider,
   ZERO_ADDRESS
 } from '@alephium/web3'
-import { DeployHelpers } from './deploy-helpers'
 import {
   CancelOffer,
   CreateOffer,
@@ -15,12 +14,19 @@ import {
   LendingOffer,
   Borrow,
   RepayLoan,
-  LiquidateLoan
+  LiquidateLoan,
+  AddFeeToken,
+  RemoveFeeToken
 } from '../artifacts/ts'
 import { randomContractId } from './utils'
 
-export class LendingMarketplaceHelper extends DeployHelpers {
+export class LendingMarketplaceHelper {
   public contractId: string | undefined
+  signer: SignerProvider
+
+  constructor(signer: SignerProvider) {
+    this.signer = signer
+  }
 
   async create(signer: SignerProvider = this.signer): Promise<DeployContractResult<LendingMarketplaceInstance>> {
     const lendingOfferDeployTx = await LendingOffer.deploy(signer, {
@@ -144,6 +150,24 @@ export class LendingMarketplaceHelper extends DeployHelpers {
         marketplace: this.contractId!
       },
       attoAlphAmount: DUST_AMOUNT
+    })
+  }
+
+  async addFeeToken(signer: SignerProvider, tokenId: string): Promise<ExecuteScriptResult> {
+    return AddFeeToken.execute(signer, {
+      initialFields: {
+        marketplace: this.contractId!,
+        tokenId
+      }
+    })
+  }
+
+  async removeFeeToken(signer: SignerProvider, tokenId: string): Promise<ExecuteScriptResult> {
+    return RemoveFeeToken.execute(signer, {
+      initialFields: {
+        marketplace: this.contractId!,
+        tokenId
+      }
     })
   }
 }

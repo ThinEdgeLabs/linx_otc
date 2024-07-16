@@ -23,9 +23,15 @@ describe('LendingMarketplace', () => {
   let collateralAmount: bigint
   let interestRate: bigint
   let duration: bigint
+  let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
+  let admin: PrivateKeyWallet
+  let lender: PrivateKeyWallet
+  let borrower: PrivateKeyWallet
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
+    fixture = createLendingMarketplace(admin.address)
 
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
@@ -89,14 +95,6 @@ describe('LendingMarketplace', () => {
   })
 
   describe('updateFee', () => {
-    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
-      fixture = createLendingMarketplace(admin.address)
-    })
-
     it('updates the marketplace fee', async () => {
       const testResult = await LendingMarketplace.tests.updateFeeRate({
         initialFields: fixture.selfState.fields,
@@ -126,14 +124,6 @@ describe('LendingMarketplace', () => {
   })
 
   describe('updateLendingEnabled', () => {
-    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
-      fixture = createLendingMarketplace(admin.address)
-    })
-
     it('updates the lending enabled flag', async () => {
       expect(fixture.selfState.fields.lendingEnabled).toEqual(true)
       const testResult = await LendingMarketplace.tests.updateLendingEnabled({
@@ -165,15 +155,6 @@ describe('LendingMarketplace', () => {
   })
 
   describe('createLendingOffer', () => {
-    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-    let lender: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
-      fixture = createLendingMarketplace(admin.address)
-    })
-
     it('creates a lending offer', async () => {
       const blockTimeStamp = Date.now()
       const totalLoans = 1n
@@ -316,21 +297,12 @@ describe('LendingMarketplace', () => {
   })
 
   describe('cancelOffer', () => {
-    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-    let lender: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin, lender] = await getSigners(2, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address)
-    })
-
     it('cancels an existing offer', async () => {
       const offer = createLendingOffer(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -339,12 +311,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        marketplace
+        fixture
       )
 
       const testResult = await LendingMarketplace.tests.cancelOffer({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -369,7 +341,7 @@ describe('LendingMarketplace', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -378,12 +350,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        marketplace
+        fixture
       )
 
       const testResult = LendingMarketplace.tests.cancelOffer({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -395,11 +367,7 @@ describe('LendingMarketplace', () => {
           loanId: offer.contractId
         }
       })
-      expectAssertionError(
-        testResult,
-        marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly)
-      )
+      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
     })
 
     it('fails if offer does not exist', async () => {
@@ -407,7 +375,7 @@ describe('LendingMarketplace', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -416,12 +384,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        marketplace
+        fixture
       )
 
       const testResult = LendingMarketplace.tests.cancelOffer({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -438,23 +406,12 @@ describe('LendingMarketplace', () => {
   })
 
   describe('borrow', () => {
-    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-    let lender: PrivateKeyWallet
-    let borrower: PrivateKeyWallet
-    const feeRate = 100n
-
-    beforeAll(async () => {
-      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address, feeRate)
-    })
-
     it('fails if borrower is the lender', async () => {
       const offer = createLendingOffer(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -463,12 +420,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        marketplace
+        fixture
       )
 
       const testResult = LendingMarketplace.tests.borrow({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -482,7 +439,7 @@ describe('LendingMarketplace', () => {
       })
       await expectAssertionError(
         testResult,
-        marketplace.address,
+        fixture.address,
         Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
       )
     })
@@ -490,9 +447,9 @@ describe('LendingMarketplace', () => {
     it('fails if the offer does not exist', async () => {
       const offerId = randomContractId()
       const testResult = LendingMarketplace.tests.borrow({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        existingContracts: marketplace.dependencies,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
         inputAssets: [
           {
             address: lender.address,
@@ -508,11 +465,12 @@ describe('LendingMarketplace', () => {
     })
 
     it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
+      const feeRate = 100n
       const offer = createLendingOffer(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -521,12 +479,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
-        marketplace
+        fixture
       )
       const blockTimeStamp = Math.floor(Date.now())
       const testResult = await LendingMarketplace.tests.borrow({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -559,23 +517,13 @@ describe('LendingMarketplace', () => {
   })
 
   describe('paybackLoan', () => {
-    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-    let lender: PrivateKeyWallet
-    let borrower: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address)
-    })
-
     it('emits LoanPaid event', async () => {
       const NOW = Math.floor(Date.now() / 1000)
       const offer = createLendingOffer(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -584,12 +532,12 @@ describe('LendingMarketplace', () => {
         undefined,
         BigInt(NOW),
         { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
-        marketplace
+        fixture
       )
       const interest = (lendingAmount * interestRate * duration) / 10000n
       const testResult = await LendingMarketplace.tests.paybackLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -614,7 +562,7 @@ describe('LendingMarketplace', () => {
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplace.contractId,
+        fixture.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -623,12 +571,12 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        marketplace
+        fixture
       )
 
       const testResult = LendingMarketplace.tests.paybackLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         existingContracts: offer.states(),
         inputAssets: [
           {
@@ -642,16 +590,16 @@ describe('LendingMarketplace', () => {
       })
       await expectAssertionError(
         testResult,
-        marketplace.address,
+        fixture.address,
         Number(LendingMarketplace.consts.ErrorCodes.BorrowerAllowedOnly)
       )
     })
     it('fails if loan does not exist', async () => {
       const randomOfferId = randomContractId()
       const testResult = LendingMarketplace.tests.paybackLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        existingContracts: marketplace.dependencies,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
+        existingContracts: fixture.dependencies,
         inputAssets: [
           {
             address: admin.address,
@@ -775,19 +723,11 @@ describe('LendingMarketplace', () => {
   })
 
   describe('blockTimeStampInSeconds', () => {
-    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[admin] = await getSigners(1, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address)
-    })
-
     it('returns the current block timestamp in seconds', async () => {
       const timestamp = Date.now()
       const testResult = await LendingMarketplace.tests.blockTimeStampInSeconds({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
+        initialFields: fixture.selfState.fields,
+        address: fixture.address,
         blockTimeStamp: timestamp
       })
       expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
@@ -795,13 +735,10 @@ describe('LendingMarketplace', () => {
   })
 
   describe('widthdraw', () => {
-    let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
     let withdrawer: PrivateKeyWallet
 
     beforeAll(async () => {
-      ;[admin, withdrawer] = await getSigners(2, ONE_ALPH * 1000n, 0)
-      fixture = createLendingMarketplace(admin.address)
+      ;[withdrawer] = await getSigners(1, ONE_ALPH * 1000n, 0)
     })
 
     it('withdraws ALPH from the contract to caller', async () => {
