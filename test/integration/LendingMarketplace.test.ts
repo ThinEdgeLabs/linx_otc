@@ -6,7 +6,7 @@ import {
   waitForTxConfirmation,
   web3
 } from '@alephium/web3'
-import { getSigners } from '@alephium/web3-test'
+import { getSigners, randomContractId } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
 import { LendingMarketplace, LendingMarketplaceInstance, LendingOffer, LendingOfferInstance } from '../../artifacts/ts'
@@ -160,7 +160,7 @@ describe('LendingMarketplace', () => {
   })
 
   describe('borrow', () => {
-    it('collateral is transferred to the sub-contract', async () => {
+    it('fee is not paid if the borrowed token is not among the fee tokens', async () => {
       let { txId } = await marketplaceHelper.createOffer(
         lender,
         lendingTokenId,
@@ -170,37 +170,34 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitForTxConfirmation(txId, 1, 1000)
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const balanceBefore = await balanceOf(lendingTokenId, borrower.address)
+      txId = (
+        await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
+      ).txId
+      expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount)
+    })
+    it('borrower receives the tokens and fee is paid to the marketplace', async () => {
+      await marketplaceHelper.addFeeToken(admin, lendingTokenId)
+      let { txId } = await marketplaceHelper.createOffer(
+        lender,
+        lendingTokenId,
+        ALPH_TOKEN_ID,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration
+      )
+
       const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
       const loanId = txDetails.generatedOutputs[0].address
       const loan = LendingOffer.at(loanId)
       const loanState = await loan.fetchState()
       const alphAmount = BigInt(loanState.asset.alphAmount)
-      txId = (await marketplaceHelper.borrow(borrower, loanId, ALPH_TOKEN_ID, collateralAmount)).txId
-      await waitForTxConfirmation(txId, 1, 1000)
-      const newLoanState = await loan.fetchState()
-      expect(newLoanState.asset.alphAmount).toEqual(alphAmount + collateralAmount)
-    })
-    it('borrower receives the tokens and fee is paid to the marketplace', async () => {
-      let { txId } = await marketplaceHelper.createOffer(
-        lender,
-        lendingTokenId,
-        ALPH_TOKEN_ID,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration
-      )
-      await waitForTxConfirmation(txId, 1, 1000)
-
-      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
       const balanceBefore = await balanceOf(lendingTokenId, borrower.address)
-
       txId = (
         await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
       ).txId
-      await waitForTxConfirmation(txId, 1, 1000)
-
       const state = await marketplaceInstance.fetchState()
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
@@ -212,39 +209,43 @@ describe('LendingMarketplace', () => {
       ).returns
       expect(state.asset.alphAmount).toEqual(fee)
       expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount - fee)
+      const newLoanState = await loan.fetchState()
+      expect(newLoanState.asset.alphAmount).toEqual(alphAmount + collateralAmount)
     })
   })
 
   describe('fee tokens', () => {
+    const tokenId = randomContractId()
+
     test('only admin can add and remove a fee token', async () => {
-      await expect(marketplaceHelper.addFeeToken(lender, lendingTokenId)).rejects.toThrow(Error)
-      await expect(marketplaceHelper.removeFeeToken(lender, lendingTokenId)).rejects.toThrow(Error)
+      await expect(marketplaceHelper.addFeeToken(lender, tokenId)).rejects.toThrow(Error)
+      await expect(marketplaceHelper.removeFeeToken(lender, tokenId)).rejects.toThrow(Error)
     })
     test('can add and remove a fee token', async () => {
       expect(
         (
           await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
-            args: { tokenId: lendingTokenId }
+            args: { tokenId: tokenId }
           })
         ).returns
       ).toBe(false)
 
-      await marketplaceHelper.addFeeToken(admin, lendingTokenId)
+      await marketplaceHelper.addFeeToken(admin, tokenId)
 
       expect(
         (
           await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
-            args: { tokenId: lendingTokenId }
+            args: { tokenId: tokenId }
           })
         ).returns
       ).toBe(true)
 
-      await marketplaceHelper.removeFeeToken(admin, lendingTokenId)
+      await marketplaceHelper.removeFeeToken(admin, tokenId)
 
       expect(
         (
           await LendingMarketplace.at(marketplaceInstance.address).view.isFeeToken({
-            args: { tokenId: lendingTokenId }
+            args: { tokenId: tokenId }
           })
         ).returns
       ).toBe(false)

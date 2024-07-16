@@ -465,7 +465,6 @@ describe('LendingMarketplace', () => {
     })
 
     it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
-      const feeRate = 100n
       const offer = createLendingOffer(
         lender.address,
         lendingTokenId,
@@ -511,7 +510,7 @@ describe('LendingMarketplace', () => {
       const borrowerBalance = testResult.txOutputs[1]
       expect(borrowerBalance.tokens![0]).toEqual({
         id: lendingTokenId,
-        amount: lendingAmount - (feeRate * lendingAmount) / 10000n
+        amount: lendingAmount
       })
     })
   })
