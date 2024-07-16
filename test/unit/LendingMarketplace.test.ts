@@ -7,7 +7,8 @@ import {
   binToHex,
   ContractState,
   ALPH_TOKEN_ID,
-  DUST_AMOUNT
+  DUST_AMOUNT,
+  MINIMAL_CONTRACT_DEPOSIT
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
@@ -15,6 +16,49 @@ import { ContractFixture, createLendingMarketplace, createLendingOffer } from '.
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, contractBalanceOfAlph, defaultGasFee, expandTo18Decimals } from '../../shared/utils'
 import { ZERO_ADDRESS } from '@alephium/web3'
+
+async function testCreateLoan({
+  fixture,
+  lendingTokenId,
+  lendingAmount,
+  collateralTokenId,
+  collateralAmount,
+  interestRate,
+  duration,
+  lender
+}: {
+  fixture: ContractFixture<LendingMarketplaceTypes.Fields>
+  lendingTokenId: string
+  lendingAmount: bigint
+  collateralTokenId: string
+  collateralAmount: bigint
+  interestRate: bigint
+  duration: bigint
+  lender: PrivateKeyWallet
+}) {
+  return LendingMarketplace.tests.createLendingOffer({
+    initialFields: fixture.selfState.fields,
+    address: fixture.address,
+    existingContracts: fixture.dependencies,
+    inputAssets: [
+      {
+        address: lender.address,
+        asset: {
+          alphAmount: MINIMAL_CONTRACT_DEPOSIT + defaultGasFee,
+          tokens: [{ id: lendingTokenId, amount: lendingAmount }]
+        }
+      }
+    ],
+    testArgs: {
+      lendingTokenId,
+      collateralTokenId,
+      lendingAmount,
+      collateralAmount,
+      interestRate,
+      duration
+    }
+  })
+}
 
 describe('LendingMarketplace', () => {
   let lendingTokenId: string
@@ -154,7 +198,76 @@ describe('LendingMarketplace', () => {
     })
   })
 
-  describe('createLendingOffer', () => {
+  describe('createLoan', () => {
+    it('fails if lending amount is invalid', async () => {
+      const lendingAmount = 0n
+      const testResult = testCreateLoan({
+        fixture,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender
+      })
+      expectAssertionError(
+        testResult,
+        fixture.address,
+        Number(LendingMarketplace.consts.ErrorCodes.InvalidLendingAmount)
+      )
+    })
+    it('fails if collateral amount is invalid', async () => {
+      const collateralAmount = 0n
+      const testResult = testCreateLoan({
+        fixture,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender
+      })
+      expectAssertionError(
+        testResult,
+        fixture.address,
+        Number(LendingMarketplace.consts.ErrorCodes.InvalidCollateralAmount)
+      )
+    })
+    it('fails if interest rate is invalid', async () => {
+      const interestRate = 0n
+      const testResult = testCreateLoan({
+        fixture,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender
+      })
+      expectAssertionError(
+        testResult,
+        fixture.address,
+        Number(LendingMarketplace.consts.ErrorCodes.InvalidInterestRate)
+      )
+    })
+    it('fails if duration is invalid', async () => {
+      const duration = 0n
+      const testResult = testCreateLoan({
+        fixture,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender
+      })
+      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.InvalidDuration))
+    })
+
     it('creates a lending offer', async () => {
       const blockTimeStamp = Date.now()
       const totalLoans = 1n

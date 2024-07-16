@@ -37,6 +37,10 @@ Contract LendingMarketplace(
     LenderAllowedOnly = 2
     BorrowerAllowedOnly = 3
     LenderNotAllowed = 4
+    InvalidLendingAmount = 5
+    InvalidCollateralAmount = 6
+    InvalidInterestRate = 7
+    InvalidDuration = 8
   }
 
   pub fn getAdmin() -> Address {
@@ -61,6 +65,11 @@ Contract LendingMarketplace(
     duration: U256
   ) -> (Address) {
     assert!(lendingEnabled == true, ErrorCodes.LendingDisabled)
+    assert!(lendingAmount > 0, ErrorCodes.InvalidLendingAmount)
+    assert!(collateralAmount > 0, ErrorCodes.InvalidCollateralAmount)
+    assert!(interestRate > 0, ErrorCodes.InvalidInterestRate)
+    assert!(duration > 0, ErrorCodes.InvalidDuration)
+
     let lender = callerAddress!()
 
     // Checking for overflow
@@ -69,7 +78,7 @@ Contract LendingMarketplace(
     let key = toByteVec!(totalLendingOffers)
     let id = totalLendingOffers
     let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, nullContractAddress!(), 0)
-    let loanId = copyCreateSubContract!{lender -> ALPH: 1 alph, lendingTokenId: lendingAmount}(
+    let loanId = copyCreateSubContract!{lender -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )
     totalLendingOffers = totalLendingOffers + 1

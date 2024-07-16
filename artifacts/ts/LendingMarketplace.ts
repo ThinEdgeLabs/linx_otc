@@ -353,6 +353,10 @@ class Factory extends ContractFactory<
       LenderAllowedOnly: BigInt("2"),
       BorrowerAllowedOnly: BigInt("3"),
       LenderNotAllowed: BigInt("4"),
+      InvalidLendingAmount: BigInt("5"),
+      InvalidCollateralAmount: BigInt("6"),
+      InvalidInterestRate: BigInt("7"),
+      InvalidDuration: BigInt("8"),
     },
   };
 
@@ -648,8 +652,8 @@ class Factory extends ContractFactory<
 export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
-    "=72-2+d3=1+31=1-2=1+3=2-1=1326-2+11=58+7a7e0214696e73657274206174206d617020706174683a2000=20+1=1-1=58+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "8f22f2af6c1d2ca8ec86f8abe9ce060784edd3e5fcfe2c0a331c9fae15d8eea3",
+    "=72-2+e5=1-2+3=1+4=2-2+41=1362-2+11=58+7a7e0214696e73657274206174206d617020706174683a2000=20+1=1-1=58+7a7e021472656d6f7665206174206d617020706174683a2000=64",
+    "4a573a1cc32fa78084cede65a87f90be074105389f233e22101aa8c4b9ceb345",
     []
   )
 );
