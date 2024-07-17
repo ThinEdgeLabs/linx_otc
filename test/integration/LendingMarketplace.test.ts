@@ -109,16 +109,12 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-
-      await waitForTxConfirmation(txId, 1, 1000)
-
       expect(await balanceOf(lendingTokenId, lender.address)).toEqual(startingAlphBalance - lendingAmount)
 
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const lendingOfferAddress = txDetails.generatedOutputs[0].address
 
-      const { txId: cancelOfferTxId } = await marketplaceHelper.cancelOffer(lender, lendingOfferAddress)
-      await waitForTxConfirmation(cancelOfferTxId, 1, 1000)
+      await marketplaceHelper.cancelOffer(lender, lendingOfferAddress)
 
       expect(await balanceOf(lendingTokenId, lender.address)).toBeGreaterThan(0n)
       await expect(new LendingOfferInstance(lendingOfferAddress).fetchState()).rejects.toThrow(Error)
@@ -150,7 +146,6 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const loanId = txDetails.generatedOutputs[0].address
       const { txId: takeOfferTxId } = await marketplaceHelper.borrow(borrower, loanId, ALPH_TOKEN_ID, collateralAmount)

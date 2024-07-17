@@ -26,7 +26,7 @@ describe('LendingOffer', () => {
   })
 
   beforeEach(async () => {
-    ;[lender, borrower] = await getSigners(2, ONE_ALPH * 1000n, 0)
+    ;[lender, borrower] = await getSigners(2, ONE_ALPH * 100n, 0)
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
     lendingAmount = expandTo18Decimals(1000n)
@@ -86,7 +86,7 @@ describe('LendingOffer', () => {
   })
 
   describe('borrow', () => {
-    it('borrower provides collateral and receives the amount minus protocol fee', async () => {
+    it('borrower provides collateral and receives the amount', async () => {
       const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
 
       fixture = createLendingOffer(
@@ -111,7 +111,7 @@ describe('LendingOffer', () => {
         inputAssets: [
           {
             address: borrower.address,
-            asset: { alphAmount: 10n ** 18n, tokens: [{ id: collateralTokenId, amount: collateralAmount * 2n }] }
+            asset: { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] }
           }
         ],
         callerAddress: marketplace.address,
@@ -127,10 +127,11 @@ describe('LendingOffer', () => {
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
       expect(state.fields.loanTimeStamp).toEqual(loanTimeStamp)
-      const marketplaceState = testResult.contracts.find(
-        (c) => c.contractId === marketplace.contractId
-      ) as ContractState<LendingMarketplaceTypes.Fields>
-      expect(contractBalanceOf(marketplaceState, lendingTokenId)).toEqual((lendingAmount * feeRate) / 10000n)
+      expect(
+        testResult.txOutputs.findIndex(
+          (o) => o.address === borrower.address && o.tokens?.[0].amount === lendingAmount
+        ) !== -1
+      ).toBeTruthy()
     })
 
     it('fails if borrower provides less collateral', async () => {
