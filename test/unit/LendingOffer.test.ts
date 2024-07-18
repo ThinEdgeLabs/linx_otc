@@ -1,12 +1,12 @@
 import { web3, ONE_ALPH, ContractState, ZERO_ADDRESS } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingMarketplaceTypes, LendingOffer, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingMarketplaceTypes, Loan, LoanTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
 
 describe('LendingOffer', () => {
-  let fixture: ContractFixture<LendingOfferTypes.Fields>
+  let fixture: ContractFixture<LoanTypes.Fields>
   let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
   let admin: string
   let lender: PrivateKeyWallet
@@ -37,7 +37,7 @@ describe('LendingOffer', () => {
 
   it('getters', async () => {
     fixture = createLendingOffer()
-    const lenderResult = await LendingOffer.tests.getLender({
+    const lenderResult = await Loan.tests.getLender({
       initialFields: fixture.selfState.fields,
       initialAsset: fixture.selfState.asset,
       address: fixture.address,
@@ -45,7 +45,7 @@ describe('LendingOffer', () => {
     })
     expect(lenderResult.returns).toEqual(fixture.selfState.fields.lender)
 
-    const lendingTokenIdResult = await LendingOffer.tests.getLendingTokenId({
+    const lendingTokenIdResult = await Loan.tests.getLendingTokenId({
       initialFields: fixture.selfState.fields,
       initialAsset: fixture.selfState.asset,
       address: fixture.address,
@@ -68,7 +68,7 @@ describe('LendingOffer', () => {
         borrower.address
       )
       const loanTimeStamp = Math.floor(Date.now() / 1000) - 86400 * 10 // 10 days old
-      const testResult = await LendingOffer.tests.calculateInterestPayment({
+      const testResult = await Loan.tests.calculateInterestPayment({
         initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
         initialAsset: fixture.selfState.asset,
         address: fixture.address,
@@ -105,7 +105,7 @@ describe('LendingOffer', () => {
         marketplace
       )
       expect(fixture.selfState.fields.loanTimeStamp).toBe(0n)
-      const testResult = await LendingOffer.tests.borrow({
+      const testResult = await Loan.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -122,7 +122,7 @@ describe('LendingOffer', () => {
 
       const state = testResult.contracts.find(
         (c) => c.contractId === fixture.contractId
-      ) as ContractState<LendingOfferTypes.Fields>
+      ) as ContractState<LoanTypes.Fields>
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
@@ -147,7 +147,7 @@ describe('LendingOffer', () => {
         lender.address
       )
       const providedCollateral = collateralAmount / 2n
-      const testResult = LendingOffer.tests.borrow({
+      const testResult = Loan.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -176,7 +176,7 @@ describe('LendingOffer', () => {
         duration,
         testAddress
       )
-      const testResult = LendingOffer.tests.borrow({
+      const testResult = Loan.tests.borrow({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -191,7 +191,7 @@ describe('LendingOffer', () => {
         existingContracts: fixture.dependencies
       })
 
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanIsActive))
+      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.LoanIsActive))
     })
   })
 
@@ -209,7 +209,7 @@ describe('LendingOffer', () => {
         ZERO_ADDRESS
       )
 
-      const testResult = await LendingOffer.tests.cancel({
+      const testResult = await Loan.tests.cancel({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
         inputAssets: [
@@ -243,7 +243,7 @@ describe('LendingOffer', () => {
         borrower.address
       )
       const unixTimeInPast = NOW - (ONE_DAY * Number(duration) + 1)
-      const testResult = await LendingOffer.tests.liquidate({
+      const testResult = await Loan.tests.liquidate({
         initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) },
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
@@ -276,7 +276,7 @@ describe('LendingOffer', () => {
         borrower.address
       )
       const loanTimeStamp = NOW - ONE_DAY // 1 day old, duration is 30 days, so it's not overdue
-      const testResult = LendingOffer.tests.liquidate({
+      const testResult = Loan.tests.liquidate({
         initialFields: { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) },
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
@@ -289,7 +289,7 @@ describe('LendingOffer', () => {
         callerAddress: marketplace.address,
         existingContracts: fixture.dependencies
       })
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanNotOverdue))
+      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.LoanNotOverdue))
     })
 
     it('fails if loan is not active', async () => {
@@ -304,7 +304,7 @@ describe('LendingOffer', () => {
         duration,
         ZERO_ADDRESS
       )
-      const testResult = LendingOffer.tests.liquidate({
+      const testResult = Loan.tests.liquidate({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
@@ -317,7 +317,7 @@ describe('LendingOffer', () => {
         callerAddress: marketplace.address,
         existingContracts: fixture.dependencies
       })
-      expectAssertionError(testResult, fixture.address, Number(LendingOffer.consts.ErrorCodes.LoanNotActive))
+      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.LoanNotActive))
     })
   })
 
@@ -335,7 +335,7 @@ describe('LendingOffer', () => {
         borrower.address
       )
       const interestPayment = (lendingAmount * interestRate) / 10000n
-      const paybackResult = await LendingOffer.tests.payback({
+      const paybackResult = await Loan.tests.payback({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [

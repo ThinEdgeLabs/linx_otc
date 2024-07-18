@@ -77,7 +77,7 @@ Contract LendingMarketplace(
 
     let key = toByteVec!(totalLendingOffers)
     let id = totalLendingOffers
-    let (encodeImmutableFields, encodeMutableFields) = LendingOffer.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, nullContractAddress!(), 0)
+    let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, nullContractAddress!(), 0)
     let loanId = copyCreateSubContract!{lender -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
       key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
     )
@@ -91,7 +91,7 @@ Contract LendingMarketplace(
 
   @using(preapprovedAssets = true)
   pub fn borrow(offerId: ByteVec) -> () {
-    let offer = LendingOffer(offerId)
+    let offer = Loan(offerId)
     let caller = callerAddress!()
     let lender = offer.getLender()
     checkCaller!(caller != lender, ErrorCodes.LenderNotAllowed)
@@ -104,7 +104,7 @@ Contract LendingMarketplace(
   }
 
   pub fn cancelOffer(loanId: ByteVec) -> () {
-    let offer = LendingOffer(loanId)
+    let offer = Loan(loanId)
     let lender = offer.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     offer.cancel()
@@ -113,7 +113,7 @@ Contract LendingMarketplace(
 
   @using(preapprovedAssets = true)
   pub fn paybackLoan(loanId: ByteVec) -> () {
-    let loan = LendingOffer(loanId)
+    let loan = Loan(loanId)
     let borrower = loan.getBorrower()
     let lendingTokenId = loan.getLendingTokenId()
     let loanAmount = loan.getLendingAmount()
@@ -125,7 +125,7 @@ Contract LendingMarketplace(
   }
 
   pub fn liquidateLoan(loanId: ByteVec) -> () {
-    let loan = LendingOffer(loanId)
+    let loan = Loan(loanId)
     let lender = loan.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     loan.liquidate()

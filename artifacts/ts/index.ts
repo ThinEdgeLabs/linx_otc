@@ -3,6 +3,6 @@
 /* eslint-disable */
 
 export * from "./LendingMarketplace";
-export * from "./LendingOffer";
+export * from "./Loan";
 export * from "./TestToken";
 export * from "./scripts";

@@ -1,4 +1,4 @@
-Contract LendingOffer(
+Contract Loan(
   id: U256,
   lender: Address,
   lendingTokenId: ByteVec,

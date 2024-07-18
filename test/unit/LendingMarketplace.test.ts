@@ -11,7 +11,7 @@ import {
   MINIMAL_CONTRACT_DEPOSIT
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
-import { LendingMarketplace, LendingMarketplaceTypes, LendingOfferTypes } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceTypes, LoanTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, contractBalanceOfAlph, defaultGasFee, expandTo18Decimals } from '../../shared/utils'
@@ -317,7 +317,7 @@ describe('LendingMarketplace', () => {
         timestamp: BigInt(blockTimeStamp)
       })
 
-      const lendingOfferState = testResult.contracts[0] as ContractState<LendingOfferTypes.Fields>
+      const lendingOfferState = testResult.contracts[0] as ContractState<LoanTypes.Fields>
       expect(lendingOfferState.fields).toEqual({
         id: totalLoans,
         lender: lender.address,

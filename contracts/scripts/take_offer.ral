@@ -1,5 +1,5 @@
 TxScript Borrow(offerId: ByteVec, lendingMarketplace: LendingMarketplace) {
-  let offer = LendingOffer(offerId)
+  let offer = Loan(offerId)
   let collateralTokenId = offer.getCollateralTokenId()
   let collateralAmount = offer.getCollateralAmount()
   lendingMarketplace.borrow{ callerAddress!() -> collateralTokenId: collateralAmount }(offerId)

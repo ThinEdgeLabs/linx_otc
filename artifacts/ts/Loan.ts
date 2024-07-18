@@ -31,11 +31,11 @@ import {
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
-import { default as LendingOfferContractJson } from "../LendingOffer.ral.json";
+import { default as LoanContractJson } from "../Loan.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
-export namespace LendingOfferTypes {
+export namespace LoanTypes {
   export type Fields = {
     id: bigint;
     lender: Address;
@@ -250,11 +250,8 @@ export namespace LendingOfferTypes {
     SignExecuteMethodTable[T]["result"];
 }
 
-class Factory extends ContractFactory<
-  LendingOfferInstance,
-  LendingOfferTypes.Fields
-> {
-  encodeFields(fields: LendingOfferTypes.Fields) {
+class Factory extends ContractFactory<LoanInstance, LoanTypes.Fields> {
+  encodeFields(fields: LoanTypes.Fields) {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
@@ -263,7 +260,7 @@ class Factory extends ContractFactory<
   }
 
   getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as LendingOfferTypes.Fields;
+    return this.contract.getInitialFieldsWithDefaultValues() as LoanTypes.Fields;
   }
 
   consts = {
@@ -276,14 +273,14 @@ class Factory extends ContractFactory<
     },
   };
 
-  at(address: string): LendingOfferInstance {
-    return new LendingOfferInstance(address);
+  at(address: string): LoanInstance {
+    return new LoanInstance(address);
   }
 
   tests = {
     blockTimeStampInSeconds: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -296,7 +293,7 @@ class Factory extends ContractFactory<
     },
     calculateInterestPayment: async (
       params: TestContractParamsWithoutMaps<
-        LendingOfferTypes.Fields,
+        LoanTypes.Fields,
         {
           currentBlockTimeStamp: bigint;
           loanTimestamp: bigint;
@@ -315,7 +312,7 @@ class Factory extends ContractFactory<
     },
     calculateTotalInterestPayment: async (
       params: TestContractParamsWithoutMaps<
-        LendingOfferTypes.Fields,
+        LoanTypes.Fields,
         { amount: bigint; interest: bigint; days: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -328,7 +325,7 @@ class Factory extends ContractFactory<
     },
     calculateMarketplaceFee: async (
       params: TestContractParamsWithoutMaps<
-        LendingOfferTypes.Fields,
+        LoanTypes.Fields,
         { amount: bigint; feeRateValue: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -341,7 +338,7 @@ class Factory extends ContractFactory<
     },
     getId: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -349,7 +346,7 @@ class Factory extends ContractFactory<
     },
     getLender: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<Address>> => {
@@ -357,7 +354,7 @@ class Factory extends ContractFactory<
     },
     getLendingTokenId: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
@@ -370,7 +367,7 @@ class Factory extends ContractFactory<
     },
     getCollateralTokenId: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
@@ -383,7 +380,7 @@ class Factory extends ContractFactory<
     },
     getLendingAmount: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -396,7 +393,7 @@ class Factory extends ContractFactory<
     },
     getCollateralAmount: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -409,7 +406,7 @@ class Factory extends ContractFactory<
     },
     getInterestRate: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -417,7 +414,7 @@ class Factory extends ContractFactory<
     },
     getInterest: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -425,7 +422,7 @@ class Factory extends ContractFactory<
     },
     getDuration: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -433,7 +430,7 @@ class Factory extends ContractFactory<
     },
     getBorrower: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<Address>> => {
@@ -441,7 +438,7 @@ class Factory extends ContractFactory<
     },
     getLoanTimeStamp: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
@@ -454,7 +451,7 @@ class Factory extends ContractFactory<
     },
     borrow: async (
       params: TestContractParamsWithoutMaps<
-        LendingOfferTypes.Fields,
+        LoanTypes.Fields,
         { caller: Address }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
@@ -462,7 +459,7 @@ class Factory extends ContractFactory<
     },
     cancel: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
@@ -470,7 +467,7 @@ class Factory extends ContractFactory<
     },
     payback: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
@@ -478,7 +475,7 @@ class Factory extends ContractFactory<
     },
     liquidate: async (
       params: Omit<
-        TestContractParamsWithoutMaps<LendingOfferTypes.Fields, never>,
+        TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
@@ -488,9 +485,9 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const LendingOffer = new Factory(
+export const Loan = new Factory(
   Contract.fromJson(
-    LendingOfferContractJson,
+    LoanContractJson,
     "",
     "1b1ce7018cf08d167e4c807b77b9f0d34bb4f0c884b5f7a5659c8a7e2a470211",
     []
@@ -498,23 +495,21 @@ export const LendingOffer = new Factory(
 );
 
 // Use this class to interact with the blockchain
-export class LendingOfferInstance extends ContractInstance {
+export class LoanInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<LendingOfferTypes.State> {
-    return fetchContractState(LendingOffer, this);
+  async fetchState(): Promise<LoanTypes.State> {
+    return fetchContractState(Loan, this);
   }
 
   view = {
     blockTimeStampInSeconds: async (
-      params?: LendingOfferTypes.CallMethodParams<"blockTimeStampInSeconds">
-    ): Promise<
-      LendingOfferTypes.CallMethodResult<"blockTimeStampInSeconds">
-    > => {
+      params?: LoanTypes.CallMethodParams<"blockTimeStampInSeconds">
+    ): Promise<LoanTypes.CallMethodResult<"blockTimeStampInSeconds">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "blockTimeStampInSeconds",
         params === undefined ? {} : params,
@@ -522,12 +517,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     calculateInterestPayment: async (
-      params: LendingOfferTypes.CallMethodParams<"calculateInterestPayment">
-    ): Promise<
-      LendingOfferTypes.CallMethodResult<"calculateInterestPayment">
-    > => {
+      params: LoanTypes.CallMethodParams<"calculateInterestPayment">
+    ): Promise<LoanTypes.CallMethodResult<"calculateInterestPayment">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "calculateInterestPayment",
         params,
@@ -535,12 +528,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     calculateTotalInterestPayment: async (
-      params: LendingOfferTypes.CallMethodParams<"calculateTotalInterestPayment">
-    ): Promise<
-      LendingOfferTypes.CallMethodResult<"calculateTotalInterestPayment">
-    > => {
+      params: LoanTypes.CallMethodParams<"calculateTotalInterestPayment">
+    ): Promise<LoanTypes.CallMethodResult<"calculateTotalInterestPayment">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "calculateTotalInterestPayment",
         params,
@@ -548,12 +539,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     calculateMarketplaceFee: async (
-      params: LendingOfferTypes.CallMethodParams<"calculateMarketplaceFee">
-    ): Promise<
-      LendingOfferTypes.CallMethodResult<"calculateMarketplaceFee">
-    > => {
+      params: LoanTypes.CallMethodParams<"calculateMarketplaceFee">
+    ): Promise<LoanTypes.CallMethodResult<"calculateMarketplaceFee">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "calculateMarketplaceFee",
         params,
@@ -561,10 +550,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getId: async (
-      params?: LendingOfferTypes.CallMethodParams<"getId">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getId">> => {
+      params?: LoanTypes.CallMethodParams<"getId">
+    ): Promise<LoanTypes.CallMethodResult<"getId">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getId",
         params === undefined ? {} : params,
@@ -572,10 +561,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getLender: async (
-      params?: LendingOfferTypes.CallMethodParams<"getLender">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getLender">> => {
+      params?: LoanTypes.CallMethodParams<"getLender">
+    ): Promise<LoanTypes.CallMethodResult<"getLender">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getLender",
         params === undefined ? {} : params,
@@ -583,10 +572,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getLendingTokenId: async (
-      params?: LendingOfferTypes.CallMethodParams<"getLendingTokenId">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getLendingTokenId">> => {
+      params?: LoanTypes.CallMethodParams<"getLendingTokenId">
+    ): Promise<LoanTypes.CallMethodResult<"getLendingTokenId">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getLendingTokenId",
         params === undefined ? {} : params,
@@ -594,10 +583,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getCollateralTokenId: async (
-      params?: LendingOfferTypes.CallMethodParams<"getCollateralTokenId">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getCollateralTokenId">> => {
+      params?: LoanTypes.CallMethodParams<"getCollateralTokenId">
+    ): Promise<LoanTypes.CallMethodResult<"getCollateralTokenId">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getCollateralTokenId",
         params === undefined ? {} : params,
@@ -605,10 +594,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getLendingAmount: async (
-      params?: LendingOfferTypes.CallMethodParams<"getLendingAmount">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getLendingAmount">> => {
+      params?: LoanTypes.CallMethodParams<"getLendingAmount">
+    ): Promise<LoanTypes.CallMethodResult<"getLendingAmount">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getLendingAmount",
         params === undefined ? {} : params,
@@ -616,10 +605,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getCollateralAmount: async (
-      params?: LendingOfferTypes.CallMethodParams<"getCollateralAmount">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getCollateralAmount">> => {
+      params?: LoanTypes.CallMethodParams<"getCollateralAmount">
+    ): Promise<LoanTypes.CallMethodResult<"getCollateralAmount">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getCollateralAmount",
         params === undefined ? {} : params,
@@ -627,10 +616,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getInterestRate: async (
-      params?: LendingOfferTypes.CallMethodParams<"getInterestRate">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getInterestRate">> => {
+      params?: LoanTypes.CallMethodParams<"getInterestRate">
+    ): Promise<LoanTypes.CallMethodResult<"getInterestRate">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getInterestRate",
         params === undefined ? {} : params,
@@ -638,10 +627,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getInterest: async (
-      params?: LendingOfferTypes.CallMethodParams<"getInterest">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getInterest">> => {
+      params?: LoanTypes.CallMethodParams<"getInterest">
+    ): Promise<LoanTypes.CallMethodResult<"getInterest">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getInterest",
         params === undefined ? {} : params,
@@ -649,10 +638,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getDuration: async (
-      params?: LendingOfferTypes.CallMethodParams<"getDuration">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getDuration">> => {
+      params?: LoanTypes.CallMethodParams<"getDuration">
+    ): Promise<LoanTypes.CallMethodResult<"getDuration">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getDuration",
         params === undefined ? {} : params,
@@ -660,10 +649,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getBorrower: async (
-      params?: LendingOfferTypes.CallMethodParams<"getBorrower">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getBorrower">> => {
+      params?: LoanTypes.CallMethodParams<"getBorrower">
+    ): Promise<LoanTypes.CallMethodResult<"getBorrower">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getBorrower",
         params === undefined ? {} : params,
@@ -671,10 +660,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     getLoanTimeStamp: async (
-      params?: LendingOfferTypes.CallMethodParams<"getLoanTimeStamp">
-    ): Promise<LendingOfferTypes.CallMethodResult<"getLoanTimeStamp">> => {
+      params?: LoanTypes.CallMethodParams<"getLoanTimeStamp">
+    ): Promise<LoanTypes.CallMethodResult<"getLoanTimeStamp">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "getLoanTimeStamp",
         params === undefined ? {} : params,
@@ -682,21 +671,15 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     borrow: async (
-      params: LendingOfferTypes.CallMethodParams<"borrow">
-    ): Promise<LendingOfferTypes.CallMethodResult<"borrow">> => {
-      return callMethod(
-        LendingOffer,
-        this,
-        "borrow",
-        params,
-        getContractByCodeHash
-      );
+      params: LoanTypes.CallMethodParams<"borrow">
+    ): Promise<LoanTypes.CallMethodResult<"borrow">> => {
+      return callMethod(Loan, this, "borrow", params, getContractByCodeHash);
     },
     cancel: async (
-      params?: LendingOfferTypes.CallMethodParams<"cancel">
-    ): Promise<LendingOfferTypes.CallMethodResult<"cancel">> => {
+      params?: LoanTypes.CallMethodParams<"cancel">
+    ): Promise<LoanTypes.CallMethodResult<"cancel">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "cancel",
         params === undefined ? {} : params,
@@ -704,10 +687,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     payback: async (
-      params?: LendingOfferTypes.CallMethodParams<"payback">
-    ): Promise<LendingOfferTypes.CallMethodResult<"payback">> => {
+      params?: LoanTypes.CallMethodParams<"payback">
+    ): Promise<LoanTypes.CallMethodResult<"payback">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "payback",
         params === undefined ? {} : params,
@@ -715,10 +698,10 @@ export class LendingOfferInstance extends ContractInstance {
       );
     },
     liquidate: async (
-      params?: LendingOfferTypes.CallMethodParams<"liquidate">
-    ): Promise<LendingOfferTypes.CallMethodResult<"liquidate">> => {
+      params?: LoanTypes.CallMethodParams<"liquidate">
+    ): Promise<LoanTypes.CallMethodResult<"liquidate">> => {
       return callMethod(
-        LendingOffer,
+        Loan,
         this,
         "liquidate",
         params === undefined ? {} : params,
@@ -729,160 +712,123 @@ export class LendingOfferInstance extends ContractInstance {
 
   transact = {
     blockTimeStampInSeconds: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"blockTimeStampInSeconds">
+      params: LoanTypes.SignExecuteMethodParams<"blockTimeStampInSeconds">
     ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"blockTimeStampInSeconds">
+      LoanTypes.SignExecuteMethodResult<"blockTimeStampInSeconds">
     > => {
-      return signExecuteMethod(
-        LendingOffer,
-        this,
-        "blockTimeStampInSeconds",
-        params
-      );
+      return signExecuteMethod(Loan, this, "blockTimeStampInSeconds", params);
     },
     calculateInterestPayment: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"calculateInterestPayment">
+      params: LoanTypes.SignExecuteMethodParams<"calculateInterestPayment">
     ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"calculateInterestPayment">
+      LoanTypes.SignExecuteMethodResult<"calculateInterestPayment">
     > => {
-      return signExecuteMethod(
-        LendingOffer,
-        this,
-        "calculateInterestPayment",
-        params
-      );
+      return signExecuteMethod(Loan, this, "calculateInterestPayment", params);
     },
     calculateTotalInterestPayment: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"calculateTotalInterestPayment">
+      params: LoanTypes.SignExecuteMethodParams<"calculateTotalInterestPayment">
     ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"calculateTotalInterestPayment">
+      LoanTypes.SignExecuteMethodResult<"calculateTotalInterestPayment">
     > => {
       return signExecuteMethod(
-        LendingOffer,
+        Loan,
         this,
         "calculateTotalInterestPayment",
         params
       );
     },
     calculateMarketplaceFee: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"calculateMarketplaceFee">
+      params: LoanTypes.SignExecuteMethodParams<"calculateMarketplaceFee">
     ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"calculateMarketplaceFee">
+      LoanTypes.SignExecuteMethodResult<"calculateMarketplaceFee">
     > => {
-      return signExecuteMethod(
-        LendingOffer,
-        this,
-        "calculateMarketplaceFee",
-        params
-      );
+      return signExecuteMethod(Loan, this, "calculateMarketplaceFee", params);
     },
     getId: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getId">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"getId">> => {
-      return signExecuteMethod(LendingOffer, this, "getId", params);
+      params: LoanTypes.SignExecuteMethodParams<"getId">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getId">> => {
+      return signExecuteMethod(Loan, this, "getId", params);
     },
     getLender: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getLender">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"getLender">> => {
-      return signExecuteMethod(LendingOffer, this, "getLender", params);
+      params: LoanTypes.SignExecuteMethodParams<"getLender">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getLender">> => {
+      return signExecuteMethod(Loan, this, "getLender", params);
     },
     getLendingTokenId: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getLendingTokenId">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getLendingTokenId">
-    > => {
-      return signExecuteMethod(LendingOffer, this, "getLendingTokenId", params);
+      params: LoanTypes.SignExecuteMethodParams<"getLendingTokenId">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getLendingTokenId">> => {
+      return signExecuteMethod(Loan, this, "getLendingTokenId", params);
     },
     getCollateralTokenId: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getCollateralTokenId">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getCollateralTokenId">
-    > => {
-      return signExecuteMethod(
-        LendingOffer,
-        this,
-        "getCollateralTokenId",
-        params
-      );
+      params: LoanTypes.SignExecuteMethodParams<"getCollateralTokenId">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getCollateralTokenId">> => {
+      return signExecuteMethod(Loan, this, "getCollateralTokenId", params);
     },
     getLendingAmount: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getLendingAmount">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getLendingAmount">
-    > => {
-      return signExecuteMethod(LendingOffer, this, "getLendingAmount", params);
+      params: LoanTypes.SignExecuteMethodParams<"getLendingAmount">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getLendingAmount">> => {
+      return signExecuteMethod(Loan, this, "getLendingAmount", params);
     },
     getCollateralAmount: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getCollateralAmount">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getCollateralAmount">
-    > => {
-      return signExecuteMethod(
-        LendingOffer,
-        this,
-        "getCollateralAmount",
-        params
-      );
+      params: LoanTypes.SignExecuteMethodParams<"getCollateralAmount">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getCollateralAmount">> => {
+      return signExecuteMethod(Loan, this, "getCollateralAmount", params);
     },
     getInterestRate: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getInterestRate">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getInterestRate">
-    > => {
-      return signExecuteMethod(LendingOffer, this, "getInterestRate", params);
+      params: LoanTypes.SignExecuteMethodParams<"getInterestRate">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getInterestRate">> => {
+      return signExecuteMethod(Loan, this, "getInterestRate", params);
     },
     getInterest: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getInterest">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"getInterest">> => {
-      return signExecuteMethod(LendingOffer, this, "getInterest", params);
+      params: LoanTypes.SignExecuteMethodParams<"getInterest">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getInterest">> => {
+      return signExecuteMethod(Loan, this, "getInterest", params);
     },
     getDuration: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getDuration">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"getDuration">> => {
-      return signExecuteMethod(LendingOffer, this, "getDuration", params);
+      params: LoanTypes.SignExecuteMethodParams<"getDuration">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getDuration">> => {
+      return signExecuteMethod(Loan, this, "getDuration", params);
     },
     getBorrower: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getBorrower">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"getBorrower">> => {
-      return signExecuteMethod(LendingOffer, this, "getBorrower", params);
+      params: LoanTypes.SignExecuteMethodParams<"getBorrower">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getBorrower">> => {
+      return signExecuteMethod(Loan, this, "getBorrower", params);
     },
     getLoanTimeStamp: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"getLoanTimeStamp">
-    ): Promise<
-      LendingOfferTypes.SignExecuteMethodResult<"getLoanTimeStamp">
-    > => {
-      return signExecuteMethod(LendingOffer, this, "getLoanTimeStamp", params);
+      params: LoanTypes.SignExecuteMethodParams<"getLoanTimeStamp">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"getLoanTimeStamp">> => {
+      return signExecuteMethod(Loan, this, "getLoanTimeStamp", params);
     },
     borrow: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"borrow">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"borrow">> => {
-      return signExecuteMethod(LendingOffer, this, "borrow", params);
+      params: LoanTypes.SignExecuteMethodParams<"borrow">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"borrow">> => {
+      return signExecuteMethod(Loan, this, "borrow", params);
     },
     cancel: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"cancel">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"cancel">> => {
-      return signExecuteMethod(LendingOffer, this, "cancel", params);
+      params: LoanTypes.SignExecuteMethodParams<"cancel">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"cancel">> => {
+      return signExecuteMethod(Loan, this, "cancel", params);
     },
     payback: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"payback">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"payback">> => {
-      return signExecuteMethod(LendingOffer, this, "payback", params);
+      params: LoanTypes.SignExecuteMethodParams<"payback">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"payback">> => {
+      return signExecuteMethod(Loan, this, "payback", params);
     },
     liquidate: async (
-      params: LendingOfferTypes.SignExecuteMethodParams<"liquidate">
-    ): Promise<LendingOfferTypes.SignExecuteMethodResult<"liquidate">> => {
-      return signExecuteMethod(LendingOffer, this, "liquidate", params);
+      params: LoanTypes.SignExecuteMethodParams<"liquidate">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"liquidate">> => {
+      return signExecuteMethod(Loan, this, "liquidate", params);
     },
   };
 
-  async multicall<Calls extends LendingOfferTypes.MultiCallParams>(
+  async multicall<Calls extends LoanTypes.MultiCallParams>(
     calls: Calls
-  ): Promise<LendingOfferTypes.MultiCallResults<Calls>> {
+  ): Promise<LoanTypes.MultiCallResults<Calls>> {
     return (await multicallMethods(
-      LendingOffer,
+      Loan,
       this,
       calls,
       getContractByCodeHash
-    )) as LendingOfferTypes.MultiCallResults<Calls>;
+    )) as LoanTypes.MultiCallResults<Calls>;
   }
 }
