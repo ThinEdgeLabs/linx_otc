@@ -102,13 +102,13 @@ export class LendingMarketplaceHelper {
 
   async borrow(
     signer: SignerProvider,
-    offerId: string,
+    loanId: string,
     collateralTokenId: string,
     collateralAmount: bigint
   ): Promise<ExecuteScriptResult> {
     return Borrow.execute(signer, {
       initialFields: {
-        offerId,
+        loanId,
         lendingMarketplace: this.contractId!
       },
       attoAlphAmount: DUST_AMOUNT,

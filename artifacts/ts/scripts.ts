@@ -27,7 +27,7 @@ export const AddFeeToken = new ExecutableScript<{
 }>(Script.fromJson(AddFeeTokenScriptJson, "", []), getContractByCodeHash);
 
 export const Borrow = new ExecutableScript<{
-  offerId: HexString;
+  loanId: HexString;
   lendingMarketplace: HexString;
 }>(Script.fromJson(BorrowScriptJson, "", []), getContractByCodeHash);
 
