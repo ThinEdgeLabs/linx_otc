@@ -20,7 +20,7 @@ export class ContractFixture<F extends Fields> {
   }
 }
 
-export function createLendingOffer(
+export function createLoan(
   lender?: string,
   lendingTokenId?: string,
   collateralTokenId?: string,
@@ -63,12 +63,12 @@ export function createLendingMarketplace(
   lendingEnabled?: boolean
 ) {
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
-  const lendingOfferTemplate = createLendingOffer()
+  const lendingOfferTemplate = createLoan()
   const contractState = LendingMarketplace.stateForTest(
     {
-      lendingOfferTemplateId: lendingOfferTemplate.contractId,
+      loanTemplateId: lendingOfferTemplate.contractId,
       admin,
-      totalLendingOffers: 0n,
+      totalLoans: 0n,
       feeRate: feeRate ?? 100n,
       lendingEnabled: lendingEnabled ?? true
     },

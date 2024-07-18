@@ -8,7 +8,7 @@ TxScript CreateOffer(
   lendingMarketplace: LendingMarketplace
 ) {
   let minimalAlphInContract = 1 alph
-  let _ = lendingMarketplace.createLendingOffer{callerAddress!() -> ALPH: minimalAlphInContract, lendingTokenId: lendingAmount}(
+  let _ = lendingMarketplace.createLoan{callerAddress!() -> ALPH: minimalAlphInContract, lendingTokenId: lendingAmount}(
     lendingTokenId,
     collateralTokenId,
     lendingAmount,

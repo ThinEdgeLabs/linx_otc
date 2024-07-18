@@ -9,7 +9,7 @@ import {
 import { getSigners, randomContractId } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
-import { LendingMarketplace, LendingMarketplaceInstance, LendingOffer, LendingOfferInstance } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceInstance, Loan, LoanInstance } from '../../artifacts/ts'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('LendingMarketplace', () => {
@@ -36,8 +36,8 @@ describe('LendingMarketplace', () => {
     await getToken(lender, lendingTokenId, expandTo18Decimals(1000n))
   })
 
-  describe('createLendingOffer', () => {
-    it('should create a lending offer', async () => {
+  describe('createLoan', () => {
+    it('should create a loan', async () => {
       const lender = (await admin.getSelectedAccount()).address
       const { txId } = await marketplaceHelper.createOffer(
         admin,
@@ -72,11 +72,11 @@ describe('LendingMarketplace', () => {
       const marketplaceContractState = await new LendingMarketplaceInstance(
         addressFromContractId(marketplaceHelper.contractId!)
       ).fetchState()
-      expect(marketplaceContractState.fields.totalLendingOffers).toEqual(1n)
+      expect(marketplaceContractState.fields.totalLoans).toEqual(1n)
 
-      const lendingOffer = LendingOffer.at(addressFromContractId(loanId))
-      const lendingOfferState = await lendingOffer.fetchState()
-      expect(lendingOfferState.fields).toEqual({
+      const loan = Loan.at(addressFromContractId(loanId))
+      const loanState = await loan.fetchState()
+      expect(loanState.fields).toEqual({
         id: 0n,
         lender,
         lendingTokenId,
@@ -89,11 +89,11 @@ describe('LendingMarketplace', () => {
         borrower: ZERO_ADDRESS,
         loanTimeStamp: 0n
       })
-      expect(lendingOfferState.asset.tokens).toEqual([{ id: lendingTokenId, amount: lendingAmount }])
+      expect(loanState.asset.tokens).toEqual([{ id: lendingTokenId, amount: lendingAmount }])
     })
   })
 
-  describe('cancel offer', () => {
+  describe('cancel loan', () => {
     const provider = web3.getCurrentNodeProvider()
     const startingAlphBalance = expandTo18Decimals(1000n)
 
@@ -112,12 +112,12 @@ describe('LendingMarketplace', () => {
       expect(await balanceOf(lendingTokenId, lender.address)).toEqual(startingAlphBalance - lendingAmount)
 
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
-      const lendingOfferAddress = txDetails.generatedOutputs[0].address
+      const loanAddress = txDetails.generatedOutputs[0].address
 
-      await marketplaceHelper.cancelOffer(lender, lendingOfferAddress)
+      await marketplaceHelper.cancelLoan(lender, loanAddress)
 
       expect(await balanceOf(lendingTokenId, lender.address)).toBeGreaterThan(0n)
-      await expect(new LendingOfferInstance(lendingOfferAddress).fetchState()).rejects.toThrow(Error)
+      await expect(new LoanInstance(loanAddress).fetchState()).rejects.toThrow(Error)
     })
 
     it('only the lender can cancel it', async () => {
@@ -133,7 +133,7 @@ describe('LendingMarketplace', () => {
       await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const lendingOfferAddress = txDetails.generatedOutputs[0].address
-      await expect(marketplaceHelper.cancelOffer(borrower, lendingOfferAddress)).rejects.toThrow(Error)
+      await expect(marketplaceHelper.cancelLoan(borrower, lendingOfferAddress)).rejects.toThrow(Error)
     })
 
     it('an already taken offer cannot be cancelled', async () => {
@@ -150,7 +150,7 @@ describe('LendingMarketplace', () => {
       const loanId = txDetails.generatedOutputs[0].address
       const { txId: takeOfferTxId } = await marketplaceHelper.borrow(borrower, loanId, ALPH_TOKEN_ID, collateralAmount)
       await waitForTxConfirmation(takeOfferTxId, 1, 1000)
-      await expect(marketplaceHelper.cancelOffer(lender, loanId)).rejects.toThrow(Error)
+      await expect(marketplaceHelper.cancelLoan(lender, loanId)).rejects.toThrow(Error)
     })
   })
 
@@ -186,7 +186,7 @@ describe('LendingMarketplace', () => {
 
       const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
       const loanId = txDetails.generatedOutputs[0].address
-      const loan = LendingOffer.at(loanId)
+      const loan = Loan.at(loanId)
       const loanState = await loan.fetchState()
       const alphAmount = BigInt(loanState.asset.alphAmount)
       const balanceBefore = await balanceOf(lendingTokenId, borrower.address)

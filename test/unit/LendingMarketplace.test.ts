@@ -12,7 +12,7 @@ import {
 } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LoanTypes } from '../../artifacts/ts'
-import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
+import { ContractFixture, createLendingMarketplace, createLoan } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, contractBalanceOfAlph, defaultGasFee, expandTo18Decimals } from '../../shared/utils'
 import { ZERO_ADDRESS } from '@alephium/web3'
@@ -36,7 +36,7 @@ async function testCreateLoan({
   duration: bigint
   lender: PrivateKeyWallet
 }) {
-  return LendingMarketplace.tests.createLendingOffer({
+  return LendingMarketplace.tests.createLoan({
     initialFields: fixture.selfState.fields,
     address: fixture.address,
     existingContracts: fixture.dependencies,
@@ -98,9 +98,9 @@ describe('LendingMarketplace', () => {
       testParamsFixture = {
         address: testContractAddress,
         initialFields: {
-          lendingOfferTemplateId: randomContractId(),
+          loanTemplateId: randomContractId(),
           admin: testAddress,
-          totalLendingOffers: 0n,
+          totalLoans: 0n,
           feeRate: 100n,
           lendingEnabled: true
         },
@@ -271,8 +271,8 @@ describe('LendingMarketplace', () => {
     it('creates a lending offer', async () => {
       const blockTimeStamp = Date.now()
       const totalLoans = 1n
-      const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
+      const testResult = await LendingMarketplace.tests.createLoan({
+        initialFields: { ...fixture.selfState.fields, totalLoans: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -333,13 +333,13 @@ describe('LendingMarketplace', () => {
       })
       expect(contractBalanceOf(lendingOfferState, lendingTokenId)).toEqual(lendingAmount)
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
+      expect(marketplaceState.fields.totalLoans).toEqual(totalLoans + 1n)
     })
 
     it('lending offers counter is incremented by one', async () => {
       const totalLoans = 1n
-      const testResult = await LendingMarketplace.tests.createLendingOffer({
-        initialFields: { ...fixture.selfState.fields, totalLendingOffers: totalLoans },
+      const testResult = await LendingMarketplace.tests.createLoan({
+        initialFields: { ...fixture.selfState.fields, totalLoans: totalLoans },
         address: fixture.address,
         existingContracts: fixture.dependencies,
         inputAssets: [
@@ -358,11 +358,11 @@ describe('LendingMarketplace', () => {
         }
       })
       const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.totalLendingOffers).toEqual(totalLoans + 1n)
+      expect(marketplaceState.fields.totalLoans).toEqual(totalLoans + 1n)
     })
 
     it('fails if the interest calculation overflows', async () => {
-      const testResult = LendingMarketplace.tests.createLendingOffer({
+      const testResult = LendingMarketplace.tests.createLoan({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
@@ -386,7 +386,7 @@ describe('LendingMarketplace', () => {
     it('fails if lending is disabled', async () => {
       const lendingEnabled = false
       const fixture = createLendingMarketplace(admin.address, undefined, undefined, lendingEnabled)
-      const testResult = LendingMarketplace.tests.createLendingOffer({
+      const testResult = LendingMarketplace.tests.createLoan({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: fixture.dependencies,
@@ -409,9 +409,9 @@ describe('LendingMarketplace', () => {
     })
   })
 
-  describe('cancelOffer', () => {
+  describe('cancelLoan', () => {
     it('cancels an existing offer', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -427,7 +427,7 @@ describe('LendingMarketplace', () => {
         fixture
       )
 
-      const testResult = await LendingMarketplace.tests.cancelOffer({
+      const testResult = await LendingMarketplace.tests.cancelLoan({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: offer.states(),
@@ -450,7 +450,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if caller is not the lender', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -466,7 +466,7 @@ describe('LendingMarketplace', () => {
         fixture
       )
 
-      const testResult = LendingMarketplace.tests.cancelOffer({
+      const testResult = LendingMarketplace.tests.cancelLoan({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: offer.states(),
@@ -484,7 +484,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if offer does not exist', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -500,7 +500,7 @@ describe('LendingMarketplace', () => {
         fixture
       )
 
-      const testResult = LendingMarketplace.tests.cancelOffer({
+      const testResult = LendingMarketplace.tests.cancelLoan({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
         existingContracts: offer.states(),
@@ -520,7 +520,7 @@ describe('LendingMarketplace', () => {
 
   describe('borrow', () => {
     it('fails if borrower is the lender', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -547,7 +547,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         }
       })
       await expectAssertionError(
@@ -557,8 +557,8 @@ describe('LendingMarketplace', () => {
       )
     })
 
-    it('fails if the offer does not exist', async () => {
-      const offerId = randomContractId()
+    it('fails if the loan does not exist', async () => {
+      const loanId = randomContractId()
       const testResult = LendingMarketplace.tests.borrow({
         initialFields: fixture.selfState.fields,
         address: fixture.address,
@@ -570,15 +570,15 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId
+          loanId
         }
       })
-      const error = `[API Error] - VM execution error: Contract ${addressFromContractId(offerId)} does not exist`
+      const error = `[API Error] - VM execution error: Contract ${addressFromContractId(loanId)} does not exist`
       expect(testResult).rejects.toThrowError(error)
     })
 
     it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -605,7 +605,7 @@ describe('LendingMarketplace', () => {
           }
         ],
         testArgs: {
-          offerId: offer.contractId
+          loanId: offer.contractId
         },
         blockTimeStamp
       })
@@ -631,7 +631,7 @@ describe('LendingMarketplace', () => {
   describe('paybackLoan', () => {
     it('emits LoanPaid event', async () => {
       const NOW = Math.floor(Date.now() / 1000)
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -670,7 +670,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if not borrower', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -739,7 +739,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('emits LoanLiquidated event', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -777,7 +777,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if caller is not lender', async () => {
-      const offer = createLendingOffer(
+      const offer = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,

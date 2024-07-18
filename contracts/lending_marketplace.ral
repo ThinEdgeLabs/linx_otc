@@ -1,7 +1,7 @@
 Contract LendingMarketplace(
-  lendingOfferTemplateId: ByteVec,
+  loanTemplateId: ByteVec,
   mut admin: Address,
-  mut totalLendingOffers: U256,
+  mut totalLoans: U256,
   mut feeRate: U256, // in basis points
   mut lendingEnabled: Bool
 ) extends LendingMarketplaceUtils() {
@@ -47,8 +47,8 @@ Contract LendingMarketplace(
     return admin
   }
 
-  pub fn getTotalLendingOffers() -> U256 {
-    return totalLendingOffers
+  pub fn getTotalLoans() -> U256 {
+    return totalLoans
   }
 
   pub fn getFeeRate() -> U256 {
@@ -56,7 +56,7 @@ Contract LendingMarketplace(
   }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
-  pub fn createLendingOffer(
+  pub fn createLoan(
     lendingTokenId: ByteVec,
     collateralTokenId: ByteVec,
     lendingAmount: U256,
@@ -75,13 +75,13 @@ Contract LendingMarketplace(
     // Checking for overflow
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
-    let key = toByteVec!(totalLendingOffers)
-    let id = totalLendingOffers
+    let key = toByteVec!(totalLoans)
+    let id = totalLoans
     let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, nullContractAddress!(), 0)
     let loanId = copyCreateSubContract!{lender -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
-      key, lendingOfferTemplateId, encodeImmutableFields, encodeMutableFields
+      key, loanTemplateId, encodeImmutableFields, encodeMutableFields
     )
-    totalLendingOffers = totalLendingOffers + 1
+    totalLoans = totalLoans + 1
 
     emit LoanDetails(loanId, lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration, lender)
     emit LoanCreated(loanId, id, lender, blockTimeStamp!())
@@ -90,24 +90,24 @@ Contract LendingMarketplace(
   }
 
   @using(preapprovedAssets = true)
-  pub fn borrow(offerId: ByteVec) -> () {
-    let offer = Loan(offerId)
+  pub fn borrow(loanId: ByteVec) -> () {
+    let loan = Loan(loanId)
     let caller = callerAddress!()
-    let lender = offer.getLender()
+    let lender = loan.getLender()
     checkCaller!(caller != lender, ErrorCodes.LenderNotAllowed)
 
-    let collateralTokenId = offer.getCollateralTokenId()
-    let collateralAmount = offer.getCollateralAmount()
-    offer.borrow{caller -> collateralTokenId: collateralAmount}(caller)
+    let collateralTokenId = loan.getCollateralTokenId()
+    let collateralAmount = loan.getCollateralAmount()
+    loan.borrow{caller -> collateralTokenId: collateralAmount}(caller)
 
-    emit LoanAccepted(offerId, caller, blockTimeStamp!())
+    emit LoanAccepted(loanId, caller, blockTimeStamp!())
   }
 
-  pub fn cancelOffer(loanId: ByteVec) -> () {
-    let offer = Loan(loanId)
-    let lender = offer.getLender()
+  pub fn cancelLoan(loanId: ByteVec) -> () {
+    let loan = Loan(loanId)
+    let lender = loan.getLender()
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
-    offer.cancel()
+    loan.cancel()
     emit LoanCancelled(loanId, callerAddress!(), blockTimeStamp!())
   }
 

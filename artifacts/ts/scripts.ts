@@ -14,7 +14,7 @@ import {
 import { getContractByCodeHash } from "./contracts";
 import { default as AddFeeTokenScriptJson } from "../scripts/AddFeeToken.ral.json";
 import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
-import { default as CancelOfferScriptJson } from "../scripts/CancelOffer.ral.json";
+import { default as CancelLoanScriptJson } from "../scripts/CancelLoan.ral.json";
 import { default as CreateOfferScriptJson } from "../scripts/CreateOffer.ral.json";
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
 import { default as LiquidateLoanScriptJson } from "../scripts/LiquidateLoan.ral.json";
@@ -31,10 +31,10 @@ export const Borrow = new ExecutableScript<{
   lendingMarketplace: HexString;
 }>(Script.fromJson(BorrowScriptJson, "", []), getContractByCodeHash);
 
-export const CancelOffer = new ExecutableScript<{
+export const CancelLoan = new ExecutableScript<{
   marketplace: HexString;
-  offerId: HexString;
-}>(Script.fromJson(CancelOfferScriptJson, "", []), getContractByCodeHash);
+  loanId: HexString;
+}>(Script.fromJson(CancelLoanScriptJson, "", []), getContractByCodeHash);
 
 export const CreateOffer = new ExecutableScript<{
   lendingTokenId: HexString;

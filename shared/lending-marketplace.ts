@@ -8,11 +8,11 @@ import {
   ZERO_ADDRESS
 } from '@alephium/web3'
 import {
-  CancelOffer,
+  CancelLoan,
   CreateOffer,
   LendingMarketplace,
   LendingMarketplaceInstance,
-  LendingOffer,
+  Loan,
   Borrow,
   RepayLoan,
   LiquidateLoan,
@@ -30,7 +30,7 @@ export class LendingMarketplaceHelper {
   }
 
   async create(signer: SignerProvider = this.signer): Promise<DeployContractResult<LendingMarketplaceInstance>> {
-    const lendingOfferDeployTx = await LendingOffer.deploy(signer, {
+    const lendingOfferDeployTx = await Loan.deploy(signer, {
       initialFields: {
         id: 0n,
         lender: ZERO_ADDRESS,
@@ -50,9 +50,9 @@ export class LendingMarketplaceHelper {
 
     const lendingMarketplaceDeployResult = await LendingMarketplace.deploy(this.signer, {
       initialFields: {
-        lendingOfferTemplateId: lendingOfferDeployTx.contractInstance.contractId,
+        loanTemplateId: lendingOfferDeployTx.contractInstance.contractId,
         admin: adminAddress,
-        totalLendingOffers: 0n,
+        totalLoans: 0n,
         feeRate: 100n,
         lendingEnabled: true
       }
@@ -91,11 +91,11 @@ export class LendingMarketplaceHelper {
     })
   }
 
-  async cancelOffer(signer: SignerProvider, offerId: string): Promise<ExecuteScriptResult> {
-    return CancelOffer.execute(signer, {
+  async cancelLoan(signer: SignerProvider, loanId: string): Promise<ExecuteScriptResult> {
+    return CancelLoan.execute(signer, {
       initialFields: {
         marketplace: this.contractId!,
-        offerId
+        loanId
       }
     })
   }

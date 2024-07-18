@@ -1,7 +1,7 @@
 import { web3, ONE_ALPH, ContractState, ZERO_ADDRESS } from '@alephium/web3'
 import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
 import { LendingMarketplaceTypes, Loan, LoanTypes } from '../../artifacts/ts'
-import { ContractFixture, createLendingMarketplace, createLendingOffer } from './fixtures'
+import { ContractFixture, createLendingMarketplace, createLoan } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { contractBalanceOf, expandTo18Decimals } from '../../shared/utils'
 
@@ -36,7 +36,7 @@ describe('LendingOffer', () => {
   })
 
   it('getters', async () => {
-    fixture = createLendingOffer()
+    fixture = createLoan()
     const lenderResult = await Loan.tests.getLender({
       initialFields: fixture.selfState.fields,
       initialAsset: fixture.selfState.asset,
@@ -56,7 +56,7 @@ describe('LendingOffer', () => {
 
   describe('calculateInterestPayment', () => {
     it('returns the interest payment', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -89,7 +89,7 @@ describe('LendingOffer', () => {
     it('borrower provides collateral and receives the amount', async () => {
       const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
 
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -135,7 +135,7 @@ describe('LendingOffer', () => {
     })
 
     it('fails if borrower provides less collateral', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -165,7 +165,7 @@ describe('LendingOffer', () => {
     })
 
     it('fails if the offer is already taken', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -197,7 +197,7 @@ describe('LendingOffer', () => {
 
   describe('cancel', () => {
     it('cancels the offer', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -231,7 +231,7 @@ describe('LendingOffer', () => {
     const NOW = Math.floor(Date.now() / 1000)
 
     it('lender receives collateral and loan is terminated', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -264,7 +264,7 @@ describe('LendingOffer', () => {
     })
 
     it('fails if the loan is not overdue', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -293,7 +293,7 @@ describe('LendingOffer', () => {
     })
 
     it('fails if loan is not active', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -323,7 +323,7 @@ describe('LendingOffer', () => {
 
   describe('payback', () => {
     it('lender receives the token + interest, borrower gets the collateral and loan is terminated', async () => {
-      fixture = createLendingOffer(
+      fixture = createLoan(
         lender.address,
         lendingTokenId,
         collateralTokenId,
