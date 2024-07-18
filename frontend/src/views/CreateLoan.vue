@@ -14,8 +14,7 @@ import ComponentTitle from '../components/ComponentTitle.vue'
 import AgreeToTerms from '../components/AgreeToTerms.vue'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
 import { getMarketplaceConfig } from '../config'
-import { waitTxConfirmed } from '@alephium/cli'
-import { useNodeStore } from '../stores/node'
+import { waitForTxConfirmation } from '@alephium/web3'
 import type { Status } from '../components/ApproveWallet.vue'
 import { convertAmountWithDecimals, type SignerProvider } from '@alephium/web3'
 import { usePopUpStore } from '../stores/popup'
@@ -24,7 +23,6 @@ import { useValidateGroup } from '@/composables/validateGroup'
 
 const loanOfferStore = useLoanOrderStore()
 const accountStore = useAccountStore()
-const { nodeProvider } = useNodeStore()
 const popUpStore = usePopUpStore()
 
 const status = ref<Status | undefined>(undefined)
@@ -78,7 +76,7 @@ async function createLoan() {
         duration
       )
       status.value = 'signed'
-      await waitTxConfirmed(nodeProvider!, result.txId, 1, 1000)
+      await waitForTxConfirmation(result.txId, 1, 1000)
       txId.value = result.txId
       status.value = 'success'
     } catch (err) {

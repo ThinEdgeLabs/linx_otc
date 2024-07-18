@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router'
 import ApproveWallet from '@/components/ApproveWallet.vue'
 import TradePreview from '@/components/trade/TradePreview.vue'
 import { useAccountStore } from '@/stores/account'
-import { waitTxConfirmed } from '@alephium/cli'
+import { waitForTxConfirmation } from '@alephium/web3'
 import { fetchLink } from '@/functions/utils'
 
 interface TradeData {
@@ -54,7 +54,7 @@ async function signAndSend() {
       signatures: tradeData.value!.sigs as Array<string>
     })
     status.value = 'signed'
-    await waitTxConfirmed(account.nodeProvider, result!.txId, 1, 5000)
+    await waitForTxConfirmation(result!.txId, 1, 2000)
     txId.value = result!.txId
     status.value = 'success'
   } catch (error) {

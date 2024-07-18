@@ -17,9 +17,9 @@ import {
 } from '@alephium/web3'
 import { getMarketplaceConfig, getTokens, undefinedToken } from '../config'
 import { LendingMarketplaceHelper } from '../../../shared/lending-marketplace'
-import { waitTxConfirmed } from '@alephium/cli'
+import { waitForTxConfirmation } from '@alephium/web3'
 import { useAccountStore, useLoanStore } from '../stores'
-import { LendingOfferInstance } from '../../../artifacts/ts'
+import { LoanInstance } from '../../../artifacts/ts'
 import { useRoute } from 'vue-router'
 import router from '@/router'
 import { storeToRefs } from 'pinia'
@@ -35,7 +35,7 @@ const loan = ref<Loan | undefined>(undefined)
 const config = getMarketplaceConfig()
 web3.setCurrentNodeProvider(config.defaultNodeUrl)
 
-const { account, signer, nodeProvider } = storeToRefs(useAccountStore())
+const { account, signer } = storeToRefs(useAccountStore())
 const loanStore = useLoanStore()
 const status = ref<Status | undefined>(undefined)
 const txId = ref<string | undefined>(undefined)
@@ -96,7 +96,7 @@ async function borrow() {
   marketplace.contractId = config.marketplaceContractId
   try {
     status.value = 'approve'
-    const result = await marketplace.takeOffer(
+    const result = await marketplace.borrow(
       signer.value as SignerProvider,
       loan.value!.contractId,
       loan.value!.collateralToken,
@@ -104,7 +104,7 @@ async function borrow() {
     )
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    await waitForTxConfirmation(result.txId, 1, 1000)
     txId.value = result.txId
     events.value = await useLoanStore().getLoanEvents(contractId, true)
     status.value = 'success'
@@ -120,10 +120,10 @@ async function cancel() {
   marketplace.contractId = config.marketplaceContractId
   try {
     status.value = 'approve'
-    const result = await marketplace.cancelOffer(signer.value as SignerProvider, loan.value!.contractId)
+    const result = await marketplace.cancelLoan(signer.value as SignerProvider, loan.value!.contractId)
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    await waitForTxConfirmation(result.txId, 1, 1000)
     txId.value = result.txId
     events.value = await useLoanStore().getLoanEvents(contractId, true)
     status.value = 'success'
@@ -137,8 +137,8 @@ async function repay() {
   const config = getMarketplaceConfig()
   const marketplace = new LendingMarketplaceHelper(signer.value as SignerProvider)
   marketplace.contractId = config.marketplaceContractId
-  const instance = new LendingOfferInstance(addressFromContractId(contractId))
-  const interest = (await instance.methods.getInterest()).returns
+  const instance = new LoanInstance(addressFromContractId(contractId))
+  const interest = (await instance.view.getInterest()).returns
   try {
     status.value = 'approve'
     const result = await marketplace.repayLoan(
@@ -149,7 +149,7 @@ async function repay() {
     )
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    await waitForTxConfirmation(result.txId, 1, 1000)
     txId.value = result.txId
     events.value = await useLoanStore().getLoanEvents(contractId, true)
     status.value = 'success'
@@ -168,7 +168,7 @@ async function liquidate() {
     const result = await marketplace.liquidateLoan(signer.value as SignerProvider, loan.value!.contractId)
     status.value = 'signed'
     await new Promise((resolve) => setTimeout(resolve, 3000))
-    await waitTxConfirmed(nodeProvider.value, result.txId, 1, 1000)
+    await waitForTxConfirmation(result.txId, 1, 1000)
     txId.value = result.txId
     events.value = await useLoanStore().getLoanEvents(contractId, true)
     status.value = 'success'
