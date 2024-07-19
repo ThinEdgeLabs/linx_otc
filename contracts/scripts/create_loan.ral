@@ -1,14 +1,14 @@
-TxScript CreateOffer(
+TxScript CreateLoan(
   lendingTokenId: ByteVec,
   collateralTokenId: ByteVec,
   lendingAmount: U256,
   collateralAmount: U256,
   interestRate: U256,
   duration: U256,
-  lendingMarketplace: LendingMarketplace
+  marketplace: LendingMarketplace
 ) {
   let minimalAlphInContract = 1 alph
-  let _ = lendingMarketplace.createLoan{callerAddress!() -> ALPH: minimalAlphInContract, lendingTokenId: lendingAmount}(
+  let _ = marketplace.createLoan{callerAddress!() -> ALPH: minimalAlphInContract, lendingTokenId: lendingAmount}(
     lendingTokenId,
     collateralTokenId,
     lendingAmount,

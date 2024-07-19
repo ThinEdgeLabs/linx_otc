@@ -39,7 +39,7 @@ describe('LendingMarketplace', () => {
   describe('createLoan', () => {
     it('should create a loan', async () => {
       const lender = (await admin.getSelectedAccount()).address
-      const { txId } = await marketplaceHelper.createOffer(
+      const { txId } = await marketplaceHelper.createLoan(
         admin,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -100,7 +100,7 @@ describe('LendingMarketplace', () => {
     it('destroys the contract', async () => {
       expect(marketplaceHelper.contractId).toBeDefined()
 
-      const { txId } = await marketplaceHelper.createOffer(
+      const { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -121,7 +121,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('only the lender can cancel it', async () => {
-      const { txId } = await marketplaceHelper.createOffer(
+      const { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -137,7 +137,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('an already taken offer cannot be cancelled', async () => {
-      const { txId } = await marketplaceHelper.createOffer(
+      const { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -156,7 +156,7 @@ describe('LendingMarketplace', () => {
 
   describe('borrow', () => {
     it('fee is not paid if the borrowed token is not among the fee tokens', async () => {
-      let { txId } = await marketplaceHelper.createOffer(
+      let { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -172,9 +172,10 @@ describe('LendingMarketplace', () => {
       ).txId
       expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount)
     })
+
     it('borrower receives the tokens and fee is paid to the marketplace', async () => {
       await marketplaceHelper.addFeeToken(admin, lendingTokenId)
-      let { txId } = await marketplaceHelper.createOffer(
+      let { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -193,6 +194,7 @@ describe('LendingMarketplace', () => {
       txId = (
         await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
       ).txId
+
       const state = await marketplaceInstance.fetchState()
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
@@ -206,6 +208,7 @@ describe('LendingMarketplace', () => {
       expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount - fee)
       const newLoanState = await loan.fetchState()
       expect(newLoanState.asset.alphAmount).toEqual(alphAmount + collateralAmount)
+      expect(newLoanState.fields.loanTimeStamp).toBeGreaterThan(0n)
     })
   })
 

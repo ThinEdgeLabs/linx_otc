@@ -7,7 +7,7 @@ const deployMarketplace: DeployFunction<Settings> = async (
   deployer: Deployer,
   network: Network<Settings>
 ): Promise<void> => {
-  const lendingOfferTemplateResult = deployer.getDeployContractResult('LendingOffer')
+  const loanTemplateResult = deployer.getDeployContractResult('Loan')
 
   if (network.settings.admin === undefined) {
     throw new Error('Please specify the `admin` in alephium.config.ts')
@@ -17,15 +17,15 @@ const deployMarketplace: DeployFunction<Settings> = async (
   }
 
   const initialFields = {
-    lendingOfferTemplateId: lendingOfferTemplateResult.contractInstance.contractId,
+    loanTemplateId: loanTemplateResult.contractInstance.contractId,
     admin: addressFromPublicKey(network.settings.admin),
-    totalLendingOffers: 0n,
-    fee: BigInt(network.settings.fee),
-    lendingEnabled: true,
+    totalLoans: 0n,
+    feeRate: BigInt(network.settings.fee),
+    lendingEnabled: true
   }
 
   const result = await deployer.deployContract(LendingMarketplace, {
-    initialFields: initialFields,
+    initialFields: initialFields
   })
 
   const contractId = result.contractInstance.contractId

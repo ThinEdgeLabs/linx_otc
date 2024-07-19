@@ -9,7 +9,7 @@ import {
 } from '@alephium/web3'
 import {
   CancelLoan,
-  CreateOffer,
+  CreateLoan,
   LendingMarketplace,
   LendingMarketplaceInstance,
   Loan,
@@ -62,7 +62,7 @@ export class LendingMarketplaceHelper {
     return lendingMarketplaceDeployResult
   }
 
-  async createOffer(
+  async createLoan(
     signer: SignerProvider,
     lendingTokenId: string,
     collateralTokenId: string,
@@ -71,7 +71,7 @@ export class LendingMarketplaceHelper {
     interestRate: bigint,
     duration: bigint
   ): Promise<ExecuteScriptResult> {
-    return CreateOffer.execute(signer, {
+    return CreateLoan.execute(signer, {
       initialFields: {
         lendingTokenId,
         collateralTokenId,
@@ -79,7 +79,7 @@ export class LendingMarketplaceHelper {
         collateralAmount,
         interestRate,
         duration,
-        lendingMarketplace: this.contractId!
+        marketplace: this.contractId!
       },
       attoAlphAmount: ONE_ALPH + DUST_AMOUNT,
       tokens: [
