@@ -66,7 +66,7 @@ async function createLoan() {
 
     try {
       status.value = 'approve'
-      const result = await marketplace.createOffer(
+      const result = await marketplace.createLoan(
         accountStore.signer as SignerProvider,
         lendingTokenId,
         collateralTokenId,
