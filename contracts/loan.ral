@@ -92,7 +92,7 @@ Contract Loan(
   }
 
   @using(assetsInContract = true, preapprovedAssets = true)
-  pub fn payback() -> () {
+  pub fn repay() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
     let interest = getInterest()

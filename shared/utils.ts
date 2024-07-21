@@ -1,7 +1,11 @@
 import {
+  ContractEvent,
   ContractState,
   DUST_AMOUNT,
   ExecuteScriptResult,
+  Fields,
+  NamedVals,
+  Output,
   SignerProvider,
   binToHex,
   contractIdFromAddress,
@@ -68,4 +72,16 @@ export function randomContractAddress(): string {
   const prefix = Buffer.from([0x03])
   const bytes = Buffer.concat([prefix, randomBytes(32)])
   return base58.encode(bytes)
+}
+
+export function getEvent<T extends ContractEvent<NamedVals>>(events: ContractEvent<NamedVals>[], eventName: string): T {
+  return events.find((e) => e.name === eventName)! as T
+}
+
+export function getContractState<T extends Fields>(contracts: ContractState[], contractId: string): ContractState<T> {
+  return contracts.find((c) => c.contractId === contractId)! as ContractState<T>
+}
+
+export function getOutput(outputs: Output[], type: 'ContractOutput' | 'AssetOutput', address: string): Output {
+  return outputs.find((o) => o.type === type && o.address === address)!
 }

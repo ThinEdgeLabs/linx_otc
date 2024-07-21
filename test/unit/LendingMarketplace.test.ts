@@ -1,46 +1,55 @@
 import {
   web3,
-  TestContractParams,
   addressFromContractId,
   ONE_ALPH,
   contractIdFromAddress,
   binToHex,
-  ContractState,
   ALPH_TOKEN_ID,
   DUST_AMOUNT,
-  MINIMAL_CONTRACT_DEPOSIT
+  MINIMAL_CONTRACT_DEPOSIT,
+  InputAsset
 } from '@alephium/web3'
-import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
+import {
+  expectAssertionError,
+  getSigners,
+  randomContractAddress,
+  randomContractId,
+  testAddress
+} from '@alephium/web3-test'
 import { LendingMarketplace, LendingMarketplaceTypes, LoanTypes } from '../../artifacts/ts'
-import { ContractFixture, createLendingMarketplace, createLoan } from './fixtures'
+import { ContractFixture, createLendingMarketplace, createLoan as createLoanFixture } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { contractBalanceOf, contractBalanceOfAlph, defaultGasFee, expandTo18Decimals } from '../../shared/utils'
+import {
+  contractBalanceOf,
+  contractBalanceOfAlph,
+  defaultGasFee,
+  expandTo18Decimals,
+  getContractState,
+  getEvent,
+  getOutput
+} from '../../shared/utils'
 import { ZERO_ADDRESS } from '@alephium/web3'
 
-async function testCreateLoan({
-  fixture,
-  lendingTokenId,
-  lendingAmount,
-  collateralTokenId,
-  collateralAmount,
-  interestRate,
-  duration,
-  lender
-}: {
-  fixture: ContractFixture<LendingMarketplaceTypes.Fields>
-  lendingTokenId: string
-  lendingAmount: bigint
-  collateralTokenId: string
-  collateralAmount: bigint
-  interestRate: bigint
-  duration: bigint
-  lender: PrivateKeyWallet
-}) {
+// -------- Test helpers --------
+async function createLoan(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  lendingTokenId: string,
+  lendingAmount: bigint,
+  collateralTokenId: string,
+  collateralAmount: bigint,
+  interestRate: bigint,
+  duration: bigint,
+  lender: PrivateKeyWallet,
+  blockTimeStamp?: number,
+  initialFields?: LendingMarketplaceTypes.Fields,
+  inputAssets?: InputAsset[]
+) {
+  const testArgs = { lendingTokenId, collateralTokenId, lendingAmount, collateralAmount, interestRate, duration }
   return LendingMarketplace.tests.createLoan({
-    initialFields: fixture.selfState.fields,
-    address: fixture.address,
-    existingContracts: fixture.dependencies,
-    inputAssets: [
+    initialFields: initialFields ?? marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: inputAssets ?? [
       {
         address: lender.address,
         asset: {
@@ -49,16 +58,119 @@ async function testCreateLoan({
         }
       }
     ],
-    testArgs: {
-      lendingTokenId,
-      collateralTokenId,
-      lendingAmount,
-      collateralAmount,
-      interestRate,
-      duration
-    }
+    testArgs,
+    blockTimeStamp
   })
 }
+
+async function cancelLoan(
+  loanId: string,
+  caller: PrivateKeyWallet,
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  loan: ContractFixture<LoanTypes.Fields>
+) {
+  return LendingMarketplace.tests.cancelLoan({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: loan.states(),
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
+    testArgs: { loanId }
+  })
+}
+
+async function updateAdmin(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  newAdmin: string,
+  caller: PrivateKeyWallet
+) {
+  return LendingMarketplace.tests.updateAdmin({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
+    testArgs: { newAdmin }
+  })
+}
+
+async function updateFee(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  newFee: bigint,
+  caller: PrivateKeyWallet
+) {
+  return LendingMarketplace.tests.updateFeeRate({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
+    testArgs: { value: newFee }
+  })
+}
+
+async function pauseLending(marketplace: ContractFixture<LendingMarketplaceTypes.Fields>, caller: PrivateKeyWallet) {
+  return LendingMarketplace.tests.pauseLending({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }]
+  })
+}
+
+async function enableLending(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  caller: PrivateKeyWallet,
+  initialFields?: LendingMarketplaceTypes.Fields
+) {
+  return LendingMarketplace.tests.enableLending({
+    initialFields: initialFields ?? marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }]
+  })
+}
+
+async function borrow(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  loan: ContractFixture<LoanTypes.Fields>,
+  borrower: PrivateKeyWallet,
+  collateralTokenId: string,
+  collateralAmount: bigint,
+  loanId: string,
+  blockTimeStamp?: number
+) {
+  return LendingMarketplace.tests.borrow({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: loan.states(),
+    inputAssets: [
+      {
+        address: borrower.address,
+        asset: {
+          alphAmount: defaultGasFee + DUST_AMOUNT,
+          tokens: [{ id: collateralTokenId, amount: collateralAmount }]
+        }
+      }
+    ],
+    testArgs: { loanId },
+    blockTimeStamp
+  })
+}
+
+async function repayLoan(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  loan: ContractFixture<LoanTypes.Fields>,
+  inputAssets: InputAsset[],
+  loanId: string
+) {
+  return LendingMarketplace.tests.repayLoan({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: loan.states(),
+    inputAssets: inputAssets,
+    testArgs: { loanId }
+  })
+}
+
+// -------- Tests --------
 
 describe('LendingMarketplace', () => {
   let lendingTokenId: string
@@ -67,132 +179,112 @@ describe('LendingMarketplace', () => {
   let collateralAmount: bigint
   let interestRate: bigint
   let duration: bigint
-  let fixture: ContractFixture<LendingMarketplaceTypes.Fields>
+  let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
   let admin: PrivateKeyWallet
+  let notAdmin: PrivateKeyWallet
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
-    fixture = createLendingMarketplace(admin.address)
+    ;[admin, lender, borrower, notAdmin] = await getSigners(4, ONE_ALPH * 1000n, 0)
+    marketplace = createLendingMarketplace(admin.address)
 
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
     lendingAmount = 1000n * 10n ** 18n
     collateralAmount = 200n * 10n ** 18n
-    interestRate = 2000n
+    interestRate = 2000n // 20%
     duration = 30n
   })
 
   describe('updateAdmin', () => {
-    let testParamsFixture: TestContractParams<LendingMarketplaceTypes.Fields, { newAdmin: string }>
-    let testContractId: string
-    let testContractAddress: string
+    let newAdmin: PrivateKeyWallet
 
     beforeAll(async () => {
-      testContractId = randomContractId()
-      testContractAddress = addressFromContractId(testContractId)
-      const [signer] = await getSigners(1, ONE_ALPH * 1000n, 0)
-
-      testParamsFixture = {
-        address: testContractAddress,
-        initialFields: {
-          loanTemplateId: randomContractId(),
-          admin: testAddress,
-          totalLoans: 0n,
-          feeRate: 100n,
-          lendingEnabled: true
-        },
-        inputAssets: [{ address: testAddress, asset: { alphAmount: 10n ** 18n } }],
-        testArgs: { newAdmin: signer.address }
-      }
+      ;[newAdmin, notAdmin] = await getSigners(2, ONE_ALPH * 10n, 0)
     })
 
-    it('as admin', async () => {
-      const testParams = testParamsFixture
-      const testResult = await LendingMarketplace.tests.updateAdmin(testParams)
-
-      const contractState = testResult.contracts[0] as LendingMarketplaceTypes.State
-      expect(contractState.fields.admin).toEqual(testParams.testArgs.newAdmin)
-      expect(testResult.events.length).toEqual(1)
-
-      const event = testResult.events[0] as LendingMarketplaceTypes.AdminUpdatedEvent
-      expect(event.name).toEqual('AdminUpdated')
-      expect(event.fields.previous).toEqual(testAddress)
-      expect(event.fields.new).toEqual(testParams.testArgs.newAdmin)
+    it('new admin is set', async () => {
+      const testResult = await updateAdmin(marketplace, newAdmin.address, admin)
+      const state = getContractState(testResult.contracts, marketplace.contractId)
+      expect(state?.fields.admin).toEqual(newAdmin.address)
+      expect(getEvent(testResult.events, 'AdminUpdated')?.fields).toEqual({
+        previous: admin.address,
+        new: newAdmin.address
+      })
     })
 
-    it('not as admin', async () => {
-      const [notAdmin] = await getSigners(1, ONE_ALPH * 1000n, 0)
-      const testParams = {
-        ...testParamsFixture,
-        inputAssets: [{ address: notAdmin.address, asset: { alphAmount: 10n ** 18n } }]
-      }
-
+    it('fails if not admin', async () => {
       await expectAssertionError(
-        LendingMarketplace.tests.updateAdmin(testParams),
-        testContractAddress,
+        updateAdmin(marketplace, newAdmin.address, notAdmin),
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
       )
     })
   })
 
   describe('updateFee', () => {
-    it('updates the marketplace fee', async () => {
-      const testResult = await LendingMarketplace.tests.updateFeeRate({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { value: 300n }
-      })
-      const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.feeRate).toEqual(300n)
+    it('marketplace fee is set', async () => {
+      const oldFee = marketplace.selfState.fields.feeRate
+      const newFee = 300n
+      const testResult = await updateFee(marketplace, newFee, admin)
+      const state = getContractState<LendingMarketplaceTypes.Fields>(
+        testResult.contracts,
+        marketplace.contractId
+      )!.fields
+      expect(oldFee).not.toEqual(newFee)
+      expect(state.feeRate).toEqual(newFee)
     })
     it('fails if not admin', async () => {
-      const notAdmin = testAddress
-      const testResult = LendingMarketplace.tests.updateFeeRate({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { value: 300n }
-      })
+      const testResult = updateFee(marketplace, 300n, notAdmin)
       await expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
       )
     })
   })
 
-  describe('updateLendingEnabled', () => {
-    it('updates the lending enabled flag', async () => {
-      expect(fixture.selfState.fields.lendingEnabled).toEqual(true)
-      const testResult = await LendingMarketplace.tests.updateLendingEnabled({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [{ address: admin.address, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { value: false }
-      })
-      const marketplaceState = testResult.contracts[1] as ContractState<LendingMarketplaceTypes.Fields>
-      expect(marketplaceState.fields.lendingEnabled).toEqual(false)
+  describe('pauseLending', () => {
+    it('lending is paused', async () => {
+      const testResult = await pauseLending(marketplace, admin)
+      const state = getContractState<LendingMarketplaceTypes.Fields>(
+        testResult.contracts,
+        marketplace.contractId
+      )!.fields
+      expect(marketplace.selfState.fields.lendingEnabled).toEqual(true)
+      expect(state.lendingEnabled).toEqual(false)
     })
 
     it('fails if not admin', async () => {
-      const notAdmin = testAddress
-      const testResult = LendingMarketplace.tests.updateLendingEnabled({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [{ address: notAdmin, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: { value: false }
-      })
+      const testResult = pauseLending(marketplace, notAdmin)
       await expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+      )
+    })
+  })
+
+  describe('enableLending', () => {
+    it('lending is enabled', async () => {
+      const testResult = await enableLending(marketplace, admin, {
+        ...marketplace.selfState.fields,
+        lendingEnabled: false
+      })
+      const state = getContractState<LendingMarketplaceTypes.Fields>(
+        testResult.contracts,
+        marketplace.contractId
+      )!.fields
+      expect(state.lendingEnabled).toEqual(true)
+    })
+
+    it('fails if not admin', async () => {
+      const testResult = enableLending(marketplace, notAdmin)
+      await expectAssertionError(
+        testResult,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
       )
     })
@@ -201,8 +293,8 @@ describe('LendingMarketplace', () => {
   describe('createLoan', () => {
     it('fails if lending amount is invalid', async () => {
       const lendingAmount = 0n
-      const testResult = testCreateLoan({
-        fixture,
+      const testResult = createLoan(
+        marketplace,
         lendingTokenId,
         lendingAmount,
         collateralTokenId,
@@ -210,17 +302,17 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender
-      })
+      )
       expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.InvalidLendingAmount)
       )
     })
     it('fails if collateral amount is invalid', async () => {
       const collateralAmount = 0n
-      const testResult = testCreateLoan({
-        fixture,
+      const testResult = createLoan(
+        marketplace,
         lendingTokenId,
         lendingAmount,
         collateralTokenId,
@@ -228,17 +320,17 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender
-      })
+      )
       expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.InvalidCollateralAmount)
       )
     })
     it('fails if interest rate is invalid', async () => {
       const interestRate = 0n
-      const testResult = testCreateLoan({
-        fixture,
+      const testResult = createLoan(
+        marketplace,
         lendingTokenId,
         lendingAmount,
         collateralTokenId,
@@ -246,17 +338,17 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender
-      })
+      )
       expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.InvalidInterestRate)
       )
     })
     it('fails if duration is invalid', async () => {
       const duration = 0n
-      const testResult = testCreateLoan({
-        fixture,
+      const testResult = createLoan(
+        marketplace,
         lendingTokenId,
         lendingAmount,
         collateralTokenId,
@@ -264,40 +356,34 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration,
         lender
-      })
-      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.InvalidDuration))
+      )
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.InvalidDuration)
+      )
     })
 
     it('new loan is created', async () => {
       const blockTimeStamp = Date.now()
       const totalLoans = 1n
-      const testResult = await LendingMarketplace.tests.createLoan({
-        initialFields: { ...fixture.selfState.fields, totalLoans: totalLoans },
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: lendingAmount }] }
-          }
-        ],
-        testArgs: {
-          lendingTokenId,
-          collateralTokenId,
-          lendingAmount,
-          collateralAmount,
-          interestRate,
-          duration
-        },
-        blockTimeStamp
-      })
+      const testResult = await createLoan(
+        marketplace,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender,
+        blockTimeStamp,
+        { ...marketplace.selfState.fields, totalLoans: totalLoans }
+      )
+      const loanId = binToHex(contractIdFromAddress(testResult.returns))
 
-      expect(testResult.events.length).toEqual(3)
-      const loanDetailsEvent = testResult.events.find(
-        (e) => e.name === 'LoanDetails'
-      ) as LendingMarketplaceTypes.LoanDetailsEvent
+      const loanDetailsEvent = getEvent(testResult.events, 'LoanDetails')
       expect(loanDetailsEvent.fields).toEqual({
-        loanId: binToHex(contractIdFromAddress(testResult.returns)),
+        loanId: loanId,
         lendingTokenId,
         collateralTokenId,
         lendingAmount,
@@ -307,23 +393,21 @@ describe('LendingMarketplace', () => {
         lender: lender.address
       })
 
-      const loanCreatedEvent = testResult.events.find(
-        (e) => e.name === 'LoanCreated'
-      ) as LendingMarketplaceTypes.LoanCreatedEvent
+      const loanCreatedEvent = getEvent(testResult.events, 'LoanCreated')
       expect(loanCreatedEvent.fields).toEqual({
-        loanId: binToHex(contractIdFromAddress(testResult.returns)),
+        loanId: loanId,
         id: totalLoans,
         by: lender.address,
         timestamp: BigInt(blockTimeStamp)
       })
 
-      const loanState = testResult.contracts[0] as ContractState<LoanTypes.Fields>
+      const loanState = getContractState(testResult.contracts, loanId)!
       expect(loanState.fields).toEqual({
         id: totalLoans,
         lender: lender.address,
         lendingTokenId,
         collateralTokenId,
-        marketplaceContractId: fixture.contractId,
+        marketplaceContractId: marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -332,90 +416,74 @@ describe('LendingMarketplace', () => {
         loanTimeStamp: 0n
       })
       expect(contractBalanceOf(loanState, lendingTokenId)).toEqual(lendingAmount)
-      const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
+
+      const marketplaceState = getContractState(testResult.contracts, marketplace.contractId)!
       expect(marketplaceState.fields.totalLoans).toEqual(totalLoans + 1n)
     })
 
     it('loans counter is incremented by one', async () => {
-      const totalLoans = 1n
-      const testResult = await LendingMarketplace.tests.createLoan({
-        initialFields: { ...fixture.selfState.fields, totalLoans: totalLoans },
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: lendingAmount }] }
-          }
-        ],
-        testArgs: {
-          lendingTokenId,
-          collateralTokenId,
-          lendingAmount,
-          collateralAmount,
-          interestRate,
-          duration
-        }
-      })
-      const marketplaceState = testResult.contracts[2] as ContractState<LendingMarketplaceTypes.Fields>
+      const totalLoans = 3n
+      const testResult = await createLoan(
+        marketplace,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender,
+        undefined,
+        { ...marketplace.selfState.fields, totalLoans: totalLoans }
+      )
+      const marketplaceState = getContractState(testResult.contracts, marketplace.contractId)!
       expect(marketplaceState.fields.totalLoans).toEqual(totalLoans + 1n)
     })
 
     it('fails if the interest calculation overflows', async () => {
-      const testResult = LendingMarketplace.tests.createLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: 1n << 255n }] }
-          }
-        ],
-        testArgs: {
-          lendingTokenId,
-          collateralTokenId,
-          lendingAmount: 1n << 255n,
-          collateralAmount,
-          interestRate,
-          duration: 365n
-        }
-      })
+      const veryLargeLendingAmount = 1n << 255n
+      const testResult = createLoan(
+        marketplace,
+        lendingTokenId,
+        veryLargeLendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender
+      )
       await expect(testResult).rejects.toThrow(Error)
     })
     it('fails if lending is disabled', async () => {
-      const lendingEnabled = false
-      const fixture = createLendingMarketplace(admin.address, undefined, undefined, lendingEnabled)
-      const testResult = LendingMarketplace.tests.createLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH * 2n, tokens: [{ id: lendingTokenId, amount: 1n << 255n }] }
-          }
-        ],
-        testArgs: {
-          lendingTokenId,
-          collateralTokenId,
-          lendingAmount: 1n << 255n,
-          collateralAmount,
-          interestRate,
-          duration: 365n
-        }
-      })
-      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.LendingDisabled))
+      const initialFields = { ...marketplace.selfState.fields, lendingEnabled: false }
+      const testResult = createLoan(
+        marketplace,
+        lendingTokenId,
+        lendingAmount,
+        collateralTokenId,
+        collateralAmount,
+        interestRate,
+        duration,
+        lender,
+        undefined,
+        initialFields
+      )
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LendingDisabled)
+      )
     })
   })
 
   describe('cancelLoan', () => {
-    it('loan is cancelled', async () => {
-      const loan = createLoan(
+    let loan: ContractFixture<LoanTypes.Fields>
+
+    beforeAll(async () => {
+      loan = createLoanFixture(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        fixture.contractId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -424,165 +492,44 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         undefined,
-        fixture
+        marketplace
       )
+    })
 
-      const testResult = await LendingMarketplace.tests.cancelLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
-      const loanCancelledEvent = testResult.events.find(
-        (e) => e.name === 'LoanCancelled'
-      ) as LendingMarketplaceTypes.LoanCancelledEvent
-      expect(loanCancelledEvent.fields.loanId).toEqual(loan.contractId)
-      const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
-      expect(contractDestroyedEvent?.fields['address']).toEqual(loan.address)
+    it('loan is cancelled', async () => {
+      const testResult = await cancelLoan(loan.contractId, lender, marketplace, loan)
+      expect(getEvent(testResult.events, 'LoanCancelled')?.fields.loanId).toEqual(loan.contractId)
+      expect(getEvent(testResult.events, 'ContractDestroyed')?.fields.address).toEqual(loan.address)
     })
 
     it('fails if caller is not the lender', async () => {
-      const loan = createLoan(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        fixture.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        lender.address,
-        undefined,
-        undefined,
-        undefined,
-        fixture
+      const testResult = cancelLoan(loan.contractId, admin, marketplace, loan)
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly)
       )
-
-      const testResult = LendingMarketplace.tests.cancelLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: admin.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
-      expectAssertionError(testResult, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly))
     })
 
     it('fails if loan does not exist', async () => {
-      const loan = createLoan(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        fixture.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        lender.address,
-        undefined,
-        undefined,
-        undefined,
-        fixture
+      const randomLoanAddress = randomContractAddress()
+      const randomLoanId = binToHex(contractIdFromAddress(randomLoanAddress))
+      const testResult = cancelLoan(randomLoanId, lender, marketplace, loan)
+      await expect(testResult).rejects.toThrowError(
+        `[API Error] - VM execution error: Contract ${randomLoanAddress} does not exist`
       )
-
-      const testResult = LendingMarketplace.tests.cancelLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: admin.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: randomContractId()
-        }
-      })
-      await expect(testResult).rejects.toThrow(Error)
     })
   })
 
   describe('borrow', () => {
-    it('fails if borrower is the lender', async () => {
-      const loan = createLoan(
+    let loan: ContractFixture<LoanTypes.Fields>
+
+    beforeAll(async () => {
+      loan = createLoanFixture(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        fixture.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        borrower.address,
-        undefined,
-        undefined,
-        undefined,
-        fixture
-      )
-
-      const testResult = LendingMarketplace.tests.borrow({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
-      await expectAssertionError(
-        testResult,
-        fixture.address,
-        Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
-      )
-    })
-
-    it('fails if the loan does not exist', async () => {
-      const loanId = randomContractId()
-      const testResult = LendingMarketplace.tests.borrow({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId
-        }
-      })
-      const error = `[API Error] - VM execution error: Contract ${addressFromContractId(loanId)} does not exist`
-      expect(testResult).rejects.toThrowError(error)
-    })
-
-    it('borrower receives tokens, collateral is locked, emits LoanAccepted event', async () => {
-      const loan = createLoan(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        fixture.contractId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
@@ -591,139 +538,121 @@ describe('LendingMarketplace', () => {
         undefined,
         undefined,
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
-        fixture
+        marketplace
       )
+    })
+
+    it('fails if borrower is the lender', async () => {
+      const caller = lender
+      const testResult = borrow(marketplace, loan, caller, collateralTokenId, collateralAmount, loan.contractId)
+      await expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderNotAllowed)
+      )
+    })
+
+    it('fails if the loan does not exist', async () => {
+      const loanId = randomContractId()
+      const testResult = borrow(marketplace, loan, borrower, collateralTokenId, collateralAmount, loanId)
+      const error = `[API Error] - VM execution error: Contract ${addressFromContractId(loanId)} does not exist`
+      expect(testResult).rejects.toThrowError(error)
+    })
+
+    it('borrower receives tokens, collateral is transferred to contract, emits LoanAccepted event', async () => {
       const blockTimeStamp = Math.floor(Date.now())
-      const testResult = await LendingMarketplace.tests.borrow({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: borrower.address,
-            asset: { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        },
+      const testResult = await borrow(
+        marketplace,
+        loan,
+        borrower,
+        collateralTokenId,
+        collateralAmount,
+        loan.contractId,
         blockTimeStamp
+      )
+
+      const loanAcceptedEvent = getEvent(testResult.events, 'LoanAccepted')
+      expect(loanAcceptedEvent.fields).toEqual({
+        loanId: loan.contractId,
+        by: borrower.address,
+        timestamp: BigInt(blockTimeStamp)
       })
-      const loanStartedEvent = testResult.events.find(
-        (e) => e.name === 'LoanAccepted'
-      ) as LendingMarketplaceTypes.LoanAcceptedEvent
-      expect(loanStartedEvent.fields.loanId).toEqual(loan.contractId)
-      expect(loanStartedEvent.fields.by).toEqual(borrower.address)
-      expect(loanStartedEvent.fields.timestamp).toEqual(BigInt(blockTimeStamp))
-      const contractBalance = testResult.txOutputs[0]
-      expect(contractBalance.tokens![0]).toEqual({
-        id: collateralTokenId,
-        amount: collateralAmount
-      })
-      const borrowerBalance = testResult.txOutputs[1]
-      expect(borrowerBalance.tokens![0]).toEqual({
-        id: lendingTokenId,
-        amount: lendingAmount
-      })
-      const loanState = testResult.contracts.find((c) => c.address === loan.address) as ContractState<LoanTypes.Fields>
+
+      const loanState = getContractState<LoanTypes.Fields>(testResult.contracts, loan.contractId)!
+      expect(loanState.asset.tokens).toEqual([{ id: collateralTokenId, amount: collateralAmount }])
       expect(loanState.fields.loanTimeStamp).toEqual(BigInt(Math.floor(blockTimeStamp / 1000)))
+      expect(loanState.fields.borrower).toEqual(borrower.address)
+
+      const borrowerTxOutput = getOutput(testResult.txOutputs, 'AssetOutput', borrower.address)
+      expect(borrowerTxOutput.tokens).toEqual([{ id: lendingTokenId, amount: lendingAmount }])
     })
   })
 
-  describe('paybackLoan', () => {
-    it('emits LoanPaid event', async () => {
-      const NOW = Math.floor(Date.now() / 1000)
-      const loan = createLoan(
+  describe('repayLoan', () => {
+    let loan: ContractFixture<LoanTypes.Fields>
+    const loanTimeStamp = BigInt(Math.floor(Date.now() / 1000))
+
+    beforeAll(async () => {
+      loan = createLoanFixture(
         lender.address,
         lendingTokenId,
         collateralTokenId,
-        fixture.contractId,
+        marketplace.contractId,
         lendingAmount,
         collateralAmount,
         interestRate,
         duration,
         borrower.address,
         undefined,
-        BigInt(NOW),
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
-        fixture
+        loanTimeStamp,
+        { alphAmount: MINIMAL_CONTRACT_DEPOSIT, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        marketplace
       )
-      const interest = (lendingAmount * interestRate * duration) / 10000n
-      const testResult = await LendingMarketplace.tests.paybackLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: borrower.address,
-            asset: { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount + interest }] }
+    })
+    it('emits LoanPaid event', async () => {
+      const interest = (lendingAmount * interestRate) / 10000n
+      const inputAssets = [
+        {
+          address: borrower.address,
+          asset: {
+            alphAmount: defaultGasFee + DUST_AMOUNT * 2n,
+            tokens: [{ id: lendingTokenId, amount: lendingAmount + interest }]
           }
-        ],
-        testArgs: {
-          loanId: loan.contractId
         }
-      })
-      const loanPaidEvent = testResult.events.find(
-        (e) => e.name === 'LoanPaid'
-      ) as LendingMarketplaceTypes.LoanPaidEvent
+      ]
+      const testResult = await repayLoan(marketplace, loan, inputAssets, loan.contractId)
+
+      const loanPaidEvent = getEvent<LendingMarketplaceTypes.LoanPaidEvent>(testResult.events, 'LoanPaid')
       expect(loanPaidEvent.fields.loanId).toEqual(loan.contractId)
-      const contractDestroyedEvent = testResult.events.find((e) => e.name === 'ContractDestroyed')
-      expect(contractDestroyedEvent?.fields['address']).toEqual(loan.address)
+
+      const contractDestroyedEvent = getEvent(testResult.events, 'ContractDestroyed')
+      expect(contractDestroyedEvent.fields.address).toEqual(loan.address)
+
+      // Borrower receives back the collateral
+      const borrowerOutputs = testResult.txOutputs.filter((o) => o.address === borrower.address)
+      expect(borrowerOutputs.find((o) => o.tokens && o.tokens[0].id === collateralTokenId)?.tokens).toEqual([
+        { id: collateralTokenId, amount: collateralAmount }
+      ])
+      // Lender receives the lent amount plus the interest
+      const lenderOutputs = testResult.txOutputs.filter((o) => o.address === lender.address)
+      expect(lenderOutputs.find((o) => o.tokens && o.tokens[0].id === lendingTokenId)?.tokens).toEqual([
+        { id: lendingTokenId, amount: lendingAmount + interest }
+      ])
     })
 
     it('fails if not borrower', async () => {
-      const loan = createLoan(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        fixture.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        borrower.address,
-        undefined,
-        undefined,
-        undefined,
-        fixture
-      )
-
-      const testResult = LendingMarketplace.tests.paybackLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: admin.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
+      const inputAssets = [{ address: testAddress, asset: { alphAmount: defaultGasFee } }]
+      const testResult = repayLoan(marketplace, loan, inputAssets, loan.contractId)
       await expectAssertionError(
         testResult,
-        fixture.address,
+        marketplace.address,
         Number(LendingMarketplace.consts.ErrorCodes.BorrowerAllowedOnly)
       )
     })
     it('fails if loan does not exist', async () => {
+      const inputAssets = [{ address: testAddress, asset: { alphAmount: defaultGasFee } }]
       const randomLoanId = randomContractId()
-      const testResult = LendingMarketplace.tests.paybackLoan({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
-        existingContracts: fixture.dependencies,
-        inputAssets: [
-          {
-            address: admin.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: randomLoanId
-        }
-      })
+      const testResult = repayLoan(marketplace, loan, inputAssets, randomLoanId)
       const errorMessage = `[API Error] - VM execution error: Contract ${addressFromContractId(randomLoanId)} does not exist`
       await expect(testResult).rejects.toThrowError(errorMessage)
     })
@@ -741,7 +670,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('emits LoanLiquidated event', async () => {
-      const loan = createLoan(
+      const loan = createLoanFixture(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -779,7 +708,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if caller is not lender', async () => {
-      const loan = createLoan(
+      const loan = createLoanFixture(
         lender.address,
         lendingTokenId,
         collateralTokenId,
@@ -840,8 +769,8 @@ describe('LendingMarketplace', () => {
     it('returns the current block timestamp in seconds', async () => {
       const timestamp = Date.now()
       const testResult = await LendingMarketplace.tests.blockTimeStampInSeconds({
-        initialFields: fixture.selfState.fields,
-        address: fixture.address,
+        initialFields: marketplace.selfState.fields,
+        address: marketplace.address,
         blockTimeStamp: timestamp
       })
       expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
@@ -862,7 +791,7 @@ describe('LendingMarketplace', () => {
       const inputAmount = ONE_ALPH
 
       const result = await LendingMarketplace.tests.withdraw({
-        initialFields: fixture.selfState.fields,
+        initialFields: marketplace.selfState.fields,
         initialAsset: { alphAmount: initialBalance },
         inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
         testArgs: {
@@ -886,8 +815,8 @@ describe('LendingMarketplace', () => {
       const to = withdrawer.address
       const amount = expandTo18Decimals(5)
       const result = await LendingMarketplace.tests.withdraw({
-        address: fixture.address,
-        initialFields: fixture.selfState.fields,
+        address: marketplace.address,
+        initialFields: marketplace.selfState.fields,
         initialAsset: { alphAmount: initialAlphBalance, tokens: [{ id: randomTokenId, amount: initialTokenBalance }] },
         inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
         testArgs: {
@@ -910,8 +839,8 @@ describe('LendingMarketplace', () => {
     it('fails if not admin', async () => {
       const to = withdrawer.address
       const result = LendingMarketplace.tests.withdraw({
-        address: fixture.address,
-        initialFields: fixture.selfState.fields,
+        address: marketplace.address,
+        initialFields: marketplace.selfState.fields,
         initialAsset: { alphAmount: ONE_ALPH * 2n },
         inputAssets: [{ address: withdrawer.address, asset: { alphAmount: ONE_ALPH } }],
         testArgs: {
@@ -920,7 +849,11 @@ describe('LendingMarketplace', () => {
           amount: ONE_ALPH
         }
       })
-      await expectAssertionError(result, fixture.address, Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly))
+      await expectAssertionError(
+        result,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+      )
     })
   })
 })

@@ -147,7 +147,7 @@ export namespace LendingMarketplaceTypes {
       params: CallContractParams<{ loanId: HexString }>;
       result: CallContractResult<null>;
     };
-    paybackLoan: {
+    repayLoan: {
       params: CallContractParams<{ loanId: HexString }>;
       result: CallContractResult<null>;
     };
@@ -163,8 +163,12 @@ export namespace LendingMarketplaceTypes {
       params: CallContractParams<{ value: bigint }>;
       result: CallContractResult<null>;
     };
-    updateLendingEnabled: {
-      params: CallContractParams<{ value: boolean }>;
+    pauseLending: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    enableLending: {
+      params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
     withdraw: {
@@ -266,7 +270,7 @@ export namespace LendingMarketplaceTypes {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
-    paybackLoan: {
+    repayLoan: {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
@@ -282,8 +286,12 @@ export namespace LendingMarketplaceTypes {
       params: SignExecuteContractMethodParams<{ value: bigint }>;
       result: SignExecuteScriptTxResult;
     };
-    updateLendingEnabled: {
-      params: SignExecuteContractMethodParams<{ value: boolean }>;
+    pauseLending: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    enableLending: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
     withdraw: {
@@ -520,7 +528,7 @@ class Factory extends ContractFactory<
     > => {
       return testMethod(this, "cancelLoan", params, getContractByCodeHash);
     },
-    paybackLoan: async (
+    repayLoan: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
@@ -529,7 +537,7 @@ class Factory extends ContractFactory<
     ): Promise<
       TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
     > => {
-      return testMethod(this, "paybackLoan", params, getContractByCodeHash);
+      return testMethod(this, "repayLoan", params, getContractByCodeHash);
     },
     liquidateLoan: async (
       params: TestContractParams<
@@ -564,21 +572,33 @@ class Factory extends ContractFactory<
     > => {
       return testMethod(this, "updateFeeRate", params, getContractByCodeHash);
     },
-    updateLendingEnabled: async (
-      params: TestContractParams<
-        LendingMarketplaceTypes.Fields,
-        { value: boolean },
-        { feeTokens?: Map<HexString, boolean> }
+    pauseLending: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
       >
     ): Promise<
       TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
     > => {
-      return testMethod(
-        this,
-        "updateLendingEnabled",
-        params,
-        getContractByCodeHash
-      );
+      return testMethod(this, "pauseLending", params, getContractByCodeHash);
+    },
+    enableLending: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "enableLending", params, getContractByCodeHash);
     },
     withdraw: async (
       params: TestContractParams<
@@ -642,8 +662,8 @@ class Factory extends ContractFactory<
 export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
-    "=72-2+e5=1-2+3=1+4=2-2+41=1362-2+11=58+7a7e0214696e73657274206174206d617020706174683a2000=20+1=1-1=58+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "51d893d66a9f7b15f210c759cebea06200493d4d1b11bd0ef0762daeebe0974d",
+    "=76-1=1+8=2-2+37=2-2+54=1400-2+11=58+7a7e0214696e73657274206174206d617020706174683a2000=20+1=1-1=58+7a7e021472656d6f7665206174206d617020706174683a2000=64",
+    "788c3cd69762b5096bb23d6258f1154af6882cb38d9ff0057fad173cf204bb09",
     []
   )
 );
@@ -900,13 +920,13 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    paybackLoan: async (
-      params: LendingMarketplaceTypes.CallMethodParams<"paybackLoan">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"paybackLoan">> => {
+    repayLoan: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"repayLoan">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"repayLoan">> => {
       return callMethod(
         LendingMarketplace,
         this,
-        "paybackLoan",
+        "repayLoan",
         params,
         getContractByCodeHash
       );
@@ -944,16 +964,25 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    updateLendingEnabled: async (
-      params: LendingMarketplaceTypes.CallMethodParams<"updateLendingEnabled">
-    ): Promise<
-      LendingMarketplaceTypes.CallMethodResult<"updateLendingEnabled">
-    > => {
+    pauseLending: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"pauseLending">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"pauseLending">> => {
       return callMethod(
         LendingMarketplace,
         this,
-        "updateLendingEnabled",
-        params,
+        "pauseLending",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    enableLending: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"enableLending">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"enableLending">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "enableLending",
+        params === undefined ? {} : params,
         getContractByCodeHash
       );
     },
@@ -1106,12 +1135,12 @@ export class LendingMarketplaceInstance extends ContractInstance {
     > => {
       return signExecuteMethod(LendingMarketplace, this, "cancelLoan", params);
     },
-    paybackLoan: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"paybackLoan">
+    repayLoan: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"repayLoan">
     ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"paybackLoan">
+      LendingMarketplaceTypes.SignExecuteMethodResult<"repayLoan">
     > => {
-      return signExecuteMethod(LendingMarketplace, this, "paybackLoan", params);
+      return signExecuteMethod(LendingMarketplace, this, "repayLoan", params);
     },
     liquidateLoan: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"liquidateLoan">
@@ -1144,15 +1173,27 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
-    updateLendingEnabled: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateLendingEnabled">
+    pauseLending: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"pauseLending">
     ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"updateLendingEnabled">
+      LendingMarketplaceTypes.SignExecuteMethodResult<"pauseLending">
     > => {
       return signExecuteMethod(
         LendingMarketplace,
         this,
-        "updateLendingEnabled",
+        "pauseLending",
+        params
+      );
+    },
+    enableLending: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"enableLending">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"enableLending">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "enableLending",
         params
       );
     },

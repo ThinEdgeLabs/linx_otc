@@ -112,7 +112,7 @@ Contract LendingMarketplace(
   }
 
   @using(preapprovedAssets = true)
-  pub fn paybackLoan(loanId: ByteVec) -> () {
+  pub fn repayLoan(loanId: ByteVec) -> () {
     let loan = Loan(loanId)
     let borrower = loan.getBorrower()
     let lendingTokenId = loan.getLendingTokenId()
@@ -120,7 +120,7 @@ Contract LendingMarketplace(
     let interest = loan.getInterest()
     let caller = callerAddress!()
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
-    loan.payback{caller -> lendingTokenId: loanAmount + interest}()
+    loan.repay{caller -> lendingTokenId: loanAmount + interest}()
     emit LoanPaid(loanId, caller, blockTimeStamp!())
   }
 
@@ -147,10 +147,15 @@ Contract LendingMarketplace(
   }
 
   @using(updateFields = true)
-  pub fn updateLendingEnabled(value: Bool) -> () {
+  pub fn pauseLending() -> () {
     checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    lendingEnabled = false
+  }
 
-    lendingEnabled = value
+  @using(updateFields = true)
+  pub fn enableLending() -> () {
+    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    lendingEnabled = true
   }
 
   @using(assetsInContract = true, preapprovedAssets = true)

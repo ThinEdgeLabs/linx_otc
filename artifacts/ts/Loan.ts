@@ -131,7 +131,7 @@ export namespace LoanTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
-    payback: {
+    repay: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
@@ -235,7 +235,7 @@ export namespace LoanTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    payback: {
+    repay: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -465,13 +465,13 @@ class Factory extends ContractFactory<LoanInstance, LoanTypes.Fields> {
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "cancel", params, getContractByCodeHash);
     },
-    payback: async (
+    repay: async (
       params: Omit<
         TestContractParamsWithoutMaps<LoanTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "payback", params, getContractByCodeHash);
+      return testMethod(this, "repay", params, getContractByCodeHash);
     },
     liquidate: async (
       params: Omit<
@@ -489,7 +489,7 @@ export const Loan = new Factory(
   Contract.fromJson(
     LoanContractJson,
     "",
-    "1b1ce7018cf08d167e4c807b77b9f0d34bb4f0c884b5f7a5659c8a7e2a470211",
+    "941541606759ea1b19ac884ff05703ebf2b01480d2b18830b5441f3593e80365",
     []
   )
 );
@@ -686,13 +686,13 @@ export class LoanInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    payback: async (
-      params?: LoanTypes.CallMethodParams<"payback">
-    ): Promise<LoanTypes.CallMethodResult<"payback">> => {
+    repay: async (
+      params?: LoanTypes.CallMethodParams<"repay">
+    ): Promise<LoanTypes.CallMethodResult<"repay">> => {
       return callMethod(
         Loan,
         this,
-        "payback",
+        "repay",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -809,10 +809,10 @@ export class LoanInstance extends ContractInstance {
     ): Promise<LoanTypes.SignExecuteMethodResult<"cancel">> => {
       return signExecuteMethod(Loan, this, "cancel", params);
     },
-    payback: async (
-      params: LoanTypes.SignExecuteMethodParams<"payback">
-    ): Promise<LoanTypes.SignExecuteMethodResult<"payback">> => {
-      return signExecuteMethod(Loan, this, "payback", params);
+    repay: async (
+      params: LoanTypes.SignExecuteMethodParams<"repay">
+    ): Promise<LoanTypes.SignExecuteMethodResult<"repay">> => {
+      return signExecuteMethod(Loan, this, "repay", params);
     },
     liquidate: async (
       params: LoanTypes.SignExecuteMethodParams<"liquidate">

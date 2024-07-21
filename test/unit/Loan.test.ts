@@ -196,7 +196,7 @@ describe('LendingOffer', () => {
   })
 
   describe('cancel', () => {
-    it('cancels the offer', async () => {
+    it('contract is destroyed', async () => {
       fixture = createLoan(
         lender.address,
         lendingTokenId,
@@ -335,7 +335,7 @@ describe('LendingOffer', () => {
         borrower.address
       )
       const interestPayment = (lendingAmount * interestRate) / 10000n
-      const paybackResult = await Loan.tests.payback({
+      const paybackResult = await Loan.tests.repay({
         initialFields: fixture.selfState.fields,
         initialAsset: { ...fixture.selfState.asset, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
         inputAssets: [
