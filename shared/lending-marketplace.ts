@@ -1,9 +1,9 @@
 import {
+  ALPH_TOKEN_ID,
   DUST_AMOUNT,
   DeployContractResult,
   ExecuteScriptResult,
   MINIMAL_CONTRACT_DEPOSIT,
-  ONE_ALPH,
   SignerProvider,
   ZERO_ADDRESS
 } from '@alephium/web3'
@@ -81,7 +81,7 @@ export class LendingMarketplaceHelper {
         duration,
         marketplace: this.contractId!
       },
-      attoAlphAmount: ONE_ALPH + DUST_AMOUNT,
+      attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT + DUST_AMOUNT,
       tokens: [
         {
           id: lendingTokenId,
@@ -106,6 +106,16 @@ export class LendingMarketplaceHelper {
     collateralTokenId: string,
     collateralAmount: bigint
   ): Promise<ExecuteScriptResult> {
+    if (collateralTokenId === ALPH_TOKEN_ID) {
+      return Borrow.execute(signer, {
+        initialFields: {
+          loanId,
+          lendingMarketplace: this.contractId!
+        },
+        attoAlphAmount: collateralAmount + DUST_AMOUNT
+      })
+    }
+
     return Borrow.execute(signer, {
       initialFields: {
         loanId,

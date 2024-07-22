@@ -1,4 +1,5 @@
 import {
+  ALPH_TOKEN_ID,
   ContractEvent,
   ContractState,
   DUST_AMOUNT,
@@ -47,6 +48,7 @@ export async function getToken(signer: SignerProvider, tokenId: string, amount: 
 
 export async function balanceOf(tokenId: string, address: string): Promise<bigint> {
   const balances = await web3.getCurrentNodeProvider().addresses.getAddressesAddressBalance(address)
+  if (tokenId === ALPH_TOKEN_ID) return BigInt(balances.balance)
   const balance = balances.tokenBalances?.find((t) => t.id === tokenId)
   return balance === undefined ? 0n : BigInt(balance.amount)
 }

@@ -7,7 +7,8 @@ import {
   ALPH_TOKEN_ID,
   DUST_AMOUNT,
   MINIMAL_CONTRACT_DEPOSIT,
-  InputAsset
+  InputAsset,
+  Asset
 } from '@alephium/web3'
 import {
   expectAssertionError,
@@ -170,7 +171,43 @@ async function repayLoan(
   })
 }
 
-// -------- Tests --------
+async function liquidateLoan(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  loan: ContractFixture<LoanTypes.Fields>,
+  caller: PrivateKeyWallet,
+  loanId: string,
+  blockTimeStamp?: number
+) {
+  return LendingMarketplace.tests.liquidateLoan({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: loan.states(),
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
+    testArgs: { loanId },
+    blockTimeStamp
+  })
+}
+
+async function withdraw(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  initialAsset: Asset,
+  caller: PrivateKeyWallet,
+  tokenId: string,
+  amount: bigint,
+  to: string,
+  inputAssets: InputAsset[] = [{ address: caller.address, asset: { alphAmount: defaultGasFee } }]
+) {
+  return LendingMarketplace.tests.withdraw({
+    initialFields: marketplace.selfState.fields,
+    initialAsset: initialAsset,
+    address: marketplace.address,
+    existingContracts: marketplace.dependencies,
+    inputAssets: inputAssets,
+    testArgs: { tokenId, amount, to }
+  })
+}
+
+// -------- Test cases --------
 
 describe('LendingMarketplace', () => {
   let lendingTokenId: string
@@ -659,85 +696,35 @@ describe('LendingMarketplace', () => {
   })
 
   describe('liquidateLoan', () => {
-    let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-    let admin: PrivateKeyWallet
-    let lender: PrivateKeyWallet
-    let borrower: PrivateKeyWallet
+    let loan: ContractFixture<LoanTypes.Fields>
 
     beforeAll(async () => {
-      ;[admin, lender, borrower] = await getSigners(3, ONE_ALPH * 1000n, 0)
-      marketplace = createLendingMarketplace(admin.address)
+      loan = createLoanFixture(
+        lender.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        borrower.address,
+        undefined,
+        undefined,
+        { alphAmount: MINIMAL_CONTRACT_DEPOSIT, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        marketplace
+      )
     })
 
     it('emits LoanLiquidated event', async () => {
-      const loan = createLoanFixture(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        marketplace.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        borrower.address,
-        undefined,
-        undefined,
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
-        marketplace
-      )
-
-      const testResult = await LendingMarketplace.tests.liquidateLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: lender.address,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
-
-      const event = testResult.events.find(
-        (e) => e.name == 'LoanLiquidated'
-      ) as LendingMarketplaceTypes.LoanLiquidatedEvent
-      expect(event.fields.loanId).toEqual(loan.contractId)
+      const blockTimeStamp = Date.now()
+      const testResult = await liquidateLoan(marketplace, loan, lender, loan.contractId, blockTimeStamp)
+      const event = getEvent<LendingMarketplaceTypes.LoanLiquidatedEvent>(testResult.events, 'LoanLiquidated')
+      expect(event.fields).toEqual({ loanId: loan.contractId, by: lender.address, timestamp: BigInt(blockTimeStamp) })
     })
 
     it('fails if caller is not lender', async () => {
-      const loan = createLoanFixture(
-        lender.address,
-        lendingTokenId,
-        collateralTokenId,
-        marketplace.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        borrower.address,
-        undefined,
-        undefined,
-        { alphAmount: ONE_ALPH, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
-        marketplace
-      )
-
-      const testResult = LendingMarketplace.tests.liquidateLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        existingContracts: loan.states(),
-        inputAssets: [
-          {
-            address: testAddress,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: loan.contractId
-        }
-      })
+      const testResult = liquidateLoan(marketplace, loan, borrower, loan.contractId)
       expectAssertionError(
         testResult,
         marketplace.address,
@@ -746,21 +733,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if loan does not exist', async () => {
-      const testResult = LendingMarketplace.tests.liquidateLoan({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        existingContracts: marketplace.dependencies,
-        inputAssets: [
-          {
-            address: testAddress,
-            asset: { alphAmount: ONE_ALPH }
-          }
-        ],
-        testArgs: {
-          loanId: randomContractId()
-        }
-      })
-
+      const testResult = liquidateLoan(marketplace, loan, lender, randomContractId())
       expect(testResult).rejects.toThrowError()
     })
   })
@@ -788,22 +761,14 @@ describe('LendingMarketplace', () => {
       const initialBalance = ONE_ALPH * 5n
       const amount = ONE_ALPH
       const to = admin.address
-      const inputAmount = ONE_ALPH
+      const testResult = await withdraw(marketplace, { alphAmount: initialBalance }, admin, ALPH_TOKEN_ID, amount, to)
 
-      const result = await LendingMarketplace.tests.withdraw({
-        initialFields: marketplace.selfState.fields,
-        initialAsset: { alphAmount: initialBalance },
-        inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
-        testArgs: {
-          to: to,
-          tokenId: ALPH_TOKEN_ID,
-          amount: amount
-        }
-      })
-      expect(contractBalanceOfAlph(result.contracts[0])).toEqual(initialBalance - amount)
-      const output = result.txOutputs[0]
+      const state = getContractState<LendingMarketplaceTypes.Fields>(testResult.contracts, marketplace.contractId)!
+      expect(contractBalanceOfAlph(state)).toEqual(initialBalance - amount)
+
+      const output = getOutput(testResult.txOutputs, 'AssetOutput', to)
       expect(output.address).toEqual(to)
-      expect(output.alphAmount).toEqual(inputAmount - defaultGasFee + amount)
+      expect(output.alphAmount).toEqual(amount)
       expect(output.tokens).toEqual([])
     })
 
@@ -811,44 +776,27 @@ describe('LendingMarketplace', () => {
       const randomTokenId = randomContractId()
       const initialTokenBalance = expandTo18Decimals(10)
       const initialAlphBalance = ONE_ALPH * 5n
-      const inputAmount = ONE_ALPH * 2n
       const to = withdrawer.address
-      const amount = expandTo18Decimals(5)
-      const result = await LendingMarketplace.tests.withdraw({
-        address: marketplace.address,
-        initialFields: marketplace.selfState.fields,
-        initialAsset: { alphAmount: initialAlphBalance, tokens: [{ id: randomTokenId, amount: initialTokenBalance }] },
-        inputAssets: [{ address: admin.address, asset: { alphAmount: inputAmount } }],
-        testArgs: {
-          to: to,
-          tokenId: randomTokenId,
-          amount: amount
-        }
-      })
-      expect(contractBalanceOf(result.contracts[0], randomTokenId)).toEqual(initialTokenBalance - amount)
-      const tokenOutput = result.txOutputs[0]
-      expect(tokenOutput.address).toEqual(to)
+      const withdrawnAmount = expandTo18Decimals(5)
+      const initialAsset = {
+        alphAmount: initialAlphBalance,
+        tokens: [{ id: randomTokenId, amount: initialTokenBalance }]
+      }
+      const inputAssets = [{ address: admin.address, asset: { alphAmount: defaultGasFee + DUST_AMOUNT } }]
+      const result = await withdraw(marketplace, initialAsset, admin, randomTokenId, withdrawnAmount, to, inputAssets)
+
+      const state = getContractState<LendingMarketplaceTypes.Fields>(result.contracts, marketplace.contractId)!
+      expect(contractBalanceOf(state, randomTokenId)).toEqual(initialTokenBalance - withdrawnAmount)
+      expect(contractBalanceOfAlph(state)).toEqual(initialAlphBalance)
+
+      const tokenOutput = getOutput(result.txOutputs, 'AssetOutput', to)
       expect(tokenOutput.alphAmount).toEqual(DUST_AMOUNT)
-      expect(tokenOutput.tokens).toEqual([{ id: randomTokenId, amount: amount }])
-      const alphOutput = result.txOutputs[1]
-      expect(alphOutput.address).toEqual(admin.address)
-      expect(alphOutput.alphAmount).toEqual(inputAmount - defaultGasFee - DUST_AMOUNT)
-      expect(alphOutput.tokens).toEqual([])
+      expect(tokenOutput.tokens).toEqual([{ id: randomTokenId, amount: withdrawnAmount }])
     })
 
     it('fails if not admin', async () => {
-      const to = withdrawer.address
-      const result = LendingMarketplace.tests.withdraw({
-        address: marketplace.address,
-        initialFields: marketplace.selfState.fields,
-        initialAsset: { alphAmount: ONE_ALPH * 2n },
-        inputAssets: [{ address: withdrawer.address, asset: { alphAmount: ONE_ALPH } }],
-        testArgs: {
-          to: to,
-          tokenId: ALPH_TOKEN_ID,
-          amount: ONE_ALPH
-        }
-      })
+      const initialAsset = { alphAmount: ONE_ALPH * 5n }
+      const result = withdraw(marketplace, initialAsset, notAdmin, ALPH_TOKEN_ID, ONE_ALPH, withdrawer.address)
       await expectAssertionError(
         result,
         marketplace.address,

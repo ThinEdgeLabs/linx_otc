@@ -1,6 +1,7 @@
 import { Asset, ContractState, Fields, ZERO_ADDRESS, addressFromContractId } from '@alephium/web3'
 import { LendingMarketplace, LendingMarketplaceTypes, Loan } from '../../artifacts/ts'
 import { randomContractAddress, testAddress } from '@alephium/web3-test'
+import { expandTo18Decimals } from '../../shared/utils'
 
 export class ContractFixture<F extends Fields> {
   selfState: ContractState<F>
@@ -43,8 +44,8 @@ export function createLoan(
       lendingTokenId: lendingTokenId ?? '',
       collateralTokenId: collateralTokenId ?? '',
       marketplaceContractId: marketplaceContractId ?? ZERO_ADDRESS,
-      lendingAmount: lendingAmount ?? 1000n,
-      collateralAmount: collateralAmount ?? 2000n,
+      lendingAmount: lendingAmount ?? expandTo18Decimals(1000n),
+      collateralAmount: collateralAmount ?? expandTo18Decimals(2000n),
       interestRate: interestRate ?? 2000n,
       duration: duration ?? 30n,
       borrower: borrower ?? ZERO_ADDRESS,

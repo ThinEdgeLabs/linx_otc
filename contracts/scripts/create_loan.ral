@@ -7,8 +7,7 @@ TxScript CreateLoan(
   duration: U256,
   marketplace: LendingMarketplace
 ) {
-  let minimalAlphInContract = 1 alph
-  let _ = marketplace.createLoan{callerAddress!() -> ALPH: minimalAlphInContract, lendingTokenId: lendingAmount}(
+  let _ = marketplace.createLoan{callerAddress!() -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
     lendingTokenId,
     collateralTokenId,
     lendingAmount,

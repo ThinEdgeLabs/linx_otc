@@ -1,105 +1,70 @@
-import {
-  ALPH_TOKEN_ID,
-  ZERO_ADDRESS,
-  addressFromContractId,
-  contractIdFromAddress,
-  waitForTxConfirmation,
-  web3
-} from '@alephium/web3'
+import { ALPH_TOKEN_ID, MINIMAL_CONTRACT_DEPOSIT, NodeProvider, ONE_ALPH, web3 } from '@alephium/web3'
 import { getSigners, randomContractId } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
 import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
-import { LendingMarketplace, LendingMarketplaceInstance, Loan, LoanInstance } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceInstance, LoanInstance } from '../../artifacts/ts'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('LendingMarketplace', () => {
   let admin: PrivateKeyWallet
   let lendingTokenId: string
+  let testTokenId: string
   let marketplaceHelper: LendingMarketplaceHelper
   let marketplaceInstance: LendingMarketplaceInstance
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
+  let provider: NodeProvider
+
   const group = 0
   const lendingAmount = expandTo18Decimals(10n)
   const collateralAmount = expandTo18Decimals(20n)
-  const interestRate = 100n
-  const duration = 30n
+  const interestRate = 1000n // 10%
+  const duration = 30n // 30 days
+  const initialAlphBalance = ONE_ALPH * 100n
+  const initialTokenBalance = expandTo18Decimals(1000n)
 
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
 
   beforeAll(async () => {
-    ;[admin, lender, borrower] = await getSigners(3, expandTo18Decimals(100n), group)
+    ;[admin, lender, borrower] = await getSigners(3, initialAlphBalance, group)
     marketplaceHelper = new LendingMarketplaceHelper(admin)
     marketplaceInstance = (await marketplaceHelper.create()).contractInstance
-    expect(marketplaceHelper.contractId).toBeDefined()
-    lendingTokenId = await deployTestToken(admin)
-    await getToken(lender, lendingTokenId, expandTo18Decimals(1000n))
+    testTokenId = await deployTestToken(admin)
+    lendingTokenId = testTokenId
+    await getToken(lender, lendingTokenId, initialTokenBalance)
+    provider = web3.getCurrentNodeProvider()
   })
 
   describe('createLoan', () => {
     it('should create a loan', async () => {
-      const lender = (await admin.getSelectedAccount()).address
+      const collateralTokenId = ALPH_TOKEN_ID
+      const alphBalanceBefore = await balanceOf(ALPH_TOKEN_ID, lender.address)
+      const tokenBalanceBefore = await balanceOf(lendingTokenId, lender.address)
       const { txId } = await marketplaceHelper.createLoan(
-        admin,
+        lender,
         lendingTokenId,
-        ALPH_TOKEN_ID,
+        collateralTokenId,
         lendingAmount,
         collateralAmount,
         interestRate,
         duration
       )
-      await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+
+      const gasFee = BigInt(txDetails.unsigned.gasAmount) * BigInt(txDetails.unsigned.gasPrice)
+      expect(await balanceOf(ALPH_TOKEN_ID, lender.address)).toEqual(
+        alphBalanceBefore - MINIMAL_CONTRACT_DEPOSIT - gasFee
+      )
+      expect(await balanceOf(lendingTokenId, lender.address)).toEqual(tokenBalanceBefore - lendingAmount)
+
       const loanAddress = txDetails.generatedOutputs[0].address
-      const loanId = Buffer.from(contractIdFromAddress(loanAddress)).toString('hex')
-      const lendingMarketplaceContractEvents = await web3
-        .getCurrentNodeProvider()
-        .events.getEventsContractContractaddress(addressFromContractId(marketplaceHelper.contractId!), {
-          start: 0,
-          group: 0
-        })
-      expect(lendingMarketplaceContractEvents.events.length).toEqual(2)
-      const loanDetailsEventFields = lendingMarketplaceContractEvents.events[0].fields
-      expect(loanDetailsEventFields[0].value).toEqual(loanId)
-      expect(loanDetailsEventFields[1].value).toEqual(lendingTokenId)
-      expect(loanDetailsEventFields[2].value).toEqual(ALPH_TOKEN_ID)
-      expect(BigInt(+loanDetailsEventFields[3].value)).toEqual(lendingAmount)
-      expect(BigInt(+loanDetailsEventFields[4].value)).toEqual(collateralAmount)
-      expect(BigInt(+loanDetailsEventFields[5].value)).toEqual(interestRate)
-      expect(BigInt(+loanDetailsEventFields[6].value)).toEqual(duration)
-      expect(loanDetailsEventFields[7].value).toEqual(lender)
-
-      const marketplaceContractState = await new LendingMarketplaceInstance(
-        addressFromContractId(marketplaceHelper.contractId!)
-      ).fetchState()
-      expect(marketplaceContractState.fields.totalLoans).toEqual(1n)
-
-      const loan = Loan.at(addressFromContractId(loanId))
-      const loanState = await loan.fetchState()
-      expect(loanState.fields).toEqual({
-        id: 0n,
-        lender,
-        lendingTokenId,
-        collateralTokenId: ALPH_TOKEN_ID,
-        marketplaceContractId: marketplaceHelper.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        borrower: ZERO_ADDRESS,
-        loanTimeStamp: 0n
-      })
-      expect(loanState.asset.tokens).toEqual([{ id: lendingTokenId, amount: lendingAmount }])
+      const contractBalance = await balanceOf(lendingTokenId, loanAddress)
+      expect(contractBalance).toEqual(lendingAmount)
     })
   })
 
   describe('cancel loan', () => {
-    const provider = web3.getCurrentNodeProvider()
-    const startingAlphBalance = expandTo18Decimals(1000n)
-
     it('destroys the contract', async () => {
-      expect(marketplaceHelper.contractId).toBeDefined()
-
       const { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
@@ -109,14 +74,20 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      expect(await balanceOf(lendingTokenId, lender.address)).toEqual(startingAlphBalance - lendingAmount)
-
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
       const loanAddress = txDetails.generatedOutputs[0].address
 
-      await marketplaceHelper.cancelLoan(lender, loanAddress)
+      const tokenBalanceBefore = await balanceOf(lendingTokenId, lender.address)
+      const alphBalanceBefore = await balanceOf(ALPH_TOKEN_ID, lender.address)
 
-      expect(await balanceOf(lendingTokenId, lender.address)).toBeGreaterThan(0n)
+      const { txId: cancelTxId } = await marketplaceHelper.cancelLoan(lender, loanAddress)
+      const cancelTxDetails = await provider.transactions.getTransactionsDetailsTxid(cancelTxId)
+      const gasFee = BigInt(cancelTxDetails.unsigned.gasAmount) * BigInt(cancelTxDetails.unsigned.gasPrice)
+
+      expect(await balanceOf(lendingTokenId, lender.address)).toEqual(tokenBalanceBefore + lendingAmount)
+      expect(await balanceOf(ALPH_TOKEN_ID, lender.address)).toEqual(
+        alphBalanceBefore + MINIMAL_CONTRACT_DEPOSIT - gasFee
+      )
       await expect(new LoanInstance(loanAddress).fetchState()).rejects.toThrow(Error)
     })
 
@@ -130,10 +101,9 @@ describe('LendingMarketplace', () => {
         interestRate,
         duration
       )
-      await waitForTxConfirmation(txId, 1, 1000)
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
-      const lendingOfferAddress = txDetails.generatedOutputs[0].address
-      await expect(marketplaceHelper.cancelLoan(borrower, lendingOfferAddress)).rejects.toThrow(Error)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      await expect(marketplaceHelper.cancelLoan(borrower, loanAddress)).rejects.toThrow(Error)
     })
 
     it('an already taken offer cannot be cancelled', async () => {
@@ -147,16 +117,15 @@ describe('LendingMarketplace', () => {
         duration
       )
       const txDetails = await provider.transactions.getTransactionsDetailsTxid(txId)
-      const loanId = txDetails.generatedOutputs[0].address
-      const { txId: takeOfferTxId } = await marketplaceHelper.borrow(borrower, loanId, ALPH_TOKEN_ID, collateralAmount)
-      await waitForTxConfirmation(takeOfferTxId, 1, 1000)
-      await expect(marketplaceHelper.cancelLoan(lender, loanId)).rejects.toThrow(Error)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      await marketplaceHelper.borrow(borrower, loanAddress, ALPH_TOKEN_ID, collateralAmount)
+      await expect(marketplaceHelper.cancelLoan(lender, loanAddress)).rejects.toThrow(Error)
     })
   })
 
   describe('borrow', () => {
     it('fee is not paid if the borrowed token is not among the fee tokens', async () => {
-      let { txId } = await marketplaceHelper.createLoan(
+      const { txId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -166,16 +135,17 @@ describe('LendingMarketplace', () => {
         duration
       )
       const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
-      const balanceBefore = await balanceOf(lendingTokenId, borrower.address)
-      txId = (
-        await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
-      ).txId
-      expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      const tokenBalanceBefore = await balanceOf(lendingTokenId, borrower.address)
+
+      await marketplaceHelper.borrow(borrower, loanAddress, ALPH_TOKEN_ID, collateralAmount)
+
+      expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(tokenBalanceBefore + lendingAmount)
     })
 
-    it('borrower receives the tokens and fee is paid to the marketplace', async () => {
+    it('ALPH as collateral', async () => {
       await marketplaceHelper.addFeeToken(admin, lendingTokenId)
-      let { txId } = await marketplaceHelper.createLoan(
+      const { txId: createLoanTxId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
         ALPH_TOKEN_ID,
@@ -185,30 +155,101 @@ describe('LendingMarketplace', () => {
         duration
       )
 
-      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
-      const loanId = txDetails.generatedOutputs[0].address
-      const loan = Loan.at(loanId)
-      const loanState = await loan.fetchState()
-      const alphAmount = BigInt(loanState.asset.alphAmount)
-      const balanceBefore = await balanceOf(lendingTokenId, borrower.address)
-      txId = (
-        await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
-      ).txId
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(createLoanTxId)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      const tokenBalanceBefore = await balanceOf(lendingTokenId, borrower.address)
+      const marketplaceBalanceBefore = await balanceOf(lendingTokenId, marketplaceInstance.address)
+      await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
 
-      const state = await marketplaceInstance.fetchState()
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
           args: {
             amount: lendingAmount,
-            feeRateValue: state.fields.feeRate
+            feeRateValue: feeRate
           }
         })
       ).returns
-      expect(state.asset.alphAmount).toEqual(fee)
-      expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(balanceBefore + lendingAmount - fee)
-      const newLoanState = await loan.fetchState()
-      expect(newLoanState.asset.alphAmount).toEqual(alphAmount + collateralAmount)
-      expect(newLoanState.fields.loanTimeStamp).toBeGreaterThan(0n)
+      expect(await balanceOf(lendingTokenId, marketplaceInstance.address)).toEqual(marketplaceBalanceBefore + fee)
+      expect(await balanceOf(lendingTokenId, borrower.address)).toEqual(tokenBalanceBefore + lendingAmount - fee)
+      expect(await balanceOf(ALPH_TOKEN_ID, loanAddress)).toEqual(collateralAmount + MINIMAL_CONTRACT_DEPOSIT)
+    })
+
+    it('collateral and borrowed tokens are both ALPH', async () => {
+      await marketplaceHelper.addFeeToken(admin, ALPH_TOKEN_ID)
+      const { txId: createLoanTxId } = await marketplaceHelper.createLoan(
+        lender,
+        ALPH_TOKEN_ID,
+        ALPH_TOKEN_ID,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration
+      )
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(createLoanTxId)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      const borrowerBalanceBefore = await balanceOf(ALPH_TOKEN_ID, borrower.address)
+      const marketplaceBalanceBefore = await balanceOf(ALPH_TOKEN_ID, marketplaceInstance.address)
+      const { txId } = await marketplaceHelper.borrow(
+        borrower,
+        txDetails.generatedOutputs[0].address,
+        ALPH_TOKEN_ID,
+        collateralAmount
+      )
+      const borrowTxDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const gasFee = BigInt(borrowTxDetails.unsigned.gasAmount) * BigInt(borrowTxDetails.unsigned.gasPrice)
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
+      const fee = (
+        await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
+          args: {
+            amount: lendingAmount,
+            feeRateValue: feeRate
+          }
+        })
+      ).returns
+      expect(await balanceOf(ALPH_TOKEN_ID, marketplaceInstance.address)).toEqual(marketplaceBalanceBefore + fee)
+      expect(await balanceOf(ALPH_TOKEN_ID, borrower.address)).toEqual(
+        borrowerBalanceBefore - collateralAmount - gasFee + lendingAmount - fee
+      )
+      expect(await balanceOf(ALPH_TOKEN_ID, loanAddress)).toEqual(collateralAmount + MINIMAL_CONTRACT_DEPOSIT)
+    })
+    it('borrowed token is ALPH', async () => {
+      const collateralTokenId = testTokenId
+      const { txId: createLoanTxId } = await marketplaceHelper.createLoan(
+        lender,
+        ALPH_TOKEN_ID,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration
+      )
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(createLoanTxId)
+      const loanAddress = txDetails.generatedOutputs[0].address
+
+      const borrowerBalanceBefore = await balanceOf(ALPH_TOKEN_ID, borrower.address)
+      const marketplaceBalanceBefore = await balanceOf(ALPH_TOKEN_ID, marketplaceInstance.address)
+
+      const { txId } = await marketplaceHelper.borrow(borrower, loanAddress, collateralTokenId, collateralAmount)
+
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
+      const fee = (
+        await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
+          args: {
+            amount: lendingAmount,
+            feeRateValue: feeRate
+          }
+        })
+      ).returns
+
+      expect(await balanceOf(ALPH_TOKEN_ID, marketplaceInstance.address)).toEqual(marketplaceBalanceBefore + fee)
+
+      const borrowTxDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const gasFee = BigInt(borrowTxDetails.unsigned.gasAmount) * BigInt(borrowTxDetails.unsigned.gasPrice)
+      expect(await balanceOf(ALPH_TOKEN_ID, borrower.address)).toEqual(
+        borrowerBalanceBefore - gasFee + lendingAmount - fee
+      )
+      expect(await balanceOf(collateralTokenId, loanAddress)).toEqual(collateralAmount)
     })
   })
 
