@@ -1,0 +1,25 @@
+{
+  "version": "v3.3.0",
+  "name": "IUpgradableResetUpgradeTX",
+  "bytecodeTemplate": "010103000000040c0c{0}d47a8fa0fd",
+  "fieldsSig": {
+    "names": [
+      "upgradable"
+    ],
+    "types": [
+      "IUpgradable"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

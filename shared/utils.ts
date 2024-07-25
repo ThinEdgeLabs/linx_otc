@@ -10,6 +10,7 @@ import {
   SignerProvider,
   binToHex,
   contractIdFromAddress,
+  groupOfAddress,
   number256ToBigint,
   web3
 } from '@alephium/web3'
@@ -74,6 +75,16 @@ export function randomContractAddress(): string {
   const prefix = Buffer.from([0x03])
   const bytes = Buffer.concat([prefix, randomBytes(32)])
   return base58.encode(bytes)
+}
+
+export function randomP2PKHAddress(groupIndex = 0): string {
+  const prefix = Buffer.from([0x00])
+  const bytes = Buffer.concat([prefix, randomBytes(32)])
+  const address = base58.encode(bytes)
+  if (groupOfAddress(address) === groupIndex) {
+    return address
+  }
+  return randomP2PKHAddress(groupIndex)
 }
 
 export function getEvent<T extends ContractEvent<NamedVals>>(events: ContractEvent<NamedVals>[], eventName: string): T {

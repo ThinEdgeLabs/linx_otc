@@ -17,6 +17,13 @@ import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
 import { default as CancelLoanScriptJson } from "../scripts/CancelLoan.ral.json";
 import { default as CreateLoanScriptJson } from "../scripts/CreateLoan.ral.json";
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
+import { default as IUpgradableChangeOwnerApplyTXScriptJson } from "../lib/IUpgradableChangeOwnerApplyTX.ral.json";
+import { default as IUpgradableChangeOwnerTXScriptJson } from "../lib/IUpgradableChangeOwnerTX.ral.json";
+import { default as IUpgradableMigrateApplyTXScriptJson } from "../lib/IUpgradableMigrateApplyTX.ral.json";
+import { default as IUpgradableMigrateTXScriptJson } from "../lib/IUpgradableMigrateTX.ral.json";
+import { default as IUpgradableMigrateWithFieldsApplyTXScriptJson } from "../lib/IUpgradableMigrateWithFieldsApplyTX.ral.json";
+import { default as IUpgradableMigrateWithFieldsTXScriptJson } from "../lib/IUpgradableMigrateWithFieldsTX.ral.json";
+import { default as IUpgradableResetUpgradeTXScriptJson } from "../lib/IUpgradableResetUpgradeTX.ral.json";
 import { default as LiquidateLoanScriptJson } from "../scripts/LiquidateLoan.ral.json";
 import { default as RemoveFeeTokenScriptJson } from "../scripts/RemoveFeeToken.ral.json";
 import { default as RepayLoanScriptJson } from "../scripts/RepayLoan.ral.json";
@@ -51,6 +58,60 @@ export const GetToken = new ExecutableScript<{
   sender: Address;
   amount: bigint;
 }>(Script.fromJson(GetTokenScriptJson, "", []), getContractByCodeHash);
+
+export const IUpgradableChangeOwnerApplyTX = new ExecutableScript<{
+  upgradable: HexString;
+}>(
+  Script.fromJson(IUpgradableChangeOwnerApplyTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableChangeOwnerTX = new ExecutableScript<{
+  upgradable: HexString;
+  changeOwner: Address;
+}>(
+  Script.fromJson(IUpgradableChangeOwnerTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableMigrateApplyTX = new ExecutableScript<{
+  upgradable: HexString;
+}>(
+  Script.fromJson(IUpgradableMigrateApplyTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableMigrateTX = new ExecutableScript<{
+  upgradable: HexString;
+  changeCode: HexString;
+}>(
+  Script.fromJson(IUpgradableMigrateTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableMigrateWithFieldsApplyTX = new ExecutableScript<{
+  upgradable: HexString;
+}>(
+  Script.fromJson(IUpgradableMigrateWithFieldsApplyTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableMigrateWithFieldsTX = new ExecutableScript<{
+  upgradable: HexString;
+  changeCode: HexString;
+  changeImmFieldsEncoded: HexString;
+  changeMutFieldsEncoded: HexString;
+}>(
+  Script.fromJson(IUpgradableMigrateWithFieldsTXScriptJson, "", []),
+  getContractByCodeHash
+);
+
+export const IUpgradableResetUpgradeTX = new ExecutableScript<{
+  upgradable: HexString;
+}>(
+  Script.fromJson(IUpgradableResetUpgradeTXScriptJson, "", []),
+  getContractByCodeHash
+);
 
 export const LiquidateLoan = new ExecutableScript<{
   marketplace: HexString;

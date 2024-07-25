@@ -1,0 +1,25 @@
+{
+  "version": "v3.3.0",
+  "name": "IUpgradableChangeOwnerApplyTX",
+  "bytecodeTemplate": "010103000000040c0c{0}d4eb8e3fa9",
+  "fieldsSig": {
+    "names": [
+      "upgradable"
+    ],
+    "types": [
+      "IUpgradable"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

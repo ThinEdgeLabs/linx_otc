@@ -5,4 +5,5 @@
 export * from "./LendingMarketplace";
 export * from "./Loan";
 export * from "./TestToken";
+export * from "./TestUpgradable";
 export * from "./scripts";

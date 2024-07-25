@@ -1,0 +1,28 @@
+{
+  "version": "v3.3.0",
+  "name": "IUpgradableMigrateTX",
+  "bytecodeTemplate": "01010300000005{1}0d0c{0}d4c7e7c76d",
+  "fieldsSig": {
+    "names": [
+      "upgradable",
+      "changeCode"
+    ],
+    "types": [
+      "IUpgradable",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}
