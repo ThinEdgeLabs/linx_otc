@@ -1,7 +1,7 @@
 {
   "version": "v3.4.0",
   "name": "AddFeeToken",
-  "bytecodeTemplate": "01010300000008b4d1a2{1}0d0c{0}0122",
+  "bytecodeTemplate": "01010300000008b4d1a2{1}0d0c{0}0123",
   "fieldsSig": {
     "names": [
       "marketplace",

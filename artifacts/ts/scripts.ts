@@ -15,6 +15,7 @@ import { getContractByCodeHash } from "./contracts";
 import { default as AddFeeTokenScriptJson } from "../scripts/AddFeeToken.ral.json";
 import { default as BorrowScriptJson } from "../scripts/Borrow.ral.json";
 import { default as CancelLoanScriptJson } from "../scripts/CancelLoan.ral.json";
+import { default as ClaimCollateralScriptJson } from "../scripts/ClaimCollateral.ral.json";
 import { default as CreateLoanScriptJson } from "../scripts/CreateLoan.ral.json";
 import { default as GetTokenScriptJson } from "../test/GetToken.ral.json";
 import { default as IUpgradableChangeOwnerApplyTXScriptJson } from "../lib/IUpgradableChangeOwnerApplyTX.ral.json";
@@ -42,6 +43,11 @@ export const CancelLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
 }>(Script.fromJson(CancelLoanScriptJson, "", []), getContractByCodeHash);
+
+export const ClaimCollateral = new ExecutableScript<{
+  marketplace: HexString;
+  loanId: HexString;
+}>(Script.fromJson(ClaimCollateralScriptJson, "", []), getContractByCodeHash);
 
 export const CreateLoan = new ExecutableScript<{
   lendingTokenId: HexString;

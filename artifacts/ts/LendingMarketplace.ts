@@ -118,6 +118,11 @@ export namespace LendingMarketplaceTypes {
     by: Address;
     timestamp: bigint;
   }>;
+  export type CollateralClaimedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
 
   export interface CallMethodTable {
     changeOwner: {
@@ -234,6 +239,10 @@ export namespace LendingMarketplaceTypes {
       result: CallContractResult<null>;
     };
     repayLoan: {
+      params: CallContractParams<{ loanId: HexString }>;
+      result: CallContractResult<null>;
+    };
+    claimCollateral: {
       params: CallContractParams<{ loanId: HexString }>;
       result: CallContractResult<null>;
     };
@@ -416,6 +425,10 @@ export namespace LendingMarketplaceTypes {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
+    claimCollateral: {
+      params: SignExecuteContractMethodParams<{ loanId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
     liquidateLoan: {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
       result: SignExecuteScriptTxResult;
@@ -495,6 +508,7 @@ class Factory extends ContractFactory<
     LoanPaid: 9,
     LoanAccepted: 10,
     LoanLiquidated: 11,
+    CollateralClaimed: 12,
   };
   consts = {
     Day: BigInt("86400"),
@@ -516,6 +530,8 @@ class Factory extends ContractFactory<
       InvalidCollateralAmount: BigInt("5"),
       InvalidInterestRate: BigInt("6"),
       InvalidDuration: BigInt("7"),
+      LoanNotActive: BigInt("8"),
+      LoanNotOverdue: BigInt("9"),
     },
   };
 
@@ -960,6 +976,17 @@ class Factory extends ContractFactory<
     > => {
       return testMethod(this, "repayLoan", params, getContractByCodeHash);
     },
+    claimCollateral: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { loanId: HexString },
+        { feeTokens?: Map<HexString, boolean> }
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "claimCollateral", params, getContractByCodeHash);
+    },
     liquidateLoan: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
@@ -1072,8 +1099,8 @@ class Factory extends ContractFactory<
 export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
-    "=144-1+8d=2-1+c=1-1=2-2+e6=2217-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "697181071bda7e64241aea164183e444ad2a5f008bf7ec5cee0faea29356756e",
+    "=148-4=1-1+0=2-2+1c4539=2383-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
+    "5c99e31b193909398126299251646eae918ef0a5cd76e4db0519c9e6cbcd505f",
     []
   )
 );
@@ -1256,6 +1283,19 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeCollateralClaimedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.CollateralClaimedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "CollateralClaimed",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | LendingMarketplaceTypes.ChangeOwnerInitiatedEvent
@@ -1270,6 +1310,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
       | LendingMarketplaceTypes.LoanPaidEvent
       | LendingMarketplaceTypes.LoanAcceptedEvent
       | LendingMarketplaceTypes.LoanLiquidatedEvent
+      | LendingMarketplaceTypes.CollateralClaimedEvent
     >,
     fromCount?: number
   ): EventSubscription {
@@ -1562,6 +1603,17 @@ export class LendingMarketplaceInstance extends ContractInstance {
         LendingMarketplace,
         this,
         "repayLoan",
+        params,
+        getContractByCodeHash
+      );
+    },
+    claimCollateral: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"claimCollateral">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"claimCollateral">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "claimCollateral",
         params,
         getContractByCodeHash
       );
@@ -1899,6 +1951,18 @@ export class LendingMarketplaceInstance extends ContractInstance {
       LendingMarketplaceTypes.SignExecuteMethodResult<"repayLoan">
     > => {
       return signExecuteMethod(LendingMarketplace, this, "repayLoan", params);
+    },
+    claimCollateral: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"claimCollateral">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"claimCollateral">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "claimCollateral",
+        params
+      );
     },
     liquidateLoan: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"liquidateLoan">
