@@ -42,7 +42,7 @@ export namespace TestUpgradableTypes {
     mutValue: bigint;
     owner: Address;
     newOwner: Address;
-    upgradeCommenced: bigint;
+    upgradeInitiated: bigint;
     newCode: HexString;
     newImmFieldsEncoded: HexString;
     newMutFieldsEncoded: HexString;
@@ -50,7 +50,7 @@ export namespace TestUpgradableTypes {
 
   export type State = ContractState<Fields>;
 
-  export type ChangeOwnerCommenceEvent = ContractEvent<{
+  export type ChangeOwnerInitiatedEvent = ContractEvent<{
     owner: Address;
     changeOwner: Address;
   }>;
@@ -58,7 +58,7 @@ export namespace TestUpgradableTypes {
     owner: Address;
     changeOwner: Address;
   }>;
-  export type MigrateCommenceEvent = ContractEvent<{
+  export type MigrateInitiatedEvent = ContractEvent<{
     owner: Address;
     changeCode: HexString;
   }>;
@@ -66,7 +66,7 @@ export namespace TestUpgradableTypes {
     owner: Address;
     changeCode: HexString;
   }>;
-  export type MigrateWithFieldsCommenceEvent = ContractEvent<{
+  export type MigrateWithFieldsInitiatedEvent = ContractEvent<{
     owner: Address;
     changeCode: HexString;
     changeImmFieldsEncoded: HexString;
@@ -124,7 +124,7 @@ export namespace TestUpgradableTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Address>;
     };
-    getUpgradeCommenced: {
+    getUpgradeInitiated: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
@@ -219,7 +219,7 @@ export namespace TestUpgradableTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    getUpgradeCommenced: {
+    getUpgradeInitiated: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -275,11 +275,11 @@ class Factory extends ContractFactory<
   }
 
   eventIndex = {
-    ChangeOwnerCommence: 0,
+    ChangeOwnerInitiated: 0,
     ChangeOwnerApply: 1,
-    MigrateCommence: 2,
+    MigrateInitiated: 2,
     MigrateApply: 3,
-    MigrateWithFieldsCommence: 4,
+    MigrateWithFieldsInitiated: 4,
     MigrateWithFieldsApply: 5,
   };
   consts = {
@@ -398,7 +398,7 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResultWithoutMaps<Address>> => {
       return testMethod(this, "getNewOwner", params, getContractByCodeHash);
     },
-    getUpgradeCommenced: async (
+    getUpgradeInitiated: async (
       params: Omit<
         TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
         "testArgs"
@@ -406,7 +406,7 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params,
         getContractByCodeHash
       );
@@ -527,7 +527,7 @@ export const TestUpgradable = new Factory(
   Contract.fromJson(
     TestUpgradableContractJson,
     "",
-    "92d18131ffbd131375b7cd197b29e744fcf29d9000a0449166d9dcb16fcd08f7",
+    "145075d472d06d94e2c129f8307ef0412cc49679146f101a5d1c275a1a0afc4e",
     []
   )
 );
@@ -546,15 +546,15 @@ export class TestUpgradableInstance extends ContractInstance {
     return getContractEventsCurrentCount(this.address);
   }
 
-  subscribeChangeOwnerCommenceEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.ChangeOwnerCommenceEvent>,
+  subscribeChangeOwnerInitiatedEvent(
+    options: EventSubscribeOptions<TestUpgradableTypes.ChangeOwnerInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       TestUpgradable.contract,
       this,
       options,
-      "ChangeOwnerCommence",
+      "ChangeOwnerInitiated",
       fromCount
     );
   }
@@ -572,15 +572,15 @@ export class TestUpgradableInstance extends ContractInstance {
     );
   }
 
-  subscribeMigrateCommenceEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateCommenceEvent>,
+  subscribeMigrateInitiatedEvent(
+    options: EventSubscribeOptions<TestUpgradableTypes.MigrateInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       TestUpgradable.contract,
       this,
       options,
-      "MigrateCommence",
+      "MigrateInitiated",
       fromCount
     );
   }
@@ -598,15 +598,15 @@ export class TestUpgradableInstance extends ContractInstance {
     );
   }
 
-  subscribeMigrateWithFieldsCommenceEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateWithFieldsCommenceEvent>,
+  subscribeMigrateWithFieldsInitiatedEvent(
+    options: EventSubscribeOptions<TestUpgradableTypes.MigrateWithFieldsInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       TestUpgradable.contract,
       this,
       options,
-      "MigrateWithFieldsCommence",
+      "MigrateWithFieldsInitiated",
       fromCount
     );
   }
@@ -626,11 +626,11 @@ export class TestUpgradableInstance extends ContractInstance {
 
   subscribeAllEvents(
     options: EventSubscribeOptions<
-      | TestUpgradableTypes.ChangeOwnerCommenceEvent
+      | TestUpgradableTypes.ChangeOwnerInitiatedEvent
       | TestUpgradableTypes.ChangeOwnerApplyEvent
-      | TestUpgradableTypes.MigrateCommenceEvent
+      | TestUpgradableTypes.MigrateInitiatedEvent
       | TestUpgradableTypes.MigrateApplyEvent
-      | TestUpgradableTypes.MigrateWithFieldsCommenceEvent
+      | TestUpgradableTypes.MigrateWithFieldsInitiatedEvent
       | TestUpgradableTypes.MigrateWithFieldsApplyEvent
     >,
     fromCount?: number
@@ -756,13 +756,13 @@ export class TestUpgradableInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    getUpgradeCommenced: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getUpgradeCommenced">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getUpgradeCommenced">> => {
+    getUpgradeInitiated: async (
+      params?: TestUpgradableTypes.CallMethodParams<"getUpgradeInitiated">
+    ): Promise<TestUpgradableTypes.CallMethodResult<"getUpgradeInitiated">> => {
       return callMethod(
         TestUpgradable,
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -924,15 +924,15 @@ export class TestUpgradableInstance extends ContractInstance {
     ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getNewOwner">> => {
       return signExecuteMethod(TestUpgradable, this, "getNewOwner", params);
     },
-    getUpgradeCommenced: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getUpgradeCommenced">
+    getUpgradeInitiated: async (
+      params: TestUpgradableTypes.SignExecuteMethodParams<"getUpgradeInitiated">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"getUpgradeCommenced">
+      TestUpgradableTypes.SignExecuteMethodResult<"getUpgradeInitiated">
     > => {
       return signExecuteMethod(
         TestUpgradable,
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params
       );
     },

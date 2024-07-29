@@ -46,7 +46,7 @@ export namespace LendingMarketplaceTypes {
     upgradeDelay: bigint;
     owner: Address;
     newOwner: Address;
-    upgradeCommenced: bigint;
+    upgradeInitiated: bigint;
     newCode: HexString;
     newImmFieldsEncoded: HexString;
     newMutFieldsEncoded: HexString;
@@ -54,7 +54,7 @@ export namespace LendingMarketplaceTypes {
 
   export type State = ContractState<Fields>;
 
-  export type ChangeOwnerCommenceEvent = ContractEvent<{
+  export type ChangeOwnerInitiatedEvent = ContractEvent<{
     owner: Address;
     changeOwner: Address;
   }>;
@@ -62,7 +62,7 @@ export namespace LendingMarketplaceTypes {
     owner: Address;
     changeOwner: Address;
   }>;
-  export type MigrateCommenceEvent = ContractEvent<{
+  export type MigrateInitiatedEvent = ContractEvent<{
     owner: Address;
     changeCode: HexString;
   }>;
@@ -70,7 +70,7 @@ export namespace LendingMarketplaceTypes {
     owner: Address;
     changeCode: HexString;
   }>;
-  export type MigrateWithFieldsCommenceEvent = ContractEvent<{
+  export type MigrateWithFieldsInitiatedEvent = ContractEvent<{
     owner: Address;
     changeCode: HexString;
     changeImmFieldsEncoded: HexString;
@@ -190,7 +190,7 @@ export namespace LendingMarketplaceTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Address>;
     };
-    getUpgradeCommenced: {
+    getUpgradeInitiated: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
@@ -369,7 +369,7 @@ export namespace LendingMarketplaceTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    getUpgradeCommenced: {
+    getUpgradeInitiated: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -483,11 +483,11 @@ class Factory extends ContractFactory<
   }
 
   eventIndex = {
-    ChangeOwnerCommence: 0,
+    ChangeOwnerInitiated: 0,
     ChangeOwnerApply: 1,
-    MigrateCommence: 2,
+    MigrateInitiated: 2,
     MigrateApply: 3,
-    MigrateWithFieldsCommence: 4,
+    MigrateWithFieldsInitiated: 4,
     MigrateWithFieldsApply: 5,
     LoanCreated: 6,
     LoanDetails: 7,
@@ -747,7 +747,7 @@ class Factory extends ContractFactory<
     > => {
       return testMethod(this, "getNewOwner", params, getContractByCodeHash);
     },
-    getUpgradeCommenced: async (
+    getUpgradeInitiated: async (
       params: Omit<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
@@ -761,7 +761,7 @@ class Factory extends ContractFactory<
     > => {
       return testMethod(
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params,
         getContractByCodeHash
       );
@@ -1073,7 +1073,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "=144-1+8d=2-1+c=1-1=2-2+e6=2217-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "246ac6b13f3202ceadc7e798641921955dc30876b5328ca654fd7ba9cbd616df",
+    "697181071bda7e64241aea164183e444ad2a5f008bf7ec5cee0faea29356756e",
     []
   )
 );
@@ -1100,15 +1100,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     return getContractEventsCurrentCount(this.address);
   }
 
-  subscribeChangeOwnerCommenceEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.ChangeOwnerCommenceEvent>,
+  subscribeChangeOwnerInitiatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.ChangeOwnerInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "ChangeOwnerCommence",
+      "ChangeOwnerInitiated",
       fromCount
     );
   }
@@ -1126,15 +1126,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeMigrateCommenceEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateCommenceEvent>,
+  subscribeMigrateInitiatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "MigrateCommence",
+      "MigrateInitiated",
       fromCount
     );
   }
@@ -1152,15 +1152,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeMigrateWithFieldsCommenceEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateWithFieldsCommenceEvent>,
+  subscribeMigrateWithFieldsInitiatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateWithFieldsInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "MigrateWithFieldsCommence",
+      "MigrateWithFieldsInitiated",
       fromCount
     );
   }
@@ -1258,11 +1258,11 @@ export class LendingMarketplaceInstance extends ContractInstance {
 
   subscribeAllEvents(
     options: EventSubscribeOptions<
-      | LendingMarketplaceTypes.ChangeOwnerCommenceEvent
+      | LendingMarketplaceTypes.ChangeOwnerInitiatedEvent
       | LendingMarketplaceTypes.ChangeOwnerApplyEvent
-      | LendingMarketplaceTypes.MigrateCommenceEvent
+      | LendingMarketplaceTypes.MigrateInitiatedEvent
       | LendingMarketplaceTypes.MigrateApplyEvent
-      | LendingMarketplaceTypes.MigrateWithFieldsCommenceEvent
+      | LendingMarketplaceTypes.MigrateWithFieldsInitiatedEvent
       | LendingMarketplaceTypes.MigrateWithFieldsApplyEvent
       | LendingMarketplaceTypes.LoanCreatedEvent
       | LendingMarketplaceTypes.LoanDetailsEvent
@@ -1450,15 +1450,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    getUpgradeCommenced: async (
-      params?: LendingMarketplaceTypes.CallMethodParams<"getUpgradeCommenced">
+    getUpgradeInitiated: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getUpgradeInitiated">
     ): Promise<
-      LendingMarketplaceTypes.CallMethodResult<"getUpgradeCommenced">
+      LendingMarketplaceTypes.CallMethodResult<"getUpgradeInitiated">
     > => {
       return callMethod(
         LendingMarketplace,
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -1812,15 +1812,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
     > => {
       return signExecuteMethod(LendingMarketplace, this, "getNewOwner", params);
     },
-    getUpgradeCommenced: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getUpgradeCommenced">
+    getUpgradeInitiated: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getUpgradeInitiated">
     ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"getUpgradeCommenced">
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getUpgradeInitiated">
     > => {
       return signExecuteMethod(
         LendingMarketplace,
         this,
-        "getUpgradeCommenced",
+        "getUpgradeInitiated",
         params
       );
     },
