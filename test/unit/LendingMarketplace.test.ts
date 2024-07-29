@@ -196,7 +196,9 @@ async function withdraw(
   })
 }
 
-// -------- Test cases --------
+//////////////////////////////////
+// -------- Test cases -------- //
+//////////////////////////////////
 
 describe('LendingMarketplace', () => {
   let lendingTokenId: string
@@ -206,15 +208,15 @@ describe('LendingMarketplace', () => {
   let interestRate: bigint
   let duration: bigint
   let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
-  let admin: PrivateKeyWallet
-  let notAdmin: PrivateKeyWallet
+  let owner: PrivateKeyWallet
+  let notOwner: PrivateKeyWallet
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    ;[admin, lender, borrower, notAdmin] = await getSigners(4, ONE_ALPH * 1000n, 0)
-    marketplace = createLendingMarketplace(admin.address)
+    ;[owner, lender, borrower, notOwner] = await getSigners(4, ONE_ALPH * 1000n, 0)
+    marketplace = createLendingMarketplace(owner.address)
 
     lendingTokenId = randomContractId()
     collateralTokenId = randomContractId()
@@ -228,7 +230,7 @@ describe('LendingMarketplace', () => {
     it('marketplace fee is set', async () => {
       const oldFee = marketplace.selfState.fields.feeRate
       const newFee = 300n
-      const testResult = await updateFee(marketplace, newFee, admin)
+      const testResult = await updateFee(marketplace, newFee, owner)
       const state = getContractState<LendingMarketplaceTypes.Fields>(
         testResult.contracts,
         marketplace.contractId
@@ -236,19 +238,19 @@ describe('LendingMarketplace', () => {
       expect(oldFee).not.toEqual(newFee)
       expect(state.feeRate).toEqual(newFee)
     })
-    it('fails if not admin', async () => {
-      const testResult = updateFee(marketplace, 300n, notAdmin)
+    it('fails if not owner', async () => {
+      const testResult = updateFee(marketplace, 300n, notOwner)
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
   })
 
   describe('pauseLending', () => {
     it('lending is paused', async () => {
-      const testResult = await pauseLending(marketplace, admin)
+      const testResult = await pauseLending(marketplace, owner)
       const state = getContractState<LendingMarketplaceTypes.Fields>(
         testResult.contracts,
         marketplace.contractId
@@ -257,19 +259,19 @@ describe('LendingMarketplace', () => {
       expect(state.lendingEnabled).toEqual(false)
     })
 
-    it('fails if not admin', async () => {
-      const testResult = pauseLending(marketplace, notAdmin)
+    it('fails if not owner', async () => {
+      const testResult = pauseLending(marketplace, notOwner)
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
   })
 
   describe('enableLending', () => {
     it('lending is enabled', async () => {
-      const testResult = await enableLending(marketplace, admin, {
+      const testResult = await enableLending(marketplace, owner, {
         ...marketplace.selfState.fields,
         lendingEnabled: false
       })
@@ -280,12 +282,12 @@ describe('LendingMarketplace', () => {
       expect(state.lendingEnabled).toEqual(true)
     })
 
-    it('fails if not admin', async () => {
-      const testResult = enableLending(marketplace, notAdmin)
+    it('fails if not owner', async () => {
+      const testResult = enableLending(marketplace, notOwner)
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
   })
@@ -503,7 +505,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('fails if caller is not the lender', async () => {
-      const testResult = cancelLoan(loan.contractId, admin, marketplace, loan)
+      const testResult = cancelLoan(loan.contractId, owner, marketplace, loan)
       expectAssertionError(
         testResult,
         marketplace.address,
@@ -723,8 +725,8 @@ describe('LendingMarketplace', () => {
     it('withdraws ALPH from the contract to caller', async () => {
       const initialBalance = ONE_ALPH * 5n
       const amount = ONE_ALPH
-      const to = admin.address
-      const testResult = await withdraw(marketplace, { alphAmount: initialBalance }, admin, ALPH_TOKEN_ID, amount, to)
+      const to = owner.address
+      const testResult = await withdraw(marketplace, { alphAmount: initialBalance }, owner, ALPH_TOKEN_ID, amount, to)
 
       const state = getContractState<LendingMarketplaceTypes.Fields>(testResult.contracts, marketplace.contractId)!
       expect(contractBalanceOfAlph(state)).toEqual(initialBalance - amount)
@@ -745,8 +747,8 @@ describe('LendingMarketplace', () => {
         alphAmount: initialAlphBalance,
         tokens: [{ id: randomTokenId, amount: initialTokenBalance }]
       }
-      const inputAssets = [{ address: admin.address, asset: { alphAmount: defaultGasFee + DUST_AMOUNT } }]
-      const result = await withdraw(marketplace, initialAsset, admin, randomTokenId, withdrawnAmount, to, inputAssets)
+      const inputAssets = [{ address: owner.address, asset: { alphAmount: defaultGasFee + DUST_AMOUNT } }]
+      const result = await withdraw(marketplace, initialAsset, owner, randomTokenId, withdrawnAmount, to, inputAssets)
 
       const state = getContractState<LendingMarketplaceTypes.Fields>(result.contracts, marketplace.contractId)!
       expect(contractBalanceOf(state, randomTokenId)).toEqual(initialTokenBalance - withdrawnAmount)
@@ -757,10 +759,14 @@ describe('LendingMarketplace', () => {
       expect(tokenOutput.tokens).toEqual([{ id: randomTokenId, amount: withdrawnAmount }])
     })
 
-    it('fails if not admin', async () => {
+    it('fails if not owner', async () => {
       const initialAsset = { alphAmount: ONE_ALPH * 5n }
-      const result = withdraw(marketplace, initialAsset, notAdmin, ALPH_TOKEN_ID, ONE_ALPH, withdrawer.address)
-      await expectAssertionError(result, marketplace.address, Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden))
+      const result = withdraw(marketplace, initialAsset, notOwner, ALPH_TOKEN_ID, ONE_ALPH, withdrawer.address)
+      await expectAssertionError(
+        result,
+        marketplace.address,
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
+      )
     })
   })
 })

@@ -24,7 +24,7 @@ Abstract Contract Upgradable (
 
   // Enum to represent different error codes related to the contract upgrade process
   enum UpgradeErrorCodes {
-    Forbidden = 13000
+    OwnerAllowedOnly = 13000
     UpgradePending = 13001
     UpgradeNotPending = 13002
     UpgradeDelayNotExpired = 13003
@@ -131,7 +131,7 @@ Abstract Contract Upgradable (
   }
 
   // Internal functions for asserting key parameters
-  fn assertOnlyOwner(caller: Address) -> () { checkCaller!(caller == owner, UpgradeErrorCodes.Forbidden) }
+  fn assertOnlyOwner(caller: Address) -> () { checkCaller!(caller == owner, UpgradeErrorCodes.OwnerAllowedOnly) }
   fn assertUpgradeNotPending() -> () { assert!(upgradeCommenced == 0, UpgradeErrorCodes.UpgradePending) }
   fn assertUpgradeDelayElapsed() -> () {
     assert!(upgradeCommenced != 0, UpgradeErrorCodes.UpgradeNotPending)

@@ -82,6 +82,12 @@ export namespace LendingMarketplaceTypes {
     changeImmFieldsEncoded: HexString;
     changeMutFieldsEncoded: HexString;
   }>;
+  export type LoanCreatedEvent = ContractEvent<{
+    loanId: HexString;
+    id: bigint;
+    by: Address;
+    timestamp: bigint;
+  }>;
   export type LoanDetailsEvent = ContractEvent<{
     loanId: HexString;
     lendingTokenId: HexString;
@@ -91,12 +97,6 @@ export namespace LendingMarketplaceTypes {
     interestRate: bigint;
     duration: bigint;
     lender: Address;
-  }>;
-  export type LoanCreatedEvent = ContractEvent<{
-    loanId: HexString;
-    id: bigint;
-    by: Address;
-    timestamp: bigint;
   }>;
   export type LoanCancelledEvent = ContractEvent<{
     loanId: HexString;
@@ -489,8 +489,8 @@ class Factory extends ContractFactory<
     MigrateApply: 3,
     MigrateWithFieldsCommence: 4,
     MigrateWithFieldsApply: 5,
-    LoanDetails: 6,
-    LoanCreated: 7,
+    LoanCreated: 6,
+    LoanDetails: 7,
     LoanCancelled: 8,
     LoanPaid: 9,
     LoanAccepted: 10,
@@ -499,7 +499,7 @@ class Factory extends ContractFactory<
   consts = {
     Day: BigInt("86400"),
     UpgradeErrorCodes: {
-      Forbidden: BigInt("13000"),
+      OwnerAllowedOnly: BigInt("13000"),
       UpgradePending: BigInt("13001"),
       UpgradeNotPending: BigInt("13002"),
       UpgradeDelayNotExpired: BigInt("13003"),
@@ -1073,7 +1073,7 @@ export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
     "=144-1+8d=2-1+c=1-1=2-2+e6=2217-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "572280d7fb2e65aaeec268d7375ae8065a3387cca00fe5973bb4702d85c660cb",
+    "246ac6b13f3202ceadc7e798641921955dc30876b5328ca654fd7ba9cbd616df",
     []
   )
 );
@@ -1178,19 +1178,6 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
-  subscribeLoanDetailsEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanDetailsEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      LendingMarketplace.contract,
-      this,
-      options,
-      "LoanDetails",
-      fromCount
-    );
-  }
-
   subscribeLoanCreatedEvent(
     options: EventSubscribeOptions<LendingMarketplaceTypes.LoanCreatedEvent>,
     fromCount?: number
@@ -1200,6 +1187,19 @@ export class LendingMarketplaceInstance extends ContractInstance {
       this,
       options,
       "LoanCreated",
+      fromCount
+    );
+  }
+
+  subscribeLoanDetailsEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanDetailsEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanDetails",
       fromCount
     );
   }
@@ -1264,8 +1264,8 @@ export class LendingMarketplaceInstance extends ContractInstance {
       | LendingMarketplaceTypes.MigrateApplyEvent
       | LendingMarketplaceTypes.MigrateWithFieldsCommenceEvent
       | LendingMarketplaceTypes.MigrateWithFieldsApplyEvent
-      | LendingMarketplaceTypes.LoanDetailsEvent
       | LendingMarketplaceTypes.LoanCreatedEvent
+      | LendingMarketplaceTypes.LoanDetailsEvent
       | LendingMarketplaceTypes.LoanCancelledEvent
       | LendingMarketplaceTypes.LoanPaidEvent
       | LendingMarketplaceTypes.LoanAcceptedEvent

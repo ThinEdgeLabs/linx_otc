@@ -15,18 +15,8 @@ Contract LendingMarketplace(
   // Mapping to store tokens that we collect fees in
   mapping[ByteVec, Bool] feeTokens
 
-  event LoanDetails(
-    loanId: ByteVec,
-    lendingTokenId: ByteVec,
-    collateralTokenId: ByteVec,
-    lendingAmount: U256,
-    collateralAmount: U256,
-    interestRate: U256,
-    duration: U256,
-    lender: Address
-  )
-
   event LoanCreated(loanId: ByteVec, id: U256, by: Address, timestamp: U256)
+  event LoanDetails(loanId: ByteVec, lendingTokenId: ByteVec, collateralTokenId: ByteVec, lendingAmount: U256, collateralAmount: U256, interestRate: U256, duration: U256, lender: Address)
   event LoanCancelled(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
@@ -47,14 +37,7 @@ Contract LendingMarketplace(
   pub fn getFeeRate() -> U256 { return feeRate }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
-  pub fn createLoan(
-    lendingTokenId: ByteVec,
-    collateralTokenId: ByteVec,
-    lendingAmount: U256,
-    collateralAmount: U256,
-    interestRate: U256,
-    duration: U256
-  ) -> (Address) {
+  pub fn createLoan(lendingTokenId: ByteVec, collateralTokenId: ByteVec, lendingAmount: U256, collateralAmount: U256, interestRate: U256, duration: U256) -> (Address) {
     assert!(lendingEnabled == true, ErrorCodes.LendingDisabled)
     assert!(lendingAmount > 0, ErrorCodes.InvalidLendingAmount)
     assert!(collateralAmount > 0, ErrorCodes.InvalidCollateralAmount)

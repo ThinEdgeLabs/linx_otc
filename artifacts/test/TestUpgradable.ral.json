@@ -332,7 +332,7 @@
       "name": "UpgradeErrorCodes",
       "fields": [
         {
-          "name": "Forbidden",
+          "name": "OwnerAllowedOnly",
           "value": {
             "type": "U256",
             "value": "13000"

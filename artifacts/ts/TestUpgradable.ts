@@ -284,7 +284,7 @@ class Factory extends ContractFactory<
   };
   consts = {
     UpgradeErrorCodes: {
-      Forbidden: BigInt("13000"),
+      OwnerAllowedOnly: BigInt("13000"),
       UpgradePending: BigInt("13001"),
       UpgradeNotPending: BigInt("13002"),
       UpgradeDelayNotExpired: BigInt("13003"),

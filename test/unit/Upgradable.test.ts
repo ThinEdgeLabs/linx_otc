@@ -194,7 +194,7 @@ describe('Upgradable Contract Tests', () => {
       await expectAssertionError(
         changeOwner(secondOwner, secondOwner, genesis, fixture.selfState, fixture.dependencies),
         fixture.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
 
@@ -287,12 +287,12 @@ describe('Upgradable Contract Tests', () => {
       await expectAssertionError(
         migrate('', secondOwner, genesis, fixture.selfState, fixture.dependencies),
         fixture.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
       await expectAssertionError(
         migrateWithFields('', '', '', secondOwner, genesis, fixture.selfState, fixture.dependencies),
         fixture.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
 
@@ -362,7 +362,7 @@ describe('Upgradable Contract Tests', () => {
       await expectAssertionError(
         resetUpgrade(secondOwner, genesis, fixture.selfState, fixture.dependencies),
         fixture.address,
-        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.OwnerAllowedOnly)
       )
     })
   })
