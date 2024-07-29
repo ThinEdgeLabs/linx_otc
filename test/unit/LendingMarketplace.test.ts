@@ -17,7 +17,7 @@ import {
   randomContractId,
   testAddress
 } from '@alephium/web3-test'
-import { LendingMarketplace, LendingMarketplaceTypes, LoanTypes } from '../../artifacts/ts'
+import { LendingMarketplace, LendingMarketplaceTypes, LoanTypes, TestUpgradable } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLoan as createLoanFixture } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import {
@@ -31,7 +31,10 @@ import {
 } from '../../shared/utils'
 import { ZERO_ADDRESS } from '@alephium/web3'
 
-// -------- Test helpers --------
+////////////////////////////////////
+// -------- Test helpers -------- //
+////////////////////////////////////
+
 async function createLoan(
   marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
   lendingTokenId: string,
@@ -76,20 +79,6 @@ async function cancelLoan(
     existingContracts: loan.states(),
     inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
     testArgs: { loanId }
-  })
-}
-
-async function updateAdmin(
-  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
-  newAdmin: string,
-  caller: PrivateKeyWallet
-) {
-  return LendingMarketplace.tests.updateAdmin({
-    initialFields: marketplace.selfState.fields,
-    address: marketplace.address,
-    existingContracts: marketplace.dependencies,
-    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
-    testArgs: { newAdmin }
   })
 }
 
@@ -235,32 +224,6 @@ describe('LendingMarketplace', () => {
     duration = 30n
   })
 
-  describe('updateAdmin', () => {
-    let newAdmin: PrivateKeyWallet
-
-    beforeAll(async () => {
-      ;[newAdmin, notAdmin] = await getSigners(2, ONE_ALPH * 10n, 0)
-    })
-
-    it('new admin is set', async () => {
-      const testResult = await updateAdmin(marketplace, newAdmin.address, admin)
-      const state = getContractState(testResult.contracts, marketplace.contractId)
-      expect(state?.fields.admin).toEqual(newAdmin.address)
-      expect(getEvent(testResult.events, 'AdminUpdated')?.fields).toEqual({
-        previous: admin.address,
-        new: newAdmin.address
-      })
-    })
-
-    it('fails if not admin', async () => {
-      await expectAssertionError(
-        updateAdmin(marketplace, newAdmin.address, notAdmin),
-        marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
-      )
-    })
-  })
-
   describe('updateFee', () => {
     it('marketplace fee is set', async () => {
       const oldFee = marketplace.selfState.fields.feeRate
@@ -278,7 +241,7 @@ describe('LendingMarketplace', () => {
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
       )
     })
   })
@@ -299,7 +262,7 @@ describe('LendingMarketplace', () => {
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
       )
     })
   })
@@ -322,7 +285,7 @@ describe('LendingMarketplace', () => {
       await expectAssertionError(
         testResult,
         marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
+        Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden)
       )
     })
   })
@@ -797,11 +760,7 @@ describe('LendingMarketplace', () => {
     it('fails if not admin', async () => {
       const initialAsset = { alphAmount: ONE_ALPH * 5n }
       const result = withdraw(marketplace, initialAsset, notAdmin, ALPH_TOKEN_ID, ONE_ALPH, withdrawer.address)
-      await expectAssertionError(
-        result,
-        marketplace.address,
-        Number(LendingMarketplace.consts.ErrorCodes.AdminAllowedOnly)
-      )
+      await expectAssertionError(result, marketplace.address, Number(TestUpgradable.consts.UpgradeErrorCodes.Forbidden))
     })
   })
 })

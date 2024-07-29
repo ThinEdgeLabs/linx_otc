@@ -58,7 +58,7 @@ export function createLoan(
 }
 
 export function createLendingMarketplace(
-  admin: string,
+  owner: string,
   feeRate?: bigint,
   contractId?: string,
   lendingEnabled?: boolean
@@ -68,10 +68,16 @@ export function createLendingMarketplace(
   const contractState = LendingMarketplace.stateForTest(
     {
       loanTemplateId: lendingOfferTemplate.contractId,
-      admin,
       totalLoans: 0n,
       feeRate: feeRate ?? 100n,
-      lendingEnabled: lendingEnabled ?? true
+      lendingEnabled: lendingEnabled ?? true,
+      upgradeDelay: 604800000n, // 1 week in milliseconds
+      owner: owner,
+      newOwner: ZERO_ADDRESS,
+      upgradeCommenced: 0n,
+      newCode: '',
+      newImmFieldsEncoded: '',
+      newMutFieldsEncoded: ''
     },
     undefined,
     address

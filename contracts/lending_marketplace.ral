@@ -1,18 +1,19 @@
 Contract LendingMarketplace(
-  loanTemplateId: ByteVec,
-  mut admin: Address,
-  mut totalLoans: U256,
-  mut feeRate: U256, // in basis points
-  mut lendingEnabled: Bool
-) extends LendingMarketplaceUtils() {
+  loanTemplateId: ByteVec,   // Contract ID of the loan template
+  mut totalLoans: U256,      // Total number of loans created
+  mut feeRate: U256,         // Fee rate for borrowing, in basis points
+  mut lendingEnabled: Bool,   // Flag to enable or disable lending
+  upgradeDelay: U256,
+  mut owner: Address,
+  mut newOwner: Address,
+  mut upgradeCommenced: U256,
+  mut newCode: ByteVec,
+  mut newImmFieldsEncoded: ByteVec,
+  mut newMutFieldsEncoded: ByteVec
+) extends LendingMarketplaceUtils(), Upgradable(upgradeDelay, owner, newOwner, upgradeCommenced, newCode, newImmFieldsEncoded, newMutFieldsEncoded) {
 
-  //mapping[ByteVec, Bool] tokensWithPriceFeeds
+  // Mapping to store tokens that we collect fees in
   mapping[ByteVec, Bool] feeTokens
-
-  event AdminUpdated(
-    previous: Address,
-    new: Address
-  )
 
   event LoanDetails(
     loanId: ByteVec,
@@ -32,28 +33,18 @@ Contract LendingMarketplace(
   event LoanLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
 
   enum ErrorCodes {
-    AdminAllowedOnly = 0
-    LendingDisabled = 1
-    LenderAllowedOnly = 2
-    BorrowerAllowedOnly = 3
-    LenderNotAllowed = 4
-    InvalidLendingAmount = 5
-    InvalidCollateralAmount = 6
-    InvalidInterestRate = 7
-    InvalidDuration = 8
+    LendingDisabled = 0
+    LenderAllowedOnly = 1
+    BorrowerAllowedOnly = 2
+    LenderNotAllowed = 3
+    InvalidLendingAmount = 4
+    InvalidCollateralAmount = 5
+    InvalidInterestRate = 6
+    InvalidDuration = 7
   }
 
-  pub fn getAdmin() -> Address {
-    return admin
-  }
-
-  pub fn getTotalLoans() -> U256 {
-    return totalLoans
-  }
-
-  pub fn getFeeRate() -> U256 {
-    return feeRate
-  }
+  pub fn getTotalLoans() -> U256 { return totalLoans }
+  pub fn getFeeRate() -> U256 { return feeRate }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
   pub fn createLoan(
@@ -77,7 +68,19 @@ Contract LendingMarketplace(
 
     let key = toByteVec!(totalLoans)
     let id = totalLoans
-    let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(id, lender, lendingTokenId, collateralTokenId, selfContractId!(), lendingAmount, collateralAmount, interestRate, duration, nullContractAddress!(), 0)
+    let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(
+      id,
+      lender,
+      lendingTokenId,
+      collateralTokenId,
+      selfContractId!(),
+      lendingAmount,
+      collateralAmount,
+      interestRate,
+      duration,
+      nullContractAddress!(),
+      0
+    )
     let loanId = copyCreateSubContract!{lender -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
       key, loanTemplateId, encodeImmutableFields, encodeMutableFields
     )
@@ -133,34 +136,27 @@ Contract LendingMarketplace(
   }
 
   @using(updateFields = true)
-  pub fn updateAdmin(newAdmin: Address) -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
-    emit AdminUpdated(admin, newAdmin)
-    admin = newAdmin
-  }
-
-  @using(updateFields = true)
   pub fn updateFeeRate(value: U256) -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
 
     feeRate = value
   }
 
   @using(updateFields = true)
   pub fn pauseLending() -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
     lendingEnabled = false
   }
 
   @using(updateFields = true)
   pub fn enableLending() -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
     lendingEnabled = true
   }
 
   @using(assetsInContract = true, preapprovedAssets = true)
   pub fn withdraw(to: Address, tokenId: ByteVec, amount: U256) -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
 
     if (callerAddress!() != to) {
       transferToken!(callerAddress!(), to, ALPH, dustAmount!())
@@ -176,12 +172,12 @@ Contract LendingMarketplace(
 
   @using(preapprovedAssets = true)
   pub fn addFeeToken(tokenId: ByteVec) -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
     feeTokens.insert!(callerAddress!(), tokenId, true)
   }
 
   pub fn removeFeeToken(tokenId: ByteVec) -> () {
-    checkCaller!(callerAddress!() == admin, ErrorCodes.AdminAllowedOnly)
+    assertOnlyOwner(callerAddress!())
     feeTokens.remove!(callerAddress!(), tokenId)
   }
 

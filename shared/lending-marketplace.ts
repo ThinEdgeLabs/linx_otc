@@ -46,15 +46,21 @@ export class LendingMarketplaceHelper {
       }
     })
 
-    const adminAddress = (await this.signer.getSelectedAccount()).address
+    const owner = (await this.signer.getSelectedAccount()).address
 
     const lendingMarketplaceDeployResult = await LendingMarketplace.deploy(this.signer, {
       initialFields: {
         loanTemplateId: lendingOfferDeployTx.contractInstance.contractId,
-        admin: adminAddress,
         totalLoans: 0n,
         feeRate: 100n,
-        lendingEnabled: true
+        lendingEnabled: true,
+        upgradeDelay: 604800000n, // 1 week
+        owner: owner,
+        newOwner: ZERO_ADDRESS,
+        upgradeCommenced: 0n,
+        newCode: '',
+        newImmFieldsEncoded: '',
+        newMutFieldsEncoded: ''
       }
     })
 
