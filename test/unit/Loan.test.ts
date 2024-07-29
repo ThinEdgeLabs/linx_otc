@@ -1,5 +1,11 @@
 import { web3, ONE_ALPH, ZERO_ADDRESS, InputAsset, Asset, MINIMAL_CONTRACT_DEPOSIT, DUST_AMOUNT } from '@alephium/web3'
-import { expectAssertionError, getSigners, randomContractId, testAddress } from '@alephium/web3-test'
+import {
+  expectAssertionError,
+  getSigners,
+  randomContractAddress,
+  randomContractId,
+  testAddress
+} from '@alephium/web3-test'
 import { LendingMarketplaceTypes, Loan, LoanTypes } from '../../artifacts/ts'
 import { ContractFixture, createLendingMarketplace, createLoan } from './fixtures'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
@@ -104,6 +110,29 @@ async function liquidate(loan: ContractFixture<LoanTypes.Fields>, initialFields?
   })
 }
 
+async function claimCollateral(
+  loan: ContractFixture<LoanTypes.Fields>,
+  initialFields?: LoanTypes.Fields,
+  caller?: string
+) {
+  return Loan.tests.claimCollateral({
+    initialFields: initialFields ?? loan.selfState.fields,
+    initialAsset: {
+      alphAmount: MINIMAL_CONTRACT_DEPOSIT,
+      tokens: [{ id: loan.selfState.fields.collateralTokenId, amount: loan.selfState.fields.collateralAmount }]
+    },
+    inputAssets: [
+      {
+        address: loan.selfState.fields.lender,
+        asset: { alphAmount: defaultGasFee + DUST_AMOUNT }
+      }
+    ],
+    address: loan.address,
+    callerAddress: caller ?? loan.dependencies[1].address,
+    existingContracts: loan.dependencies
+  })
+}
+
 async function repay(loan: ContractFixture<LoanTypes.Fields>, interest: bigint) {
   return Loan.tests.repay({
     initialFields: loan.selfState.fields,
@@ -126,7 +155,9 @@ async function repay(loan: ContractFixture<LoanTypes.Fields>, interest: bigint) 
   })
 }
 
-// -------- Test cases ----------
+////////////////////////////////////
+// -------- Test cases ---------- //
+////////////////////////////////////
 
 describe('LendingOffer', () => {
   let fixture: ContractFixture<LoanTypes.Fields>
@@ -167,6 +198,7 @@ describe('LendingOffer', () => {
     beforeAll(async () => {
       fixture = createLoan(
         lender.address,
+        ZERO_ADDRESS,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -174,7 +206,6 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        ZERO_ADDRESS,
         undefined,
         0n,
         undefined,
@@ -255,6 +286,7 @@ describe('LendingOffer', () => {
     beforeAll(async () => {
       fixture = createLoan(
         lender.address,
+        borrower.address,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -262,7 +294,6 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower.address,
         undefined,
         undefined,
         undefined,
@@ -290,6 +321,7 @@ describe('LendingOffer', () => {
     it('fails if loan is not active', async () => {
       fixture = createLoan(
         lender.address,
+        ZERO_ADDRESS,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -297,7 +329,6 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        ZERO_ADDRESS,
         undefined,
         undefined,
         undefined,
@@ -308,10 +339,24 @@ describe('LendingOffer', () => {
     })
   })
 
+  describe('claimCollateral', () => {
+    it('fails if caller is not the marketplace', async () => {
+      const testResult = claimCollateral(fixture, undefined, randomContractAddress())
+      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.MarketplaceAllowedOnly))
+    })
+    it('destroys the contract', async () => {
+      const testResult = await claimCollateral(fixture)
+      expect(getEvent(testResult.events, 'ContractDestroyed')?.fields.address).toEqual(fixture.address)
+      const output = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
+      expect(output.tokens).toEqual([{ id: collateralTokenId, amount: collateralAmount }])
+    })
+  })
+
   describe('repay', () => {
     it('lender receives the token + interest, borrower gets the collateral and loan is terminated', async () => {
       fixture = createLoan(
         lender.address,
+        borrower.address,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -319,7 +364,6 @@ describe('LendingOffer', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower.address,
         undefined,
         undefined,
         undefined,
