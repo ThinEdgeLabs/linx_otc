@@ -23,6 +23,7 @@ export class ContractFixture<F extends Fields> {
 
 export function createLoan(
   lender?: string,
+  borrower?: string,
   lendingTokenId?: string,
   collateralTokenId?: string,
   marketplaceContractId?: string,
@@ -30,7 +31,6 @@ export function createLoan(
   collateralAmount?: bigint,
   interestRate?: bigint,
   duration?: bigint,
-  borrower?: string,
   contractId?: string,
   loanTimeStamp?: bigint,
   asset?: Asset,

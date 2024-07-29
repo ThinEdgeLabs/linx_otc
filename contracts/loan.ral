@@ -1,15 +1,17 @@
 Contract Loan(
-  id: U256,
-  lender: Address,
-  lendingTokenId: ByteVec,
-  collateralTokenId: ByteVec,
-  marketplaceContractId: ByteVec,
-  lendingAmount: U256,
-  collateralAmount: U256,
-  interestRate: U256, // in basis points
-  duration: U256, // in days
-  mut borrower: Address,
-  mut loanTimeStamp: U256 // in seconds
+  id: U256,                              // Loan ID, numeric value
+  lender: Address,                       // Address of the lender
+  lendingTokenId: ByteVec,               // Contract ID of the borrowed token
+  collateralTokenId: ByteVec,            // Contract ID of the collateral token
+  marketplaceContractId: ByteVec,        // Contract ID of the marketplace contract
+  lendingAmount: U256,                   // Loan amount
+  collateralAmount: U256,                // Collateral amount
+  interestRate: U256,                    // in basis points
+  duration: U256,                        // Duration of the loan, in days
+  // minimumLTV: U256,                      // Minimum LTV ratio that has to be maintained to prevent liquidation
+  // oracleContractId: ByteVec,
+  mut borrower: Address,                 // Borrower address
+  mut loanTimeStamp: U256                // Timestamp when the loan started
 ) extends LendingMarketplaceUtils() {
 
   enum ErrorCodes {
@@ -19,49 +21,22 @@ Contract Loan(
     LoanNotOverdue = 3
   }
 
-  pub fn getId() -> U256 {
-    return id
-  }
+  // Getters
+  pub fn getId() -> U256 { return id }
+  pub fn getLender() -> Address { return lender }
+  pub fn getBorrower() -> Address { return borrower }
+  pub fn getLendingTokenId() -> ByteVec { return lendingTokenId }
+  pub fn getCollateralTokenId() -> ByteVec { return collateralTokenId }
+  pub fn getLendingAmount() -> U256 { return lendingAmount }
+  pub fn getCollateralAmount() -> U256 { return collateralAmount }
+  pub fn getLoanTimeStamp() -> U256 { return loanTimeStamp }
+  pub fn getDuration() -> U256 { return duration }
 
-  pub fn getLender() -> Address {
-    return lender
-  }
+  // Returns the interest amount owed by the borrower
+  pub fn getInterest() -> U256 { return lendingAmount * interestRate / 10000 }
 
-  pub fn getLendingTokenId() -> ByteVec {
-    return lendingTokenId
-  }
-
-  pub fn getCollateralTokenId() -> ByteVec {
-    return collateralTokenId
-  }
-
-  pub fn getLendingAmount() -> U256 {
-    return lendingAmount
-  }
-
-  pub fn getCollateralAmount() -> U256 {
-    return collateralAmount
-  }
-
-  pub fn getInterestRate() -> U256 {
-    return interestRate
-  }
-
-  pub fn getInterest() -> U256 {
-    return lendingAmount * interestRate / 10000
-  }
-
-  pub fn getDuration() -> U256 {
-    return duration
-  }
-
-  pub fn getBorrower() -> Address {
-    return borrower
-  }
-
-  pub fn getLoanTimeStamp() -> U256 {
-    return loanTimeStamp
-  }
+  // Returns whether the loan is active or not
+  pub fn isActive() -> Bool { return borrower != nullContractAddress!() && loanTimeStamp != 0 }
 
   @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
   pub fn borrow(caller: Address) -> () {
@@ -102,12 +77,51 @@ Contract Loan(
     destroySelf!(lender)
   }
 
+  // fn getCollateralPrice() -> U256 {
+  //   // TODO: Validate the value (% change, timestamp)
+  //   // TODO: Get symbol from mapping in marketplace contract
+  //   let (price, timestamp) = IOracle(oracleContractId).getValue(b`BTC/USD`)
+  //   return price
+  // }
+
+  // fn getLTVRatio() -> U256 { return collateralAmount * getCollateralPrice() / lendingAmount }
+
+  // fn assertLoanNotHealthy() -> Bool {
+  //   let ratio = getLTVRatio()
+  //   return ratio < minimumLTV
+  // }
+
   @using(assetsInContract = true)
   pub fn liquidate() -> () {
-    // Note: Anyone can liquidate the loan if it's overdue
+  // Note: Anyone can liquidate the loan if it's overdue
+  // LTV = lendingAmount / collateralAmount * collateral_price
+  // E.g. 100 USDT / 100 ALPH * 2 USDT / ALPH = 100 / 200 -> 50%
+  //      100 USDT / 100 ALPH * 1.5 USDT / ALPH = 100 / 150 -> 66%
+  // Given a MAX_LTV = 80%
+  //      100 USDT / 100 ALPH * 1.2 USDT / ALPH = 100 / 120 -> 83%
+  // Partially liquidate to get back to the MAX_LTV
+  // Target LTV = 0.8
+  // (100 - x) / (120 - x) = 0.8
+  // 100 - x = 96 - 0.8 * x
+  // 4 = 0.2 * x -> x = 20
+  // (100 - 20) / (120 - 20) = 80 / 100 = 0.8
+  // We sell 20 / 1.2 = 16.6 ALPH and use the proceeds to repay the loan
+  // If we factor in a liquidation fee of 3%, the equation becomes:
+  // (100 - (100 - 3) * x) / (120 - x) = 0.8
+  // 100 - 0.97 * x = 96 - 0.8 * x
+  // 4 = 0.17 * x -> x = 23.5
+  // (100 - 23.5) / (120 - 23.5) = 0.792
+
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
     assert!(borrower != nullContractAddress!(), ErrorCodes.LoanNotActive)
     assert!(blockTimeStampInSeconds() > loanTimeStamp + duration * Day, ErrorCodes.LoanNotOverdue)
+
+    destroySelf!(lender)
+  }
+
+  @using(assetsInContract = true)
+  pub fn claimCollateral() -> () {
+    checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
     destroySelf!(lender)
   }

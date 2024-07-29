@@ -177,6 +177,23 @@ async function liquidateLoan(
   })
 }
 
+async function claimCollateral(
+  marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
+  loan: ContractFixture<LoanTypes.Fields>,
+  caller: PrivateKeyWallet,
+  loanId: string,
+  blockTimeStamp?: number
+) {
+  return LendingMarketplace.tests.claimCollateral({
+    initialFields: marketplace.selfState.fields,
+    address: marketplace.address,
+    existingContracts: loan.states(),
+    inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
+    testArgs: { loanId },
+    blockTimeStamp
+  })
+}
+
 async function withdraw(
   marketplace: ContractFixture<LendingMarketplaceTypes.Fields>,
   initialAsset: Asset,
@@ -483,6 +500,7 @@ describe('LendingMarketplace', () => {
     beforeAll(async () => {
       loan = createLoanFixture(
         lender.address,
+        ZERO_ADDRESS,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -490,7 +508,6 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        ZERO_ADDRESS,
         undefined,
         undefined,
         undefined,
@@ -529,6 +546,7 @@ describe('LendingMarketplace', () => {
     beforeAll(async () => {
       loan = createLoanFixture(
         lender.address,
+        ZERO_ADDRESS,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -536,7 +554,6 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        ZERO_ADDRESS,
         undefined,
         undefined,
         { alphAmount: ONE_ALPH, tokens: [{ id: lendingTokenId, amount: lendingAmount }] },
@@ -597,6 +614,7 @@ describe('LendingMarketplace', () => {
     beforeAll(async () => {
       loan = createLoanFixture(
         lender.address,
+        borrower.address,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -604,7 +622,6 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower.address,
         undefined,
         loanTimeStamp,
         { alphAmount: MINIMAL_CONTRACT_DEPOSIT, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
@@ -666,6 +683,7 @@ describe('LendingMarketplace', () => {
     beforeAll(async () => {
       loan = createLoanFixture(
         lender.address,
+        borrower.address,
         lendingTokenId,
         collateralTokenId,
         marketplace.contractId,
@@ -673,7 +691,6 @@ describe('LendingMarketplace', () => {
         collateralAmount,
         interestRate,
         duration,
-        borrower.address,
         undefined,
         undefined,
         { alphAmount: MINIMAL_CONTRACT_DEPOSIT, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
@@ -700,6 +717,50 @@ describe('LendingMarketplace', () => {
     it('fails if loan does not exist', async () => {
       const testResult = liquidateLoan(marketplace, loan, lender, randomContractId())
       expect(testResult).rejects.toThrowError()
+    })
+  })
+
+  describe('claimCollateral', () => {
+    let loan: ContractFixture<LoanTypes.Fields>
+
+    beforeAll(async () => {
+      loan = createLoanFixture(
+        lender.address,
+        borrower.address,
+        lendingTokenId,
+        collateralTokenId,
+        marketplace.contractId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        undefined,
+        BigInt(Date.now()),
+        { alphAmount: MINIMAL_CONTRACT_DEPOSIT, tokens: [{ id: collateralTokenId, amount: collateralAmount }] },
+        marketplace
+      )
+    })
+
+    it('fails if caller is not lender', async () => {
+      const testResult = claimCollateral(marketplace, loan, borrower, loan.contractId)
+      expectAssertionError(
+        testResult,
+        marketplace.address,
+        Number(LendingMarketplace.consts.ErrorCodes.LenderAllowedOnly)
+      )
+    })
+    it('fails if loan is not overdue', async () => {
+      const testResult = claimCollateral(marketplace, loan, lender, loan.contractId)
+      expectAssertionError(testResult, marketplace.address, Number(LendingMarketplace.consts.ErrorCodes.LoanNotOverdue))
+    })
+    it('emits CollateralClaimed event, collateral is transferred to caller and loan is destroyed', async () => {
+      const blockTimeStamp = Date.now() + Number(duration) * 24 * 60 * 60 * 1000 + 1
+      const testResult = await claimCollateral(marketplace, loan, lender, loan.contractId, blockTimeStamp)
+      const event = getEvent<LendingMarketplaceTypes.CollateralClaimedEvent>(testResult.events, 'CollateralClaimed')
+      expect(event.fields).toEqual({ loanId: loan.contractId, by: lender.address, timestamp: BigInt(blockTimeStamp) })
+      expect(getEvent(testResult.events, 'ContractDestroyed')?.fields.address).toEqual(loan.address)
+      const output = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
+      expect(output.tokens).toEqual([{ id: collateralTokenId, amount: collateralAmount }])
     })
   })
 

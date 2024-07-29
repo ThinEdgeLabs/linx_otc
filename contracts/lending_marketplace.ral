@@ -21,6 +21,7 @@ Contract LendingMarketplace(
   event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
+  event CollateralClaimed(loanId: ByteVec, by: Address, timestamp: U256)
 
   enum ErrorCodes {
     LendingDisabled = 0
@@ -31,6 +32,8 @@ Contract LendingMarketplace(
     InvalidCollateralAmount = 5
     InvalidInterestRate = 6
     InvalidDuration = 7
+    LoanNotActive = 8
+    LoanNotOverdue = 9
   }
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
@@ -108,6 +111,16 @@ Contract LendingMarketplace(
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
     loan.repay{caller -> lendingTokenId: loanAmount + interest}()
     emit LoanPaid(loanId, caller, blockTimeStamp!())
+  }
+
+  pub fn claimCollateral(loanId: ByteVec) -> () {
+    let loan = Loan(loanId)
+    let lender = loan.getLender()
+    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
+    assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
+    assert!(blockTimeStamp!() > loan.getLoanTimeStamp() + loan.getDuration() * Day * 1000, ErrorCodes.LoanNotOverdue)
+    loan.claimCollateral()
+    emit CollateralClaimed(loanId, lender, blockTimeStamp!())
   }
 
   pub fn liquidateLoan(loanId: ByteVec) -> () {

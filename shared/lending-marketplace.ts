@@ -17,7 +17,8 @@ import {
   RepayLoan,
   LiquidateLoan,
   AddFeeToken,
-  RemoveFeeToken
+  RemoveFeeToken,
+  ClaimCollateral
 } from '../artifacts/ts'
 import { randomContractId } from './utils'
 
@@ -162,6 +163,16 @@ export class LendingMarketplaceHelper {
 
   async liquidateLoan(signer: SignerProvider, loanId: string): Promise<ExecuteScriptResult> {
     return LiquidateLoan.execute(signer, {
+      initialFields: {
+        loanId,
+        marketplace: this.contractId!
+      },
+      attoAlphAmount: DUST_AMOUNT
+    })
+  }
+
+  async claimCollateral(signer: SignerProvider, loanId: string): Promise<ExecuteScriptResult> {
+    return ClaimCollateral.execute(signer, {
       initialFields: {
         loanId,
         marketplace: this.contractId!
