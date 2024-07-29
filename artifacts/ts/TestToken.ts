@@ -79,6 +79,10 @@ export namespace TestTokenTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     getSymbol: {
@@ -281,14 +285,14 @@ export class TestTokenInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends TestTokenTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<TestTokenTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends TestTokenTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<TestTokenTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       TestToken,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as TestTokenTypes.MultiCallResults<Calls>;
+    )) as TestTokenTypes.MulticallReturnType<Callss>;
   }
 }

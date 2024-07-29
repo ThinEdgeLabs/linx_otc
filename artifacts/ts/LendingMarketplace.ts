@@ -40,17 +40,47 @@ import { RalphMap } from "@alephium/web3";
 export namespace LendingMarketplaceTypes {
   export type Fields = {
     loanTemplateId: HexString;
-    admin: Address;
     totalLoans: bigint;
     feeRate: bigint;
     lendingEnabled: boolean;
+    upgradeDelay: bigint;
+    owner: Address;
+    newOwner: Address;
+    upgradeCommenced: bigint;
+    newCode: HexString;
+    newImmFieldsEncoded: HexString;
+    newMutFieldsEncoded: HexString;
   };
 
   export type State = ContractState<Fields>;
 
-  export type AdminUpdatedEvent = ContractEvent<{
-    previous: Address;
-    new: Address;
+  export type ChangeOwnerCommenceEvent = ContractEvent<{
+    owner: Address;
+    changeOwner: Address;
+  }>;
+  export type ChangeOwnerApplyEvent = ContractEvent<{
+    owner: Address;
+    changeOwner: Address;
+  }>;
+  export type MigrateCommenceEvent = ContractEvent<{
+    owner: Address;
+    changeCode: HexString;
+  }>;
+  export type MigrateApplyEvent = ContractEvent<{
+    owner: Address;
+    changeCode: HexString;
+  }>;
+  export type MigrateWithFieldsCommenceEvent = ContractEvent<{
+    owner: Address;
+    changeCode: HexString;
+    changeImmFieldsEncoded: HexString;
+    changeMutFieldsEncoded: HexString;
+  }>;
+  export type MigrateWithFieldsApplyEvent = ContractEvent<{
+    owner: Address;
+    changeCode: HexString;
+    changeImmFieldsEncoded: HexString;
+    changeMutFieldsEncoded: HexString;
   }>;
   export type LoanDetailsEvent = ContractEvent<{
     loanId: HexString;
@@ -90,6 +120,38 @@ export namespace LendingMarketplaceTypes {
   }>;
 
   export interface CallMethodTable {
+    changeOwner: {
+      params: CallContractParams<{ changeOwner: Address }>;
+      result: CallContractResult<null>;
+    };
+    migrate: {
+      params: CallContractParams<{ changeCode: HexString }>;
+      result: CallContractResult<null>;
+    };
+    migrateWithFields: {
+      params: CallContractParams<{
+        changeCode: HexString;
+        changeImmFieldsEncoded: HexString;
+        changeMutFieldsEncoded: HexString;
+      }>;
+      result: CallContractResult<null>;
+    };
+    changeOwnerApply: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    migrateApply: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    migrateWithFieldsApply: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    resetUpgrade: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
     blockTimeStampInSeconds: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
@@ -116,9 +178,33 @@ export namespace LendingMarketplaceTypes {
       params: CallContractParams<{ amount: bigint; feeRateValue: bigint }>;
       result: CallContractResult<bigint>;
     };
-    getAdmin: {
+    getUpgradeDelay: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getOwner: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Address>;
+    };
+    getNewOwner: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<Address>;
+    };
+    getUpgradeCommenced: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getNewCode: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
+    getNewImmFieldsEncoded: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
+    getNewMutFieldsEncoded: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
     };
     getTotalLoans: {
       params: Omit<CallContractParams<{}>, "args">;
@@ -153,10 +239,6 @@ export namespace LendingMarketplaceTypes {
     };
     liquidateLoan: {
       params: CallContractParams<{ loanId: HexString }>;
-      result: CallContractResult<null>;
-    };
-    updateAdmin: {
-      params: CallContractParams<{ newAdmin: Address }>;
       result: CallContractResult<null>;
     };
     updateFeeRate: {
@@ -208,8 +290,44 @@ export namespace LendingMarketplaceTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
+    changeOwner: {
+      params: SignExecuteContractMethodParams<{ changeOwner: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    migrate: {
+      params: SignExecuteContractMethodParams<{ changeCode: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    migrateWithFields: {
+      params: SignExecuteContractMethodParams<{
+        changeCode: HexString;
+        changeImmFieldsEncoded: HexString;
+        changeMutFieldsEncoded: HexString;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    changeOwnerApply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    migrateApply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    migrateWithFieldsApply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    resetUpgrade: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
     blockTimeStampInSeconds: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
@@ -239,7 +357,31 @@ export namespace LendingMarketplaceTypes {
       }>;
       result: SignExecuteScriptTxResult;
     };
-    getAdmin: {
+    getUpgradeDelay: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getOwner: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getNewOwner: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getUpgradeCommenced: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getNewCode: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getNewImmFieldsEncoded: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getNewMutFieldsEncoded: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -276,10 +418,6 @@ export namespace LendingMarketplaceTypes {
     };
     liquidateLoan: {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
-      result: SignExecuteScriptTxResult;
-    };
-    updateAdmin: {
-      params: SignExecuteContractMethodParams<{ newAdmin: Address }>;
       result: SignExecuteScriptTxResult;
     };
     updateFeeRate: {
@@ -345,26 +483,39 @@ class Factory extends ContractFactory<
   }
 
   eventIndex = {
-    AdminUpdated: 0,
-    LoanDetails: 1,
-    LoanCreated: 2,
-    LoanCancelled: 3,
-    LoanPaid: 4,
-    LoanAccepted: 5,
-    LoanLiquidated: 6,
+    ChangeOwnerCommence: 0,
+    ChangeOwnerApply: 1,
+    MigrateCommence: 2,
+    MigrateApply: 3,
+    MigrateWithFieldsCommence: 4,
+    MigrateWithFieldsApply: 5,
+    LoanDetails: 6,
+    LoanCreated: 7,
+    LoanCancelled: 8,
+    LoanPaid: 9,
+    LoanAccepted: 10,
+    LoanLiquidated: 11,
   };
   consts = {
     Day: BigInt("86400"),
+    UpgradeErrorCodes: {
+      Forbidden: BigInt("13000"),
+      UpgradePending: BigInt("13001"),
+      UpgradeNotPending: BigInt("13002"),
+      UpgradeDelayNotExpired: BigInt("13003"),
+      MigrateNotPending: BigInt("13004"),
+      MigrateWithFieldsNotPending: BigInt("13005"),
+      ChangeOwnerNotPending: BigInt("13006"),
+    },
     ErrorCodes: {
-      AdminAllowedOnly: BigInt("0"),
-      LendingDisabled: BigInt("1"),
-      LenderAllowedOnly: BigInt("2"),
-      BorrowerAllowedOnly: BigInt("3"),
-      LenderNotAllowed: BigInt("4"),
-      InvalidLendingAmount: BigInt("5"),
-      InvalidCollateralAmount: BigInt("6"),
-      InvalidInterestRate: BigInt("7"),
-      InvalidDuration: BigInt("8"),
+      LendingDisabled: BigInt("0"),
+      LenderAllowedOnly: BigInt("1"),
+      BorrowerAllowedOnly: BigInt("2"),
+      LenderNotAllowed: BigInt("3"),
+      InvalidLendingAmount: BigInt("4"),
+      InvalidCollateralAmount: BigInt("5"),
+      InvalidInterestRate: BigInt("6"),
+      InvalidDuration: BigInt("7"),
     },
   };
 
@@ -373,6 +524,114 @@ class Factory extends ContractFactory<
   }
 
   tests = {
+    changeOwner: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { changeOwner: Address },
+        { feeTokens?: Map<HexString, boolean> }
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "changeOwner", params, getContractByCodeHash);
+    },
+    migrate: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { changeCode: HexString },
+        { feeTokens?: Map<HexString, boolean> }
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "migrate", params, getContractByCodeHash);
+    },
+    migrateWithFields: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        {
+          changeCode: HexString;
+          changeImmFieldsEncoded: HexString;
+          changeMutFieldsEncoded: HexString;
+        },
+        { feeTokens?: Map<HexString, boolean> }
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "migrateWithFields",
+        params,
+        getContractByCodeHash
+      );
+    },
+    changeOwnerApply: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "changeOwnerApply",
+        params,
+        getContractByCodeHash
+      );
+    },
+    migrateApply: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "migrateApply", params, getContractByCodeHash);
+    },
+    migrateWithFieldsApply: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "migrateWithFieldsApply",
+        params,
+        getContractByCodeHash
+      );
+    },
+    resetUpgrade: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "resetUpgrade", params, getContractByCodeHash);
+    },
     blockTimeStampInSeconds: async (
       params: Omit<
         TestContractParams<
@@ -446,7 +705,21 @@ class Factory extends ContractFactory<
         getContractByCodeHash
       );
     },
-    getAdmin: async (
+    getUpgradeDelay: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "getUpgradeDelay", params, getContractByCodeHash);
+    },
+    getOwner: async (
       params: Omit<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
@@ -458,7 +731,155 @@ class Factory extends ContractFactory<
     ): Promise<
       TestContractResult<Address, { feeTokens?: Map<HexString, boolean> }>
     > => {
-      return testMethod(this, "getAdmin", params, getContractByCodeHash);
+      return testMethod(this, "getOwner", params, getContractByCodeHash);
+    },
+    getNewOwner: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<Address, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "getNewOwner", params, getContractByCodeHash);
+    },
+    getUpgradeCommenced: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "getUpgradeCommenced",
+        params,
+        getContractByCodeHash
+      );
+    },
+    getNewCode: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "getNewCode", params, getContractByCodeHash);
+    },
+    getNewImmFieldsEncoded: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "getNewImmFieldsEncoded",
+        params,
+        getContractByCodeHash
+      );
+    },
+    getNewMutFieldsEncoded: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "getNewMutFieldsEncoded",
+        params,
+        getContractByCodeHash
+      );
+    },
+    resetFields: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "resetFields", params, getContractByCodeHash);
+    },
+    assertOnlyOwner: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { caller: Address },
+        { feeTokens?: Map<HexString, boolean> }
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(this, "assertOnlyOwner", params, getContractByCodeHash);
+    },
+    assertUpgradeNotPending: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "assertUpgradeNotPending",
+        params,
+        getContractByCodeHash
+      );
+    },
+    assertUpgradeDelayElapsed: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          { feeTokens?: Map<HexString, boolean> }
+        >,
+        "testArgs"
+      >
+    ): Promise<
+      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
+    > => {
+      return testMethod(
+        this,
+        "assertUpgradeDelayElapsed",
+        params,
+        getContractByCodeHash
+      );
     },
     getTotalLoans: async (
       params: Omit<
@@ -549,17 +970,6 @@ class Factory extends ContractFactory<
       TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
     > => {
       return testMethod(this, "liquidateLoan", params, getContractByCodeHash);
-    },
-    updateAdmin: async (
-      params: TestContractParams<
-        LendingMarketplaceTypes.Fields,
-        { newAdmin: Address },
-        { feeTokens?: Map<HexString, boolean> }
-      >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
-      return testMethod(this, "updateAdmin", params, getContractByCodeHash);
     },
     updateFeeRate: async (
       params: TestContractParams<
@@ -662,8 +1072,8 @@ class Factory extends ContractFactory<
 export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
-    "=76-1=1+8=2-2+37=2-2+54=1400-2+11=58+7a7e0214696e73657274206174206d617020706174683a2000=20+1=1-1=58+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "788c3cd69762b5096bb23d6258f1154af6882cb38d9ff0057fad173cf204bb09",
+    "=144-1+8d=2-1+c=1-1=2-2+e6=2217-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
+    "572280d7fb2e65aaeec268d7375ae8065a3387cca00fe5973bb4702d85c660cb",
     []
   )
 );
@@ -690,15 +1100,80 @@ export class LendingMarketplaceInstance extends ContractInstance {
     return getContractEventsCurrentCount(this.address);
   }
 
-  subscribeAdminUpdatedEvent(
-    options: EventSubscribeOptions<LendingMarketplaceTypes.AdminUpdatedEvent>,
+  subscribeChangeOwnerCommenceEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.ChangeOwnerCommenceEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
       LendingMarketplace.contract,
       this,
       options,
-      "AdminUpdated",
+      "ChangeOwnerCommence",
+      fromCount
+    );
+  }
+
+  subscribeChangeOwnerApplyEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.ChangeOwnerApplyEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "ChangeOwnerApply",
+      fromCount
+    );
+  }
+
+  subscribeMigrateCommenceEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateCommenceEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "MigrateCommence",
+      fromCount
+    );
+  }
+
+  subscribeMigrateApplyEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateApplyEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "MigrateApply",
+      fromCount
+    );
+  }
+
+  subscribeMigrateWithFieldsCommenceEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateWithFieldsCommenceEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "MigrateWithFieldsCommence",
+      fromCount
+    );
+  }
+
+  subscribeMigrateWithFieldsApplyEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.MigrateWithFieldsApplyEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "MigrateWithFieldsApply",
       fromCount
     );
   }
@@ -783,7 +1258,12 @@ export class LendingMarketplaceInstance extends ContractInstance {
 
   subscribeAllEvents(
     options: EventSubscribeOptions<
-      | LendingMarketplaceTypes.AdminUpdatedEvent
+      | LendingMarketplaceTypes.ChangeOwnerCommenceEvent
+      | LendingMarketplaceTypes.ChangeOwnerApplyEvent
+      | LendingMarketplaceTypes.MigrateCommenceEvent
+      | LendingMarketplaceTypes.MigrateApplyEvent
+      | LendingMarketplaceTypes.MigrateWithFieldsCommenceEvent
+      | LendingMarketplaceTypes.MigrateWithFieldsApplyEvent
       | LendingMarketplaceTypes.LoanDetailsEvent
       | LendingMarketplaceTypes.LoanCreatedEvent
       | LendingMarketplaceTypes.LoanCancelledEvent
@@ -802,6 +1282,89 @@ export class LendingMarketplaceInstance extends ContractInstance {
   }
 
   view = {
+    changeOwner: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"changeOwner">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"changeOwner">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "changeOwner",
+        params,
+        getContractByCodeHash
+      );
+    },
+    migrate: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"migrate">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"migrate">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "migrate",
+        params,
+        getContractByCodeHash
+      );
+    },
+    migrateWithFields: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"migrateWithFields">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"migrateWithFields">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "migrateWithFields",
+        params,
+        getContractByCodeHash
+      );
+    },
+    changeOwnerApply: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"changeOwnerApply">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"changeOwnerApply">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "changeOwnerApply",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    migrateApply: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"migrateApply">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"migrateApply">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "migrateApply",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    migrateWithFieldsApply: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"migrateWithFieldsApply">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"migrateWithFieldsApply">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "migrateWithFieldsApply",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    resetUpgrade: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"resetUpgrade">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"resetUpgrade">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "resetUpgrade",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
     blockTimeStampInSeconds: async (
       params?: LendingMarketplaceTypes.CallMethodParams<"blockTimeStampInSeconds">
     ): Promise<
@@ -854,13 +1417,85 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    getAdmin: async (
-      params?: LendingMarketplaceTypes.CallMethodParams<"getAdmin">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getAdmin">> => {
+    getUpgradeDelay: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getUpgradeDelay">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getUpgradeDelay">> => {
       return callMethod(
         LendingMarketplace,
         this,
-        "getAdmin",
+        "getUpgradeDelay",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getOwner: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getOwner">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getOwner">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getOwner",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getNewOwner: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getNewOwner">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getNewOwner">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getNewOwner",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getUpgradeCommenced: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getUpgradeCommenced">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"getUpgradeCommenced">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getUpgradeCommenced",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getNewCode: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getNewCode">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getNewCode">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getNewCode",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getNewImmFieldsEncoded: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getNewImmFieldsEncoded">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"getNewImmFieldsEncoded">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getNewImmFieldsEncoded",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getNewMutFieldsEncoded: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getNewMutFieldsEncoded">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"getNewMutFieldsEncoded">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getNewMutFieldsEncoded",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -938,17 +1573,6 @@ export class LendingMarketplaceInstance extends ContractInstance {
         LendingMarketplace,
         this,
         "liquidateLoan",
-        params,
-        getContractByCodeHash
-      );
-    },
-    updateAdmin: async (
-      params: LendingMarketplaceTypes.CallMethodParams<"updateAdmin">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"updateAdmin">> => {
-      return callMethod(
-        LendingMarketplace,
-        this,
-        "updateAdmin",
         params,
         getContractByCodeHash
       );
@@ -1044,6 +1668,78 @@ export class LendingMarketplaceInstance extends ContractInstance {
   };
 
   transact = {
+    changeOwner: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"changeOwner">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"changeOwner">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "changeOwner", params);
+    },
+    migrate: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"migrate">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"migrate">> => {
+      return signExecuteMethod(LendingMarketplace, this, "migrate", params);
+    },
+    migrateWithFields: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"migrateWithFields">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"migrateWithFields">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "migrateWithFields",
+        params
+      );
+    },
+    changeOwnerApply: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"changeOwnerApply">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"changeOwnerApply">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "changeOwnerApply",
+        params
+      );
+    },
+    migrateApply: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"migrateApply">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"migrateApply">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "migrateApply",
+        params
+      );
+    },
+    migrateWithFieldsApply: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"migrateWithFieldsApply">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"migrateWithFieldsApply">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "migrateWithFieldsApply",
+        params
+      );
+    },
+    resetUpgrade: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"resetUpgrade">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"resetUpgrade">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "resetUpgrade",
+        params
+      );
+    },
     blockTimeStampInSeconds: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"blockTimeStampInSeconds">
     ): Promise<
@@ -1092,10 +1788,72 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
-    getAdmin: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getAdmin">
-    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"getAdmin">> => {
-      return signExecuteMethod(LendingMarketplace, this, "getAdmin", params);
+    getUpgradeDelay: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getUpgradeDelay">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getUpgradeDelay">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getUpgradeDelay",
+        params
+      );
+    },
+    getOwner: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getOwner">
+    ): Promise<LendingMarketplaceTypes.SignExecuteMethodResult<"getOwner">> => {
+      return signExecuteMethod(LendingMarketplace, this, "getOwner", params);
+    },
+    getNewOwner: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getNewOwner">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getNewOwner">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "getNewOwner", params);
+    },
+    getUpgradeCommenced: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getUpgradeCommenced">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getUpgradeCommenced">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getUpgradeCommenced",
+        params
+      );
+    },
+    getNewCode: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getNewCode">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getNewCode">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "getNewCode", params);
+    },
+    getNewImmFieldsEncoded: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getNewImmFieldsEncoded">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getNewImmFieldsEncoded">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getNewImmFieldsEncoded",
+        params
+      );
+    },
+    getNewMutFieldsEncoded: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getNewMutFieldsEncoded">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getNewMutFieldsEncoded">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getNewMutFieldsEncoded",
+        params
+      );
     },
     getTotalLoans: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"getTotalLoans">
@@ -1153,13 +1911,6 @@ export class LendingMarketplaceInstance extends ContractInstance {
         "liquidateLoan",
         params
       );
-    },
-    updateAdmin: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateAdmin">
-    ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"updateAdmin">
-    > => {
-      return signExecuteMethod(LendingMarketplace, this, "updateAdmin", params);
     },
     updateFeeRate: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateFeeRate">
@@ -1235,14 +1986,14 @@ export class LendingMarketplaceInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends LendingMarketplaceTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<LendingMarketplaceTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends LendingMarketplaceTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<LendingMarketplaceTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       LendingMarketplace,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as LendingMarketplaceTypes.MultiCallResults<Calls>;
+    )) as LendingMarketplaceTypes.MulticallReturnType<Callss>;
   }
 }

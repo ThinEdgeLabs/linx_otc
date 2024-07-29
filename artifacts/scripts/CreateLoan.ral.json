@@ -1,7 +1,7 @@
 {
-  "version": "v3.3.0",
+  "version": "v3.4.0",
   "name": "CreateLoan",
-  "bytecodeTemplate": "01010300000012b47ad1a2{0}{2}a3{0}{1}{2}{3}{4}{5}13060d{6}010718",
+  "bytecodeTemplate": "01010300000012b47ad1a2{0}{2}a3{0}{1}{2}{3}{4}{5}13060d{6}011818",
   "fieldsSig": {
     "names": [
       "lendingTokenId",

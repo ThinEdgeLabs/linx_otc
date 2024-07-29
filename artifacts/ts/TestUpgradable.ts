@@ -169,6 +169,10 @@ export namespace TestUpgradableTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     changeOwner: {
@@ -983,14 +987,14 @@ export class TestUpgradableInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends TestUpgradableTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<TestUpgradableTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends TestUpgradableTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<TestUpgradableTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       TestUpgradable,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as TestUpgradableTypes.MultiCallResults<Calls>;
+    )) as TestUpgradableTypes.MulticallReturnType<Callss>;
   }
 }

@@ -152,6 +152,10 @@ export namespace LoanTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     blockTimeStampInSeconds: {
@@ -489,7 +493,7 @@ export const Loan = new Factory(
   Contract.fromJson(
     LoanContractJson,
     "",
-    "941541606759ea1b19ac884ff05703ebf2b01480d2b18830b5441f3593e80365",
+    "e208f5eb63d6f1dedb49315f29da0c6211545cb1bfe18baf7378adb85d703a31",
     []
   )
 );
@@ -821,14 +825,14 @@ export class LoanInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends LoanTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<LoanTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends LoanTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<LoanTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       Loan,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as LoanTypes.MultiCallResults<Calls>;
+    )) as LoanTypes.MulticallReturnType<Callss>;
   }
 }
