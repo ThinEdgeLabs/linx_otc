@@ -74,7 +74,7 @@ export function createLendingMarketplace(
       upgradeDelay: 604800000n, // 1 week in milliseconds
       owner: owner,
       newOwner: ZERO_ADDRESS,
-      upgradeCommenced: 0n,
+      upgradeInitiated: 0n,
       newCode: '',
       newImmFieldsEncoded: '',
       newMutFieldsEncoded: ''
@@ -94,7 +94,7 @@ export function createTestUpgradable(owner: string, contractId?: string) {
       mutValue: 2n,
       owner: owner,
       newOwner: ZERO_ADDRESS,
-      upgradeCommenced: 0n,
+      upgradeInitiated: 0n,
       newCode: '',
       newImmFieldsEncoded: '',
       newMutFieldsEncoded: ''

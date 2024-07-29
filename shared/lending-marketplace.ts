@@ -57,7 +57,7 @@ export class LendingMarketplaceHelper {
         upgradeDelay: 604800000n, // 1 week
         owner: owner,
         newOwner: ZERO_ADDRESS,
-        upgradeCommenced: 0n,
+        upgradeInitiated: 0n,
         newCode: '',
         newImmFieldsEncoded: '',
         newMutFieldsEncoded: ''

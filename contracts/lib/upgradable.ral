@@ -8,18 +8,18 @@ Abstract Contract Upgradable (
   upgradeDelay: U256,                 // The delay period required between initiating and applying an upgrade.
   mut owner: Address,                 // Current owner's address of the contract.
   mut newOwner: Address,              // Address of the new owner, set during ownership transfer process.
-  mut upgradeCommenced: U256,         // Timestamp marking the start of an upgrade process.
+  mut upgradeInitiated: U256,         // Timestamp marking the start of an upgrade process.
   mut newCode: ByteVec,               // New contract code to be migrated to.
   mut newImmFieldsEncoded: ByteVec,   // Encoded immutable fields for the new contract.
   mut newMutFieldsEncoded: ByteVec    // Encoded mutable fields for the new contract.
 ) implements IUpgradable {
 
   // Events for logging significant actions during the upgrade process
-  event ChangeOwnerCommence(owner: Address, changeOwner: Address)
+  event ChangeOwnerInitiated(owner: Address, changeOwner: Address)
   event ChangeOwnerApply(owner: Address, changeOwner: Address)
-  event MigrateCommence(owner: Address, changeCode: ByteVec)
+  event MigrateInitiated(owner: Address, changeCode: ByteVec)
   event MigrateApply(owner: Address, changeCode: ByteVec)
-  event MigrateWithFieldsCommence(owner: Address, changeCode: ByteVec, changeImmFieldsEncoded: ByteVec, changeMutFieldsEncoded: ByteVec)
+  event MigrateWithFieldsInitiated(owner: Address, changeCode: ByteVec, changeImmFieldsEncoded: ByteVec, changeMutFieldsEncoded: ByteVec)
   event MigrateWithFieldsApply(owner: Address, changeCode: ByteVec, changeImmFieldsEncoded: ByteVec, changeMutFieldsEncoded: ByteVec)
 
   // Enum to represent different error codes related to the contract upgrade process
@@ -42,8 +42,8 @@ Abstract Contract Upgradable (
     newCode = #
     newImmFieldsEncoded = #
     newMutFieldsEncoded = #
-    upgradeCommenced = blockTimeStamp!()
-    emit ChangeOwnerCommence(owner, newOwner)
+    upgradeInitiated = blockTimeStamp!()
+    emit ChangeOwnerInitiated(owner, newOwner)
   }
 
   // Initiates migration to new contract code.
@@ -55,8 +55,8 @@ Abstract Contract Upgradable (
     newCode = changeCode
     newImmFieldsEncoded = #
     newMutFieldsEncoded = #
-    upgradeCommenced = blockTimeStamp!()
-    emit MigrateCommence(owner, newCode)
+    upgradeInitiated = blockTimeStamp!()
+    emit MigrateInitiated(owner, newCode)
   }
 
   // Initiates migration with new fields
@@ -68,8 +68,8 @@ Abstract Contract Upgradable (
     newCode = changeCode
     newImmFieldsEncoded = changeImmFieldsEncoded
     newMutFieldsEncoded = changeMutFieldsEncoded
-    upgradeCommenced = blockTimeStamp!()
-    emit MigrateWithFieldsCommence(owner, newCode, newImmFieldsEncoded, newMutFieldsEncoded)
+    upgradeInitiated = blockTimeStamp!()
+    emit MigrateWithFieldsInitiated(owner, newCode, newImmFieldsEncoded, newMutFieldsEncoded)
   }
 
   /// Applies the change of contract ownership.
@@ -115,7 +115,7 @@ Abstract Contract Upgradable (
   pub fn getUpgradeDelay() -> U256 { return upgradeDelay }
   pub fn getOwner() -> Address { return owner }
   pub fn getNewOwner() -> Address { return newOwner }
-  pub fn getUpgradeCommenced() -> U256 { return upgradeCommenced }
+  pub fn getUpgradeInitiated() -> U256 { return upgradeInitiated }
   pub fn getNewCode() -> ByteVec { return newCode }
   pub fn getNewImmFieldsEncoded() -> ByteVec { return newImmFieldsEncoded }
   pub fn getNewMutFieldsEncoded() -> ByteVec { return newMutFieldsEncoded }
@@ -123,7 +123,7 @@ Abstract Contract Upgradable (
   // Resets the upgrade-related fields to their default state.
   @using(updateFields = true)
   fn resetFields() -> () {
-    upgradeCommenced = 0
+    upgradeInitiated = 0
     newOwner = nullContractAddress!()
     newCode = #
     newImmFieldsEncoded = #
@@ -132,9 +132,9 @@ Abstract Contract Upgradable (
 
   // Internal functions for asserting key parameters
   fn assertOnlyOwner(caller: Address) -> () { checkCaller!(caller == owner, UpgradeErrorCodes.OwnerAllowedOnly) }
-  fn assertUpgradeNotPending() -> () { assert!(upgradeCommenced == 0, UpgradeErrorCodes.UpgradePending) }
+  fn assertUpgradeNotPending() -> () { assert!(upgradeInitiated == 0, UpgradeErrorCodes.UpgradePending) }
   fn assertUpgradeDelayElapsed() -> () {
-    assert!(upgradeCommenced != 0, UpgradeErrorCodes.UpgradeNotPending)
-    assert!(blockTimeStamp!() > upgradeCommenced + upgradeDelay, UpgradeErrorCodes.UpgradeDelayNotExpired)
+    assert!(upgradeInitiated != 0, UpgradeErrorCodes.UpgradeNotPending)
+    assert!(blockTimeStamp!() > upgradeInitiated + upgradeDelay, UpgradeErrorCodes.UpgradeDelayNotExpired)
   }
 }

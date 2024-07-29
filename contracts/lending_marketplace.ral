@@ -6,11 +6,11 @@ Contract LendingMarketplace(
   upgradeDelay: U256,
   mut owner: Address,
   mut newOwner: Address,
-  mut upgradeCommenced: U256,
+  mut upgradeInitiated: U256,
   mut newCode: ByteVec,
   mut newImmFieldsEncoded: ByteVec,
   mut newMutFieldsEncoded: ByteVec
-) extends LendingMarketplaceUtils(), Upgradable(upgradeDelay, owner, newOwner, upgradeCommenced, newCode, newImmFieldsEncoded, newMutFieldsEncoded) {
+) extends LendingMarketplaceUtils(), Upgradable(upgradeDelay, owner, newOwner, upgradeInitiated, newCode, newImmFieldsEncoded, newMutFieldsEncoded) {
 
   // Mapping to store tokens that we collect fees in
   mapping[ByteVec, Bool] feeTokens

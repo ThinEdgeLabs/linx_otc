@@ -24,9 +24,10 @@ describe('Upgradable Contract Tests', () => {
     fixture = createTestUpgradable(sender)
   })
 
-  // --------------------
-  // SECTION: Helpers
-  // --------------------
+  ////////////////////////////////////////
+  // ---------- Test helpers ---------- //
+  ////////////////////////////////////////
+
   function changeOwner(
     newOwner: string,
     caller: string,
@@ -166,7 +167,7 @@ describe('Upgradable Contract Tests', () => {
     test('Successfully changes owner', async () => {
       let stateRes = await changeOwner(secondOwner, sender, genesis, fixture.selfState, fixture.dependencies)
       let state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'ChangeOwnerCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'ChangeOwnerInitiated').fields).toEqual({
         owner: sender,
         changeOwner: secondOwner
       })
@@ -177,7 +178,7 @@ describe('Upgradable Contract Tests', () => {
 
       stateRes = await changeOwner(thirdOwner, secondOwner, genesis + upgradeDelay, state, stateRes.contracts)
       state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'ChangeOwnerCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'ChangeOwnerInitiated').fields).toEqual({
         owner: secondOwner,
         changeOwner: thirdOwner
       })
@@ -229,7 +230,7 @@ describe('Upgradable Contract Tests', () => {
         fixture.dependencies
       )
       let state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'MigrateCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'MigrateInitiated').fields).toEqual({
         owner: sender,
         changeCode: TestUpgradable.contract.bytecode
       })
@@ -249,7 +250,7 @@ describe('Upgradable Contract Tests', () => {
         mutValue: fixture.selfState.fields.mutValue,
         owner: fixture.selfState.fields.owner,
         newOwner: fixture.selfState.fields.newOwner,
-        upgradeCommenced: fixture.selfState.fields.upgradeCommenced,
+        upgradeInitiated: fixture.selfState.fields.upgradeInitiated,
         newCode: fixture.selfState.fields.newCode,
         newImmFieldsEncoded: fixture.selfState.fields.newImmFieldsEncoded,
         newMutFieldsEncoded: fixture.selfState.fields.newMutFieldsEncoded
@@ -266,7 +267,7 @@ describe('Upgradable Contract Tests', () => {
         fixture.dependencies
       )
       let state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'MigrateWithFieldsCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'MigrateWithFieldsInitiated').fields).toEqual({
         owner: sender,
         changeCode: TestUpgradable.contract.bytecode,
         changeImmFieldsEncoded: binToHex(encodedImmFields),
@@ -305,7 +306,7 @@ describe('Upgradable Contract Tests', () => {
         fixture.dependencies
       )
       const state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'MigrateCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'MigrateInitiated').fields).toEqual({
         owner: sender,
         changeCode: TestUpgradable.contract.bytecode
       })
@@ -326,7 +327,7 @@ describe('Upgradable Contract Tests', () => {
         fixture.dependencies
       )
       const state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
-      expect(getEvent(stateRes.events, 'MigrateCommence').fields).toEqual({
+      expect(getEvent(stateRes.events, 'MigrateInitiated').fields).toEqual({
         owner: sender,
         changeCode: TestUpgradable.contract.bytecode
       })
@@ -355,7 +356,7 @@ describe('Upgradable Contract Tests', () => {
       stateRes = await resetUpgrade(sender, genesis, fixture.selfState, fixture.dependencies)
       state = getContractState<TestUpgradableTypes.Fields>(stateRes.contracts, fixture.contractId)
       expect(state.fields.newOwner).toBe(ZERO_ADDRESS)
-      expect(state.fields.upgradeCommenced).toBe(0n)
+      expect(state.fields.upgradeInitiated).toBe(0n)
     })
 
     test('Fails reset upgrade if not called by owner', async () => {
