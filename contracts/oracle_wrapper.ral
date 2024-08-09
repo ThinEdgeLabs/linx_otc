@@ -1,0 +1,48 @@
+struct PairInfo {
+  symbol: ByteVec, // The pair symbol, e.g. "BTCUSD"
+  decimals: U256   // The number of decimals for the pair, e.g. 8
+}
+
+Contract OracleWrapper(
+  oracleContractId: ByteVec,       // The ID of the oracle contract from which we get the token prices
+  upgradeDelay: U256,
+  mut owner: Address,
+  mut newOwner: Address,
+  mut upgradeInitiated: U256,
+  mut newCode: ByteVec,
+  mut newImmFieldsEncoded: ByteVec,
+  mut newMutFieldsEncoded: ByteVec
+) extends Upgradable(upgradeDelay, owner, newOwner, upgradeInitiated, newCode, newImmFieldsEncoded, newMutFieldsEncoded)  {
+
+  // Mapping to store token id to pair info, e.g. wBTC_token_id -> PairInfo("BTCUSD", 8)
+  mapping[ByteVec, PairInfo] pairsByBaseTokenId
+
+  event PairAdded(tokenId: ByteVec, symbol: ByteVec, decimals: U256)
+
+  enum ErrorCodes {
+    InvalidTokenId = 0
+  }
+
+  @using(preapprovedAssets = true)
+  pub fn addPair(tokenId: ByteVec, pairInfo: PairInfo) -> () {
+    assertOnlyOwner(callerAddress!())
+    // Make sure the pair exists in the oracle
+    let (_, _) = IDiaOracle(oracleContractId).getValue(pairInfo.symbol)
+    pairsByBaseTokenId.insert!(callerAddress!(), tokenId, pairInfo)
+    emit PairAdded(tokenId, pairInfo.symbol, pairInfo.decimals)
+  }
+
+  @using(checkExternalCaller = false)
+  pub fn getPairInfo(tokenId: ByteVec) -> PairInfo {
+    assert!(pairsByBaseTokenId.contains!(tokenId), ErrorCodes.InvalidTokenId)
+    return pairsByBaseTokenId[tokenId]
+  }
+
+  @using(checkExternalCaller = false)
+  pub fn getTokenPrice(tokenId: ByteVec) -> (U256, U256, U256) {
+    assert!(pairsByBaseTokenId.contains!(tokenId), ErrorCodes.InvalidTokenId)
+    let pairInfo = pairsByBaseTokenId[tokenId]
+    let (price, timestamp) = IDiaOracle(oracleContractId).getValue(pairInfo.symbol)
+    return price, timestamp, pairInfo.decimals
+  }
+}

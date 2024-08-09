@@ -1,0 +1,18 @@
+struct Value { price: U256, timestamp: U256 }
+
+Contract TestOracle() implements IDiaOracle {
+
+  mapping[ByteVec, Value] pricesByPair
+
+  pub fn getValue(pair: ByteVec) -> (U256, U256) {
+    return pricesByPair[pair].price, pricesByPair[pair].timestamp
+  }
+
+  @using(preapprovedAssets = true, checkExternalCaller = false)
+  pub fn setPrice(pair: ByteVec, price: U256) -> () {
+    if (pricesByPair.contains!(pair)) {
+      pricesByPair.remove!(callerAddress!(), pair)
+    }
+    pricesByPair.insert!(callerAddress!(), pair, Value { price: price, timestamp: blockTimeStamp!() })
+  }
+}

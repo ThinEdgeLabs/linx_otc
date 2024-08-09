@@ -12,7 +12,7 @@ import {
   LendingMarketplaceTypes,
   Loan,
   OracleWrapper,
-  TestDiaOracle,
+  TestOracle,
   TestUpgradable
 } from '../../artifacts/ts'
 import { randomContractAddress, randomContractId, testAddress } from '@alephium/web3-test'
@@ -141,11 +141,7 @@ export function createOracle(owner: string, oracleContractId?: string, contractI
   return new ContractFixture(contractState, [], address)
 }
 
-export function createTestDiaOracle() {
-  const contractState = TestDiaOracle.stateForTest(
-    {},
-    { alphAmount: MINIMAL_CONTRACT_DEPOSIT },
-    randomContractAddress()
-  )
+export function createTestOracle() {
+  const contractState = TestOracle.stateForTest({}, { alphAmount: MINIMAL_CONTRACT_DEPOSIT }, randomContractAddress())
   return new ContractFixture(contractState, [], contractState.address)
 }

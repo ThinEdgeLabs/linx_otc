@@ -1,0 +1,6 @@
+Interface IDiaOracle {
+  pub fn getValue(pair: ByteVec) -> (U256, U256)
+}
+
+
+

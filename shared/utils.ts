@@ -16,7 +16,7 @@ import {
   number256ToBigint,
   web3
 } from '@alephium/web3'
-import { GetToken, TestDiaOracle, TestDiaOracleInstance, TestToken } from '../artifacts/ts'
+import { GetToken, TestOracle, TestOracleInstance, TestToken } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
@@ -102,8 +102,8 @@ export function getOutput(outputs: Output[], type: 'ContractOutput' | 'AssetOutp
   return outputs.find((o) => o.type === type && o.address === address)!
 }
 
-export function deployTestOracle(signer: SignerProvider): Promise<DeployContractResult<TestDiaOracleInstance>> {
-  return TestDiaOracle.deploy(signer, { initialFields: {} })
+export function deployTestOracle(signer: SignerProvider): Promise<DeployContractResult<TestOracleInstance>> {
+  return TestOracle.deploy(signer, { initialFields: {} })
 }
 
 export async function getEventByTxId<T extends ContractEvent>(txId: string, codehash: string, eventIndex: number) {
