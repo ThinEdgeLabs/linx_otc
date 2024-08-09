@@ -1,8 +1,10 @@
 import {
   ALPH_TOKEN_ID,
+  Contract,
   ContractEvent,
   ContractState,
   DUST_AMOUNT,
+  DeployContractResult,
   ExecuteScriptResult,
   Fields,
   NamedVals,
@@ -14,9 +16,10 @@ import {
   number256ToBigint,
   web3
 } from '@alephium/web3'
-import { GetToken, TestToken } from '../artifacts/ts'
+import { GetToken, TestDiaOracle, TestDiaOracleInstance, TestToken } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'
+import { getContractByCodeHash } from '../artifacts/ts/contracts'
 
 export const gasPrice = 100000000000n
 export const maxGasPerTx = 5000000n
@@ -97,4 +100,13 @@ export function getContractState<T extends Fields>(contracts: ContractState[], c
 
 export function getOutput(outputs: Output[], type: 'ContractOutput' | 'AssetOutput', address: string): Output {
   return outputs.find((o) => o.type === type && o.address === address)!
+}
+
+export function deployTestOracle(signer: SignerProvider): Promise<DeployContractResult<TestDiaOracleInstance>> {
+  return TestDiaOracle.deploy(signer, { initialFields: {} })
+}
+
+export async function getEventByTxId<T extends ContractEvent>(txId: string, codehash: string, eventIndex: number) {
+  const result = await web3.getCurrentNodeProvider().events.getEventsTxIdTxid(txId)
+  return Contract.fromApiEvent(result.events[eventIndex], codehash, txId, getContractByCodeHash) as T
 }
