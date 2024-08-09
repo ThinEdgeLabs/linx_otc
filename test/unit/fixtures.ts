@@ -1,5 +1,20 @@
-import { Asset, ContractState, Fields, ONE_ALPH, ZERO_ADDRESS, addressFromContractId } from '@alephium/web3'
-import { LendingMarketplace, LendingMarketplaceTypes, Loan, TestUpgradable } from '../../artifacts/ts'
+import {
+  Asset,
+  ContractState,
+  Fields,
+  MINIMAL_CONTRACT_DEPOSIT,
+  ONE_ALPH,
+  ZERO_ADDRESS,
+  addressFromContractId
+} from '@alephium/web3'
+import {
+  LendingMarketplace,
+  LendingMarketplaceTypes,
+  Loan,
+  OracleWrapper,
+  TestDiaOracle,
+  TestUpgradable
+} from '../../artifacts/ts'
 import { randomContractAddress, randomContractId, testAddress } from '@alephium/web3-test'
 import { expandTo18Decimals } from '../../shared/utils'
 
@@ -49,7 +64,8 @@ export function createLoan(
       interestRate: interestRate ?? 2000n,
       duration: duration ?? 30n,
       borrower: borrower ?? ZERO_ADDRESS,
-      loanTimeStamp: loanTimeStamp ?? 0n
+      loanTimeStamp: loanTimeStamp ?? 0n,
+      minimumLTV: 0n
     },
     asset,
     address
@@ -64,13 +80,14 @@ export function createLendingMarketplace(
   lendingEnabled?: boolean
 ) {
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
-  const lendingOfferTemplate = createLoan()
+  const loanTemplate = createLoan()
   const contractState = LendingMarketplace.stateForTest(
     {
-      loanTemplateId: lendingOfferTemplate.contractId,
+      loanTemplateId: loanTemplate.contractId,
       totalLoans: 0n,
       feeRate: feeRate ?? 100n,
       lendingEnabled: lendingEnabled ?? true,
+      oracleContractId: randomContractId(),
       upgradeDelay: 604800000n, // 1 week in milliseconds
       owner: owner,
       newOwner: ZERO_ADDRESS,
@@ -82,7 +99,7 @@ export function createLendingMarketplace(
     undefined,
     address
   )
-  return new ContractFixture(contractState, lendingOfferTemplate.states(), address)
+  return new ContractFixture(contractState, loanTemplate.states(), address)
 }
 
 export function createTestUpgradable(owner: string, contractId?: string) {
@@ -103,4 +120,32 @@ export function createTestUpgradable(owner: string, contractId?: string) {
     address
   )
   return new ContractFixture(contractState, [], address)
+}
+
+export function createOracle(owner: string, oracleContractId?: string, contractId?: string) {
+  const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
+  const contractState = OracleWrapper.stateForTest(
+    {
+      owner: owner,
+      oracleContractId: oracleContractId ?? randomContractId(),
+      upgradeDelay: 604800000n, // 1 week in milliseconds
+      newOwner: ZERO_ADDRESS,
+      upgradeInitiated: 0n,
+      newCode: '',
+      newImmFieldsEncoded: '',
+      newMutFieldsEncoded: ''
+    },
+    { alphAmount: MINIMAL_CONTRACT_DEPOSIT },
+    address
+  )
+  return new ContractFixture(contractState, [], address)
+}
+
+export function createTestDiaOracle() {
+  const contractState = TestDiaOracle.stateForTest(
+    {},
+    { alphAmount: MINIMAL_CONTRACT_DEPOSIT },
+    randomContractAddress()
+  )
+  return new ContractFixture(contractState, [], contractState.address)
 }
