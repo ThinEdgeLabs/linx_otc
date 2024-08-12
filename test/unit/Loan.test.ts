@@ -18,7 +18,9 @@ import {
   getOutput
 } from '../../shared/utils'
 
-// -------- Test helpers --------
+////////////////////////////////////
+// -------- Test helpers -------- //
+////////////////////////////////////
 
 async function getLender(loan: ContractFixture<LoanTypes.Fields>) {
   return Loan.tests.getLender({
@@ -91,22 +93,32 @@ async function cancel(loan: ContractFixture<LoanTypes.Fields>) {
   })
 }
 
-async function liquidate(loan: ContractFixture<LoanTypes.Fields>, initialFields?: LoanTypes.Fields) {
+async function liquidate(
+  loan: ContractFixture<LoanTypes.Fields>,
+  liquidator: string,
+  amountToRepay: bigint,
+  amountToLiquidate: bigint,
+  caller?: string
+) {
   return Loan.tests.liquidate({
-    initialFields: initialFields ?? loan.selfState.fields,
+    initialFields: loan.selfState.fields,
     initialAsset: {
       alphAmount: MINIMAL_CONTRACT_DEPOSIT,
       tokens: [{ id: loan.selfState.fields.collateralTokenId, amount: loan.selfState.fields.collateralAmount }]
     },
     inputAssets: [
       {
-        address: loan.selfState.fields.lender,
-        asset: { alphAmount: defaultGasFee + DUST_AMOUNT }
+        address: liquidator,
+        asset: {
+          alphAmount: defaultGasFee + DUST_AMOUNT * 2n,
+          tokens: [{ id: loan.selfState.fields.lendingTokenId, amount: amountToRepay }]
+        }
       }
     ],
     address: loan.address,
-    callerAddress: loan.dependencies[1].address,
-    existingContracts: loan.dependencies
+    callerAddress: caller ?? loan.dependencies[1].address,
+    existingContracts: loan.dependencies,
+    testArgs: { liquidator, amountToRepay, amountToLiquidate }
   })
 }
 
@@ -159,12 +171,13 @@ async function repay(loan: ContractFixture<LoanTypes.Fields>, interest: bigint) 
 // -------- Test cases ---------- //
 ////////////////////////////////////
 
-describe('LendingOffer', () => {
+describe('Loan', () => {
   let fixture: ContractFixture<LoanTypes.Fields>
   let marketplace: ContractFixture<LendingMarketplaceTypes.Fields>
   let admin: string
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
+  let liquidator: PrivateKeyWallet
   const lendingTokenId = randomContractId()
   const collateralTokenId = randomContractId()
   const lendingAmount = expandTo18Decimals(1000n)
@@ -178,7 +191,7 @@ describe('LendingOffer', () => {
     admin = testAddress
     marketplace = createLendingMarketplace(admin, feeRate)
     fixture = createLoan()
-    ;[lender, borrower] = await getSigners(2, ONE_ALPH * 100n, 0)
+    ;[lender, borrower, liquidator] = await getSigners(3, ONE_ALPH * 100n, 0)
   })
 
   it('getters', async () => {
@@ -280,9 +293,6 @@ describe('LendingOffer', () => {
   })
 
   describe('liquidate', () => {
-    const ONE_DAY = 86400
-    const NOW = Math.floor(Date.now() / 1000)
-
     beforeAll(async () => {
       fixture = createLoan(
         lender.address,
@@ -301,41 +311,41 @@ describe('LendingOffer', () => {
       )
     })
 
-    it('lender receives collateral and loan is terminated', async () => {
-      const unixTimeInPast = NOW - (ONE_DAY * Number(duration) + 1)
-      const initialFields = { ...fixture.selfState.fields, loanTimeStamp: BigInt(unixTimeInPast) }
-      const testResult = await liquidate(fixture, initialFields)
+    it('fails if caller is not the marketplace', async () => {
+      const caller = randomContractAddress()
+      const testResult = liquidate(fixture, liquidator.address, lendingAmount, collateralAmount, caller)
+      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.MarketplaceAllowedOnly))
+    })
 
+    it('liquidator receives liquidated amount and lender the repaid amount', async () => {
+      const amountToLiquidate = lendingAmount / 2n
+      const amountToRepay = lendingAmount / 2n
+
+      const testResult = await liquidate(fixture, liquidator.address, amountToRepay, amountToLiquidate)
+
+      const output = getOutput(testResult.txOutputs, 'AssetOutput', liquidator.address)
+      expect(output.tokens?.find((t) => t.id === collateralTokenId)?.amount).toEqual(amountToLiquidate)
+      const lenderOutput = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
+      expect(lenderOutput.tokens?.find((t) => t.id === lendingTokenId)?.amount).toEqual(amountToRepay)
+    })
+
+    it('loan is destroyed if entire collateral is liquidated', async () => {
+      const amountToLiquidate = lendingAmount
+      const amountToRepay = lendingAmount
+
+      const testResult = await liquidate(fixture, liquidator.address, amountToRepay, amountToLiquidate)
+
+      const output = getOutput(testResult.txOutputs, 'AssetOutput', liquidator.address)
+      expect(output.tokens?.find((t) => t.id === collateralTokenId)?.amount).toEqual(amountToLiquidate)
+      const lenderOutput = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
+      expect(lenderOutput.tokens?.find((t) => t.id === lendingTokenId)?.amount).toEqual(amountToRepay)
       expect(getEvent(testResult.events, 'ContractDestroyed')).toBeDefined()
-      const output = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
-      expect(output.tokens?.find((t) => t.id === collateralTokenId)?.amount).toEqual(collateralAmount)
-    })
 
-    it('fails if the loan is not overdue', async () => {
-      const loanTimeStamp = NOW - ONE_DAY // 1 day old, duration is 30 days, so it's not overdue
-      const initialFields = { ...fixture.selfState.fields, loanTimeStamp: BigInt(loanTimeStamp) }
-      const testResult = liquidate(fixture, initialFields)
-      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.LoanNotOverdue))
-    })
-
-    it('fails if loan is not active', async () => {
-      fixture = createLoan(
-        lender.address,
-        ZERO_ADDRESS,
-        lendingTokenId,
-        collateralTokenId,
-        marketplace.contractId,
-        lendingAmount,
-        collateralAmount,
-        interestRate,
-        duration,
-        undefined,
-        undefined,
-        undefined,
-        marketplace
-      )
-      const testResult = liquidate(fixture)
-      expectAssertionError(testResult, fixture.address, Number(Loan.consts.ErrorCodes.LoanNotActive))
+      expect(
+        testResult.txOutputs.filter(
+          (o) => o.type === 'AssetOutput' && o.address === lender.address && o.alphAmount === MINIMAL_CONTRACT_DEPOSIT
+        )
+      ).toBeDefined()
     })
   })
 
