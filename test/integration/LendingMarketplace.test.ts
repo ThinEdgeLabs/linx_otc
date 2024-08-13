@@ -1,16 +1,33 @@
-import { ALPH_TOKEN_ID, MINIMAL_CONTRACT_DEPOSIT, NodeProvider, ONE_ALPH, web3 } from '@alephium/web3'
+import { ALPH_TOKEN_ID, MINIMAL_CONTRACT_DEPOSIT, NodeProvider, ONE_ALPH, stringToHex, web3 } from '@alephium/web3'
 import { getSigners, randomContractId } from '@alephium/web3-test'
 import { LendingMarketplaceHelper } from '../../shared/lending-marketplace'
-import { balanceOf, deployTestToken, expandTo18Decimals, getToken } from '../../shared/utils'
-import { LendingMarketplace, LendingMarketplaceInstance, LoanInstance } from '../../artifacts/ts'
+import {
+  balanceOf,
+  deployTestOracle,
+  deployTestToken,
+  expandTo18Decimals,
+  getToken,
+  setPrice
+} from '../../shared/utils'
+import {
+  LendingMarketplace,
+  LendingMarketplaceInstance,
+  LoanInstance,
+  OracleWrapperInstance,
+  TestOracleInstance
+} from '../../artifacts/ts'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { OracleHelper } from '../../shared/oracle_wrapper'
 
 describe('LendingMarketplace', () => {
-  let admin: PrivateKeyWallet
+  let owner: PrivateKeyWallet
   let lendingTokenId: string
   let testTokenId: string
   let marketplaceHelper: LendingMarketplaceHelper
   let marketplaceInstance: LendingMarketplaceInstance
+  let diaOracle: TestOracleInstance
+  let oracleHelper: OracleHelper
+  let oracle: OracleWrapperInstance
   let lender: PrivateKeyWallet
   let borrower: PrivateKeyWallet
   let provider: NodeProvider
@@ -26,18 +43,28 @@ describe('LendingMarketplace', () => {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
 
   beforeAll(async () => {
-    ;[admin, lender, borrower] = await getSigners(3, initialAlphBalance, group)
-    marketplaceHelper = new LendingMarketplaceHelper(admin)
-    marketplaceInstance = (await marketplaceHelper.create()).contractInstance
-    testTokenId = await deployTestToken(admin)
+    provider = web3.getCurrentNodeProvider()
+    ;[owner, lender, borrower] = await getSigners(3, initialAlphBalance, group)
+
+    // Deploy oracle contract
+    diaOracle = (await deployTestOracle(owner)).contractInstance
+    oracleHelper = new OracleHelper(owner)
+    oracle = (await oracleHelper.deploy(diaOracle.contractId, owner)).contractInstance
+
+    // Deploy lending marketplace contract
+    marketplaceHelper = new LendingMarketplaceHelper(owner)
+    marketplaceInstance = (await marketplaceHelper.create(oracle.contractId)).contractInstance
+
+    // Deploy test token
+    testTokenId = await deployTestToken(owner)
     lendingTokenId = testTokenId
     await getToken(lender, lendingTokenId, initialTokenBalance)
-    provider = web3.getCurrentNodeProvider()
   })
 
   describe('createLoan', () => {
+    const collateralTokenId = ALPH_TOKEN_ID
+
     it('should create a loan', async () => {
-      const collateralTokenId = ALPH_TOKEN_ID
       const alphBalanceBefore = await balanceOf(ALPH_TOKEN_ID, lender.address)
       const tokenBalanceBefore = await balanceOf(lendingTokenId, lender.address)
       const { txId } = await marketplaceHelper.createLoan(
@@ -60,6 +87,57 @@ describe('LendingMarketplace', () => {
       const loanAddress = txDetails.generatedOutputs[0].address
       const contractBalance = await balanceOf(lendingTokenId, loanAddress)
       expect(contractBalance).toEqual(lendingAmount)
+    })
+    it('should fail when creating a loan that can be liquidated if oracle data is not available for both tokens', async () => {
+      const canBeLiquidated = true
+      await expect(
+        marketplaceHelper.createLoan(
+          lender,
+          lendingTokenId,
+          collateralTokenId,
+          lendingAmount,
+          collateralAmount,
+          interestRate,
+          duration,
+          canBeLiquidated
+        )
+      ).rejects.toThrow()
+    })
+    it('should create a loan that can be liquidated if oracle data is available for both tokens', async () => {
+      const pairSymbol = stringToHex('TOKENAUSD')
+      await setPrice(diaOracle, pairSymbol, 10000000n, owner)
+      await oracleHelper.addPair(oracle.address, lendingTokenId, { symbol: pairSymbol, decimals: 8n }, owner)
+      const canBeLiquidated = true
+      await expect(
+        marketplaceHelper.createLoan(
+          lender,
+          lendingTokenId,
+          collateralTokenId,
+          lendingAmount,
+          collateralAmount,
+          interestRate,
+          duration,
+          canBeLiquidated
+        )
+      ).rejects.toThrow()
+      const alphPairSymbol = stringToHex('ALPHUSD')
+      await setPrice(diaOracle, alphPairSymbol, 20000000n, owner)
+      await oracleHelper.addPair(oracle.address, ALPH_TOKEN_ID, { symbol: alphPairSymbol, decimals: 8n }, owner)
+      const { txId } = await marketplaceHelper.createLoan(
+        lender,
+        lendingTokenId,
+        collateralTokenId,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration,
+        canBeLiquidated
+      )
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      const loanInstance = new LoanInstance(loanAddress)
+      const state = await loanInstance.fetchState()
+      expect(state.fields.canBeLiquidated).toBe(true)
     })
   })
 
@@ -144,7 +222,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('ALPH as collateral', async () => {
-      await marketplaceHelper.addFeeToken(admin, lendingTokenId)
+      await marketplaceHelper.addFeeToken(owner, lendingTokenId)
       const { txId: createLoanTxId } = await marketplaceHelper.createLoan(
         lender,
         lendingTokenId,
@@ -176,7 +254,7 @@ describe('LendingMarketplace', () => {
     })
 
     it('collateral and borrowed tokens are both ALPH', async () => {
-      await marketplaceHelper.addFeeToken(admin, ALPH_TOKEN_ID)
+      await marketplaceHelper.addFeeToken(owner, ALPH_TOKEN_ID)
       const { txId: createLoanTxId } = await marketplaceHelper.createLoan(
         lender,
         ALPH_TOKEN_ID,
@@ -256,7 +334,7 @@ describe('LendingMarketplace', () => {
   describe('fee tokens', () => {
     const tokenId = randomContractId()
 
-    test('only admin can add and remove a fee token', async () => {
+    test('only owner can add and remove a fee token', async () => {
       await expect(marketplaceHelper.addFeeToken(lender, tokenId)).rejects.toThrow(Error)
       await expect(marketplaceHelper.removeFeeToken(lender, tokenId)).rejects.toThrow(Error)
     })
@@ -269,7 +347,7 @@ describe('LendingMarketplace', () => {
         ).returns
       ).toBe(false)
 
-      await marketplaceHelper.addFeeToken(admin, tokenId)
+      await marketplaceHelper.addFeeToken(owner, tokenId)
 
       expect(
         (
@@ -279,7 +357,7 @@ describe('LendingMarketplace', () => {
         ).returns
       ).toBe(true)
 
-      await marketplaceHelper.removeFeeToken(admin, tokenId)
+      await marketplaceHelper.removeFeeToken(owner, tokenId)
 
       expect(
         (

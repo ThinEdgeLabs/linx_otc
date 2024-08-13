@@ -1,17 +1,9 @@
-import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, stringToHex, web3 } from '@alephium/web3'
+import { ONE_ALPH, stringToHex, web3 } from '@alephium/web3'
 import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { OracleWrapper, OracleWrapperInstance, TestOracleInstance } from '../../artifacts/ts'
-import { deployTestOracle, expandTo18Decimals, getEventByTxId } from '../../shared/utils'
+import { deployTestOracle, expandTo18Decimals, getEventByTxId, setPrice } from '../../shared/utils'
 import { OracleHelper } from '../../shared/oracle_wrapper'
-
-async function setPrice(diaOracle: TestOracleInstance, pair: string, price: bigint, owner: PrivateKeyWallet) {
-  await diaOracle.transact.setPrice({
-    args: { pair, price },
-    attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
-    signer: owner
-  })
-}
 
 describe('Oracle', () => {
   let owner: PrivateKeyWallet

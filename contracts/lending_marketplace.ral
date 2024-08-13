@@ -1,7 +1,8 @@
 Contract LendingMarketplace(
-  loanTemplateId: ByteVec,   // Contract ID of the loan template
-  mut totalLoans: U256,      // Total number of loans created
-  mut feeRate: U256,         // Fee rate for borrowing, in basis points
+  loanTemplateId: ByteVec,    // Contract ID of the loan template
+  oracleContractId: ByteVec,  // Contract ID of the oracle contract
+  mut totalLoans: U256,       // Total number of loans created
+  mut feeRate: U256,          // Fee rate for borrowing, in basis points
   mut lendingEnabled: Bool,   // Flag to enable or disable lending
   upgradeDelay: U256,
   mut owner: Address,
@@ -34,18 +35,26 @@ Contract LendingMarketplace(
     InvalidDuration = 7
     LoanNotActive = 8
     LoanNotOverdue = 9
+    LoanIsHealthy = 10
   }
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
   pub fn getFeeRate() -> U256 { return feeRate }
+  pub fn isFeeToken(tokenId: ByteVec) -> Bool { return feeTokens.contains!(tokenId) }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
-  pub fn createLoan(lendingTokenId: ByteVec, collateralTokenId: ByteVec, lendingAmount: U256, collateralAmount: U256, interestRate: U256, duration: U256) -> (Address) {
+  pub fn createLoan(lendingTokenId: ByteVec, collateralTokenId: ByteVec, lendingAmount: U256, collateralAmount: U256, interestRate: U256, duration: U256, canBeLiquidated: Bool) -> (Address) {
     assert!(lendingEnabled == true, ErrorCodes.LendingDisabled)
     assert!(lendingAmount > 0, ErrorCodes.InvalidLendingAmount)
     assert!(collateralAmount > 0, ErrorCodes.InvalidCollateralAmount)
     assert!(interestRate > 0, ErrorCodes.InvalidInterestRate)
     assert!(duration > 0, ErrorCodes.InvalidDuration)
+
+    // If canBeLiquidated is true, check if oracle data is available for both tokens
+    if (canBeLiquidated == true) {
+      let (_, _, _) = OracleWrapper(oracleContractId).getTokenPrice(lendingTokenId)
+      let (_, _, _) = OracleWrapper(oracleContractId).getTokenPrice(collateralTokenId)
+    }
 
     let lender = callerAddress!()
 
@@ -64,6 +73,8 @@ Contract LendingMarketplace(
       collateralAmount,
       interestRate,
       duration,
+      canBeLiquidated,
+      0,
       nullContractAddress!(),
       0
     )
@@ -95,8 +106,11 @@ Contract LendingMarketplace(
   pub fn cancelLoan(loanId: ByteVec) -> () {
     let loan = Loan(loanId)
     let lender = loan.getLender()
+
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
+
     loan.cancel()
+
     emit LoanCancelled(loanId, callerAddress!(), blockTimeStamp!())
   }
 
@@ -108,28 +122,65 @@ Contract LendingMarketplace(
     let loanAmount = loan.getLendingAmount()
     let interest = loan.getInterest()
     let caller = callerAddress!()
+
     checkCaller!(caller == borrower, ErrorCodes.BorrowerAllowedOnly)
+
     loan.repay{caller -> lendingTokenId: loanAmount + interest}()
+
     emit LoanPaid(loanId, caller, blockTimeStamp!())
   }
 
   pub fn claimCollateral(loanId: ByteVec) -> () {
     let loan = Loan(loanId)
     let lender = loan.getLender()
+
     checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
     assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
     assert!(blockTimeStamp!() > loan.getLoanTimeStamp() + loan.getDuration() * Day * 1000, ErrorCodes.LoanNotOverdue)
+
     loan.claimCollateral()
+
     emit CollateralClaimed(loanId, lender, blockTimeStamp!())
   }
 
+  @using(preapprovedAssets = true, checkExternalCaller = false)
   pub fn liquidateLoan(loanId: ByteVec) -> () {
+    // Note: Anyone can liquidate the loan if it's overdue
+
+    // Initial loan amount (L) = $100
+    // Current collateral value (C) = $110
+    // Target 1 / LTV = 1 / 80% = 125%
+    // Liquidation fee = 3% = 300 basis points
+    // X = value of collateral to liquidate
+    // New collateral value = C - X
+    // New loan amount = L - (1 - liquidation fee) * X
+    // Target LTV = (C - X) / (L - (1 - liquidation fee) * X)
+    // X =
     let loan = Loan(loanId)
-    let lender = loan.getLender()
-    checkCaller!(callerAddress!() == lender, ErrorCodes.LenderAllowedOnly)
-    loan.liquidate()
+    assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
+
+    let (collateralPrice, _, _) = OracleWrapper(oracleContractId).getTokenPrice(loan.getCollateralTokenId())
+    // TODO: Check if the price is stale
+    let ltv = loan.getLTVRatio(collateralPrice)
+    assert!(ltv < loan.getMinimumLTV(), ErrorCodes.LoanIsHealthy)
+
+    // Calculate the amount of collateral that can be liquidated
+    // let collateralValue = loan.getCollateralAmount() * collateralPrice
+    // let loanAmount = loan.getLendingAmount()
+    // let liquidationFee = 300 // 3%
+    //let collateralToLiquidate = (loanAmount - (10000 - liquidationFee) * x) / (collateralValue - x) = loan.getMinimumLTV()
+    let collateralToLiquidate = 0
+    let amountToRepay = 0
+
+    let lendingTokenId = loan.getLendingTokenId()
+    let caller = callerAddress!()
+    loan.liquidate{ caller -> lendingTokenId: amountToRepay }(caller, amountToRepay, collateralToLiquidate)
     emit LoanLiquidated(loanId, callerAddress!(), blockTimeStamp!())
   }
+
+  //////////////////////////
+  // Owner functions ///////
+  //////////////////////////
 
   @using(updateFields = true)
   pub fn updateFeeRate(value: U256) -> () {
@@ -175,9 +226,5 @@ Contract LendingMarketplace(
   pub fn removeFeeToken(tokenId: ByteVec) -> () {
     assertOnlyOwner(callerAddress!())
     feeTokens.remove!(callerAddress!(), tokenId)
-  }
-
-  pub fn isFeeToken(tokenId: ByteVec) -> Bool {
-    return feeTokens.contains!(tokenId)
   }
 }

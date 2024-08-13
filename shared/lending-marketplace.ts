@@ -30,8 +30,11 @@ export class LendingMarketplaceHelper {
     this.signer = signer
   }
 
-  async create(signer: SignerProvider = this.signer): Promise<DeployContractResult<LendingMarketplaceInstance>> {
-    const lendingOfferDeployTx = await Loan.deploy(signer, {
+  async create(
+    oracleContractId: string,
+    signer: SignerProvider = this.signer
+  ): Promise<DeployContractResult<LendingMarketplaceInstance>> {
+    const loanDeployTx = await Loan.deploy(signer, {
       initialFields: {
         id: 0n,
         lender: ZERO_ADDRESS,
@@ -42,8 +45,10 @@ export class LendingMarketplaceHelper {
         collateralAmount: 0n,
         interestRate: 0n,
         duration: 0n,
+        canBeLiquidated: false,
         borrower: ZERO_ADDRESS,
-        loanTimeStamp: 0n
+        loanTimeStamp: 0n,
+        minimumLTV: 0n
       }
     })
 
@@ -51,7 +56,8 @@ export class LendingMarketplaceHelper {
 
     const lendingMarketplaceDeployResult = await LendingMarketplace.deploy(this.signer, {
       initialFields: {
-        loanTemplateId: lendingOfferDeployTx.contractInstance.contractId,
+        loanTemplateId: loanDeployTx.contractInstance.contractId,
+        oracleContractId,
         totalLoans: 0n,
         feeRate: 100n,
         lendingEnabled: true,
@@ -76,7 +82,8 @@ export class LendingMarketplaceHelper {
     lendingAmount: bigint,
     collateralAmount: bigint,
     interestRate: bigint,
-    duration: bigint
+    duration: bigint,
+    canBeLiquidated: boolean = false
   ): Promise<ExecuteScriptResult> {
     return CreateLoan.execute(signer, {
       initialFields: {
@@ -86,6 +93,7 @@ export class LendingMarketplaceHelper {
         collateralAmount,
         interestRate,
         duration,
+        canBeLiquidated,
         marketplace: this.contractId!
       },
       attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT + DUST_AMOUNT,

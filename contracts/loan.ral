@@ -8,6 +8,7 @@ Contract Loan(
   mut collateralAmount: U256,            // Collateral amount
   interestRate: U256,                    // in basis points
   duration: U256,                        // Duration of the loan, in days
+  canBeLiquidated: Bool,                 // Whether the loan can be automatically liquidated or not
   minimumLTV: U256,                      // Minimum LTV ratio that has to be maintained to prevent liquidation
   mut borrower: Address,                 // Borrower address
   mut loanTimeStamp: U256                // Timestamp when the loan started
@@ -29,6 +30,7 @@ Contract Loan(
   pub fn getLoanTimeStamp() -> U256 { return loanTimeStamp }
   pub fn getDuration() -> U256 { return duration }
   pub fn getMinimumLTV() -> U256 { return minimumLTV }
+  pub fn getCanBeLiquidated() -> Bool { return canBeLiquidated }
 
   // Returns the interest amount owed by the borrower
   pub fn getInterest() -> U256 { return lendingAmount * interestRate / 10000 }

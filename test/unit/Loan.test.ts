@@ -330,17 +330,19 @@ describe('Loan', () => {
     })
 
     it('loan is destroyed if entire collateral is liquidated', async () => {
-      const amountToLiquidate = lendingAmount
+      const amountToLiquidate = collateralAmount
       const amountToRepay = lendingAmount
 
       const testResult = await liquidate(fixture, liquidator.address, amountToRepay, amountToLiquidate)
 
+      // Liquidator receives the collateral
       const output = getOutput(testResult.txOutputs, 'AssetOutput', liquidator.address)
       expect(output.tokens?.find((t) => t.id === collateralTokenId)?.amount).toEqual(amountToLiquidate)
+      // Lender receives the repaid amount
       const lenderOutput = getOutput(testResult.txOutputs, 'AssetOutput', lender.address)
       expect(lenderOutput.tokens?.find((t) => t.id === lendingTokenId)?.amount).toEqual(amountToRepay)
+      // Contract is destroyed and lender receives the contract deposit back
       expect(getEvent(testResult.events, 'ContractDestroyed')).toBeDefined()
-
       expect(
         testResult.txOutputs.filter(
           (o) => o.type === 'AssetOutput' && o.address === lender.address && o.alphAmount === MINIMAL_CONTRACT_DEPOSIT

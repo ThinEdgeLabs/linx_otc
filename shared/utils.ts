@@ -7,6 +7,7 @@ import {
   DeployContractResult,
   ExecuteScriptResult,
   Fields,
+  MINIMAL_CONTRACT_DEPOSIT,
   NamedVals,
   Output,
   SignerProvider,
@@ -20,6 +21,7 @@ import { GetToken, TestOracle, TestOracleInstance, TestToken } from '../artifact
 import { randomBytes } from 'crypto'
 import * as base58 from 'bs58'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 export const gasPrice = 100000000000n
 export const maxGasPerTx = 5000000n
@@ -104,6 +106,14 @@ export function getOutput(outputs: Output[], type: 'ContractOutput' | 'AssetOutp
 
 export function deployTestOracle(signer: SignerProvider): Promise<DeployContractResult<TestOracleInstance>> {
   return TestOracle.deploy(signer, { initialFields: {} })
+}
+
+export async function setPrice(diaOracle: TestOracleInstance, pair: string, price: bigint, owner: PrivateKeyWallet) {
+  await diaOracle.transact.setPrice({
+    args: { pair, price },
+    attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
+    signer: owner
+  })
 }
 
 export async function getEventByTxId<T extends ContractEvent>(txId: string, codehash: string, eventIndex: number) {

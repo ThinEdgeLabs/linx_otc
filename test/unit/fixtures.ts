@@ -63,6 +63,7 @@ export function createLoan(
       collateralAmount: collateralAmount ?? expandTo18Decimals(2000n),
       interestRate: interestRate ?? 2000n,
       duration: duration ?? 30n,
+      canBeLiquidated: false,
       borrower: borrower ?? ZERO_ADDRESS,
       loanTimeStamp: loanTimeStamp ?? 0n,
       minimumLTV: 0n

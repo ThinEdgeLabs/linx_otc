@@ -5,6 +5,7 @@ TxScript CreateLoan(
   collateralAmount: U256,
   interestRate: U256,
   duration: U256,
+  canBeLiquidated: Bool,
   marketplace: LendingMarketplace
 ) {
   let _ = marketplace.createLoan{callerAddress!() -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
@@ -13,6 +14,7 @@ TxScript CreateLoan(
     lendingAmount,
     collateralAmount,
     interestRate,
-    duration
+    duration,
+    canBeLiquidated
   )
 }
