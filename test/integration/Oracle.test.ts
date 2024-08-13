@@ -5,6 +5,14 @@ import { OracleWrapper, OracleWrapperInstance, TestOracleInstance } from '../../
 import { deployTestOracle, expandTo18Decimals, getEventByTxId } from '../../shared/utils'
 import { OracleHelper } from '../../shared/oracle_wrapper'
 
+async function setPrice(diaOracle: TestOracleInstance, pair: string, price: bigint, owner: PrivateKeyWallet) {
+  await diaOracle.transact.setPrice({
+    args: { pair, price },
+    attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
+    signer: owner
+  })
+}
+
 describe('Oracle', () => {
   let owner: PrivateKeyWallet
   let diaOracle: TestOracleInstance
@@ -20,11 +28,7 @@ describe('Oracle', () => {
   beforeAll(async () => {
     owner = await getSigner(10n * ONE_ALPH, group)
     diaOracle = (await deployTestOracle(owner)).contractInstance
-    await diaOracle.transact.setPrice({
-      args: { pair: pairSymbol, price: expandTo18Decimals(66234) },
-      attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
-      signer: owner
-    })
+    await setPrice(diaOracle, pairSymbol, expandTo18Decimals(66234), owner)
     helper = new OracleHelper(owner)
     oracle = (await helper.deploy(diaOracle.contractId, owner)).contractInstance
   })
@@ -42,11 +46,7 @@ describe('Oracle', () => {
     const result1 = await helper.getTokenPrice(oracle.address, tokenId)
     expect(result1.returns[0]).toBe(expandTo18Decimals(66234))
 
-    await diaOracle.transact.setPrice({
-      args: { pair: stringToHex('BTCUSD'), price: expandTo18Decimals(66300) },
-      attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
-      signer: owner
-    })
+    await setPrice(diaOracle, stringToHex('BTCUSD'), expandTo18Decimals(66300), owner)
     const result2 = await helper.getTokenPrice(oracle.address, tokenId)
     expect(result2.returns[0]).toBe(expandTo18Decimals(66300))
   })
