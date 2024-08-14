@@ -36,6 +36,7 @@ Contract LendingMarketplace(
     LoanNotActive = 8
     LoanNotOverdue = 9
     LoanIsHealthy = 10
+    LoanNotLiquidatable = 11
   }
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
@@ -52,15 +53,14 @@ Contract LendingMarketplace(
 
     // If canBeLiquidated is true, check if oracle data is available for both tokens
     if (canBeLiquidated == true) {
-      let (_, _, _) = OracleWrapper(oracleContractId).getTokenPrice(lendingTokenId)
-      let (_, _, _) = OracleWrapper(oracleContractId).getTokenPrice(collateralTokenId)
+      let _ = OracleWrapper(oracleContractId).getTokenPrice(lendingTokenId)
+      let _ = OracleWrapper(oracleContractId).getTokenPrice(collateralTokenId)
     }
-
-    let lender = callerAddress!()
 
     // Checking for overflow
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
+    let lender = callerAddress!()
     let key = toByteVec!(totalLoans)
     let id = totalLoans
     let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(
@@ -145,7 +145,15 @@ Contract LendingMarketplace(
 
   @using(preapprovedAssets = true, checkExternalCaller = false)
   pub fn liquidateLoan(loanId: ByteVec) -> () {
-    // Note: Anyone can liquidate the loan if it's overdue
+    let loan = Loan(loanId)
+
+    assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
+    assert!(loan.getCanBeLiquidated() == true, ErrorCodes.LoanNotLiquidatable)
+
+    let collateralTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(loan.getCollateralTokenId())
+    let borrowedTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(loan.getLendingTokenId())
+    let ltv = calculateLTV(loan.getCollateralAmount(), collateralTokenPrice, loan.getLendingAmount(), borrowedTokenPrice)
+    assert!(ltv < loan.getMinimumLTV(), ErrorCodes.LoanIsHealthy)
 
     // Initial loan amount (L) = $100
     // Current collateral value (C) = $110
@@ -156,19 +164,12 @@ Contract LendingMarketplace(
     // New loan amount = L - (1 - liquidation fee) * X
     // Target LTV = (C - X) / (L - (1 - liquidation fee) * X)
     // X =
-    let loan = Loan(loanId)
-    assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
-
-    let (collateralPrice, _, _) = OracleWrapper(oracleContractId).getTokenPrice(loan.getCollateralTokenId())
-    // TODO: Check if the price is stale
-    let ltv = loan.getLTVRatio(collateralPrice)
-    assert!(ltv < loan.getMinimumLTV(), ErrorCodes.LoanIsHealthy)
 
     // Calculate the amount of collateral that can be liquidated
     // let collateralValue = loan.getCollateralAmount() * collateralPrice
     // let loanAmount = loan.getLendingAmount()
     // let liquidationFee = 300 // 3%
-    //let collateralToLiquidate = (loanAmount - (10000 - liquidationFee) * x) / (collateralValue - x) = loan.getMinimumLTV()
+    // let collateralToLiquidate = (loanAmount - (10000 - liquidationFee) * x) / (collateralValue - x) = loan.getMinimumLTV()
     let collateralToLiquidate = 0
     let amountToRepay = 0
 
