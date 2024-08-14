@@ -7,6 +7,12 @@ function normalizeAmount(amount: bigint, decimals: bigint) {
   })
 }
 
+function blockTimeStampInSeconds(blockTimeStamp: number) {
+  return TestLendingMarketplaceUtils.tests.blockTimeStampInSeconds({
+    blockTimeStamp: blockTimeStamp
+  })
+}
+
 describe('LendingMarketplaceUtils', () => {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
@@ -30,6 +36,14 @@ describe('LendingMarketplaceUtils', () => {
       const amount = 1234567890123456789012n
       const testResult = await normalizeAmount(amount, amountDecimals)
       expect(testResult.returns).toEqual(12345678901234567890n)
+    })
+  })
+
+  describe('blockTimeStampInSeconds', () => {
+    it('returns the current block timestamp in seconds', async () => {
+      const timestamp = Date.now()
+      const testResult = await blockTimeStampInSeconds(timestamp)
+      expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
     })
   })
 })

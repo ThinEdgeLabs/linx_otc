@@ -766,18 +766,6 @@ describe('LendingMarketplace', () => {
     })
   })
 
-  describe('blockTimeStampInSeconds', () => {
-    it('returns the current block timestamp in seconds', async () => {
-      const timestamp = Date.now()
-      const testResult = await LendingMarketplace.tests.blockTimeStampInSeconds({
-        initialFields: marketplace.selfState.fields,
-        address: marketplace.address,
-        blockTimeStamp: timestamp
-      })
-      expect(testResult.returns).toEqual(BigInt(Math.floor(timestamp / 1000)))
-    })
-  })
-
   describe('widthdraw', () => {
     let withdrawer: PrivateKeyWallet
 
