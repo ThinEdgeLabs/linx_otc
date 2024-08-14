@@ -1,3 +1,5 @@
+const PRECISION_DECIMALS = 18
+
 Abstract Contract LendingMarketplaceUtils() {
 
   const Day = 86400
@@ -18,5 +20,15 @@ Abstract Contract LendingMarketplaceUtils() {
 
   pub fn calculateMarketplaceFee(amount: U256, feeRateValue: U256) -> U256 {
     return amount * feeRateValue / 10000
+  }
+
+  pub fn normalizeAmount(amount: U256, decimals: U256) -> U256 {
+    if (decimals > PRECISION_DECIMALS) {
+      return amount / (10 ** (decimals - PRECISION_DECIMALS))
+    } else if (decimals < PRECISION_DECIMALS) {
+      return amount * (10 ** (PRECISION_DECIMALS - decimals))
+    } else {
+      return amount
+    }
   }
 }
