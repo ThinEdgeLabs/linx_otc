@@ -31,4 +31,19 @@ Abstract Contract LendingMarketplaceUtils() {
       return amount
     }
   }
+
+  @using(checkExternalCaller = false)
+  pub fn calculateLTV(
+    collateralTokenAmount: U256,
+    collateralTokenPrice: TokenPrice,
+    borrowedTokenAmount: U256,
+    borrowedTokenPrice: TokenPrice
+  ) -> U256 {
+    let collateralPrice = normalizeAmount(collateralTokenPrice.price, collateralTokenPrice.decimals)
+    let borrowedPrice = normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+    let collateralValue = collateralTokenAmount * collateralPrice
+    let borrowedValue = borrowedTokenAmount * borrowedPrice
+
+    return collateralValue * 10 ** PRECISION_DECIMALS / borrowedValue
+  }
 }
