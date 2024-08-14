@@ -9,10 +9,10 @@ Contract TestOracle() implements IDiaOracle {
   }
 
   @using(preapprovedAssets = true, checkExternalCaller = false)
-  pub fn setPrice(pair: ByteVec, price: U256) -> () {
+  pub fn setPrice(pair: ByteVec, price: U256, timestamp: U256) -> () {
     if (pricesByPair.contains!(pair)) {
       pricesByPair.remove!(callerAddress!(), pair)
     }
-    pricesByPair.insert!(callerAddress!(), pair, Value { price: price, timestamp: blockTimeStamp!() })
+    pricesByPair.insert!(callerAddress!(), pair, Value { price: price, timestamp: timestamp })
   }
 }

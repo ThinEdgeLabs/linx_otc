@@ -130,6 +130,7 @@ export function createOracle(owner: string, oracleContractId?: string, contractI
       owner: owner,
       oracleContractId: oracleContractId ?? randomContractId(),
       upgradeDelay: 604800000n, // 1 week in milliseconds
+      heartbeatInterval: 86400000n, // 1 day in milliseconds
       newOwner: ZERO_ADDRESS,
       upgradeInitiated: 0n,
       newCode: '',

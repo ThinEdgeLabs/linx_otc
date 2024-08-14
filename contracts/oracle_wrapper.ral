@@ -3,8 +3,15 @@ struct PairInfo {
   decimals: U256   // The number of decimals for the pair, e.g. 8
 }
 
+struct TokenPrice {
+  price: U256,
+  timestamp: U256,
+  decimals: U256
+}
+
 Contract OracleWrapper(
   oracleContractId: ByteVec,       // The ID of the oracle contract from which we get the token prices
+  heartbeatInterval: U256,         // Interval in milliseconds to check the oracle health
   upgradeDelay: U256,
   mut owner: Address,
   mut newOwner: Address,
@@ -21,6 +28,7 @@ Contract OracleWrapper(
 
   enum ErrorCodes {
     InvalidTokenId = 0
+    StaleOracle = 1
   }
 
   @using(preapprovedAssets = true)
@@ -28,7 +36,9 @@ Contract OracleWrapper(
     assertOnlyOwner(callerAddress!())
     // Make sure the pair exists in the oracle
     let (_, _) = IDiaOracle(oracleContractId).getValue(pairInfo.symbol)
+
     pairsByBaseTokenId.insert!(callerAddress!(), tokenId, pairInfo)
+
     emit PairAdded(tokenId, pairInfo.symbol, pairInfo.decimals)
   }
 
@@ -39,10 +49,14 @@ Contract OracleWrapper(
   }
 
   @using(checkExternalCaller = false)
-  pub fn getTokenPrice(tokenId: ByteVec) -> (U256, U256, U256) {
+  pub fn getTokenPrice(tokenId: ByteVec) -> TokenPrice {
     assert!(pairsByBaseTokenId.contains!(tokenId), ErrorCodes.InvalidTokenId)
     let pairInfo = pairsByBaseTokenId[tokenId]
     let (price, timestamp) = IDiaOracle(oracleContractId).getValue(pairInfo.symbol)
-    return price, timestamp, pairInfo.decimals
+
+    // Make sure the price is not stale
+    assert!(timestamp > blockTimeStamp!() - heartbeatInterval, ErrorCodes.StaleOracle)
+
+    return TokenPrice { price: price, timestamp: timestamp, decimals: pairInfo.decimals }
   }
 }

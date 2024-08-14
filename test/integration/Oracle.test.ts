@@ -20,7 +20,7 @@ describe('Oracle', () => {
   beforeAll(async () => {
     owner = await getSigner(10n * ONE_ALPH, group)
     diaOracle = (await deployTestOracle(owner)).contractInstance
-    await setPrice(diaOracle, pairSymbol, expandTo18Decimals(66234), owner)
+    await setPrice(diaOracle, pairSymbol, expandTo18Decimals(66234), BigInt(Date.now()), owner)
     helper = new OracleHelper(owner)
     oracle = (await helper.deploy(diaOracle.contractId, owner)).contractInstance
   })
@@ -32,15 +32,25 @@ describe('Oracle', () => {
     expect(result.returns).toEqual(pairInfo)
   })
 
-  test('getTokenPrice', async () => {
-    const tokenId = randomContractId()
-    await helper.addPair(oracle.address, tokenId, pairInfo)
-    const result1 = await helper.getTokenPrice(oracle.address, tokenId)
-    expect(result1.returns[0]).toBe(expandTo18Decimals(66234))
+  describe('getTokenPrice', () => {
+    it('returns a TokenPrice struct', async () => {
+      const tokenId = randomContractId()
+      await helper.addPair(oracle.address, tokenId, pairInfo)
+      const result1 = await helper.getTokenPrice(oracle.address, tokenId)
+      expect(result1.returns.price).toBe(expandTo18Decimals(66234))
 
-    await setPrice(diaOracle, stringToHex('BTCUSD'), expandTo18Decimals(66300), owner)
-    const result2 = await helper.getTokenPrice(oracle.address, tokenId)
-    expect(result2.returns[0]).toBe(expandTo18Decimals(66300))
+      await setPrice(diaOracle, stringToHex('BTCUSD'), expandTo18Decimals(66300), BigInt(Date.now()), owner)
+      const result2 = await helper.getTokenPrice(oracle.address, tokenId)
+      expect(result2.returns.price).toBe(expandTo18Decimals(66300))
+    })
+
+    it('fails if the oracle data is stale', async () => {
+      const day = 24 * 60 * 60 * 1000
+      await setPrice(diaOracle, pairSymbol, expandTo18Decimals(66300), BigInt(Date.now() - day - 1), owner)
+      const tokenId = randomContractId()
+      await helper.addPair(oracle.address, tokenId, pairInfo)
+      await expect(helper.getTokenPrice(oracle.address, tokenId)).rejects.toThrow()
+    })
   })
 
   describe('addPair', () => {

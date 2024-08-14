@@ -108,9 +108,15 @@ export function deployTestOracle(signer: SignerProvider): Promise<DeployContract
   return TestOracle.deploy(signer, { initialFields: {} })
 }
 
-export async function setPrice(diaOracle: TestOracleInstance, pair: string, price: bigint, owner: PrivateKeyWallet) {
+export async function setPrice(
+  diaOracle: TestOracleInstance,
+  pair: string,
+  price: bigint,
+  timestamp: bigint,
+  owner: PrivateKeyWallet
+) {
   await diaOracle.transact.setPrice({
-    args: { pair, price },
+    args: { pair, price, timestamp },
     attoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
     signer: owner
   })

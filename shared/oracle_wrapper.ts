@@ -6,7 +6,7 @@ import {
   ZERO_ADDRESS
 } from '@alephium/web3'
 import { OracleWrapper, OracleWrapperInstance } from '../artifacts/ts'
-import { PairInfo } from '../artifacts/ts/types'
+import { PairInfo, TokenPrice } from '../artifacts/ts/types'
 
 export class OracleHelper {
   public contractId: string | undefined
@@ -25,6 +25,7 @@ export class OracleHelper {
       initialFields: {
         oracleContractId: diaOracleContractId,
         upgradeDelay: 604800000n, // 1 week
+        heartbeatInterval: 86400000n, // 1 day
         owner: owner,
         newOwner: ZERO_ADDRESS,
         upgradeInitiated: 0n,
@@ -49,7 +50,7 @@ export class OracleHelper {
     })
   }
 
-  async getTokenPrice(address: string, tokenId: string): Promise<CallContractResult<[bigint, bigint, bigint]>> {
+  async getTokenPrice(address: string, tokenId: string): Promise<CallContractResult<TokenPrice>> {
     return OracleWrapper.at(address).view.getTokenPrice({
       args: { tokenId }
     })
