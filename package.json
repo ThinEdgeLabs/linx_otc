@@ -1,5 +1,5 @@
 {
-  "name": "my-dapp-template",
+  "name": "linx_otc_contracts",
   "version": "0.1.0",
   "license": "GPL",
   "workspaces": [
@@ -21,24 +21,27 @@
     "test": "npx @alephium/cli test -v"
   },
   "dependencies": {
-    "@alephium/cli": "^1.2.0",
-    "@alephium/web3": "^1.2.0",
-    "@alephium/web3-test": "^1.2.0",
-    "@alephium/web3-wallet": "^1.2.0",
-    "bs58": "^5.0.0"
+    "@alephium/cli": "^1.5.1",
+    "@alephium/walletconnect-provider": "0.3.0",
+    "@alephium/web3": "^1.5.1",
+    "@alephium/web3-test": "^1.5.1",
+    "@alephium/web3-wallet": "^1.5.1",
+    "bs58": "^5.0.0",
+    "tailwindcss": "^2.0.4",
+    "vue-tsc": "2.0.29"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
     "@types/node": "^16.18.23",
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.57.0",
-    "eslint": "^8.37.0",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0",
+    "eslint": "^8.56.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "jest": "^28.1.0",
-    "ts-jest": "^28.0.2",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
     "ts-node": "^10.7.0",
-    "typescript": "~5.3.0"
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=14.0.0",
