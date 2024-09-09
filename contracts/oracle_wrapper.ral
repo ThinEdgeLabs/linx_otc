@@ -1,6 +1,6 @@
 struct PairInfo {
-  symbol: ByteVec, // The pair symbol, e.g. "BTCUSD"
-  decimals: U256   // The number of decimals for the pair, e.g. 8
+  symbol: ByteVec,                 // The pair symbol, e.g. "BTCUSD"
+  decimals: U256                   // The number of decimals for the pair, e.g. 8
 }
 
 struct TokenPrice {

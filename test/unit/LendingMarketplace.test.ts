@@ -96,12 +96,12 @@ async function updateFee(
   newFee: bigint,
   caller: PrivateKeyWallet
 ) {
-  return LendingMarketplace.tests.updateFeeRate({
+  return LendingMarketplace.tests.updateBorrowingFee({
     initialFields: marketplace.selfState.fields,
     address: marketplace.address,
     existingContracts: marketplace.dependencies,
     inputAssets: [{ address: caller.address, asset: { alphAmount: defaultGasFee } }],
-    testArgs: { value: newFee }
+    testArgs: { newFee }
   })
 }
 
@@ -254,7 +254,7 @@ describe('LendingMarketplace', () => {
 
   describe('updateFee', () => {
     it('marketplace fee is set', async () => {
-      const oldFee = marketplace.selfState.fields.feeRate
+      const oldFee = marketplace.selfState.fields.borrowingFee
       const newFee = 300n
       const testResult = await updateFee(marketplace, newFee, owner)
       const state = getContractState<LendingMarketplaceTypes.Fields>(
@@ -262,7 +262,7 @@ describe('LendingMarketplace', () => {
         marketplace.contractId
       )!.fields
       expect(oldFee).not.toEqual(newFee)
-      expect(state.feeRate).toEqual(newFee)
+      expect(state.borrowingFee).toEqual(newFee)
     })
     it('fails if not owner', async () => {
       const testResult = updateFee(marketplace, 300n, notOwner)
@@ -443,7 +443,7 @@ describe('LendingMarketplace', () => {
         borrower: ZERO_ADDRESS,
         canBeLiquidated: false,
         loanTimeStamp: 0n,
-        minimumLTV: 0n
+        maximumLTV: 0n
       })
       expect(contractBalanceOf(loanState, lendingTokenId)).toEqual(lendingAmount)
 

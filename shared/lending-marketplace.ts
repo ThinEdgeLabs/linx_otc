@@ -48,7 +48,7 @@ export class LendingMarketplaceHelper {
         canBeLiquidated: false,
         borrower: ZERO_ADDRESS,
         loanTimeStamp: 0n,
-        minimumLTV: 0n
+        maximumLTV: 0n
       }
     })
 
@@ -59,7 +59,8 @@ export class LendingMarketplaceHelper {
         loanTemplateId: loanDeployTx.contractInstance.contractId,
         oracleContractId,
         totalLoans: 0n,
-        feeRate: 100n,
+        borrowingFee: 100n,
+        liquidationFee: 300n,
         lendingEnabled: true,
         upgradeDelay: 604800000n, // 1 week
         owner: owner,

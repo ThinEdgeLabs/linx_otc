@@ -32,15 +32,10 @@ async function calculateLTV(
   ).returns
 }
 
-async function calculateLiquidationAmount(
-  collateralValue: bigint,
-  loanValue: bigint,
-  liquidationFee: bigint,
-  ltvTarget: bigint
-) {
+async function calculateLiquidationAmount(collateralValue: bigint, loanValue: bigint, fee: bigint, ltvTarget: bigint) {
   return (
     await TestLendingMarketplaceUtils.tests.calculateLiquidationAmount({
-      testArgs: { collateralValue, loanValue, liquidationFee, ltvTarget }
+      testArgs: { collateralValue, loanValue, fee, ltvTarget }
     })
   ).returns
 }
@@ -109,7 +104,7 @@ describe('LendingMarketplaceUtils', () => {
 
   describe('calculateLiquidationAmount', () => {
     it('should return the liquidation amount required to reach the LTV target', async () => {
-      // Unhealthy loan - liquidate 68.18% of the loan
+      // Unhealthy loan - liquidation amount < collateral value
       // L = 100, C = 110, F = 300 (3%), T = 8000 (80%)
       // LTV = L / C = 100 / 110 = 90.91% > 80%
       let loanValue = expandTo18Decimals(100n)
@@ -119,7 +114,7 @@ describe('LendingMarketplaceUtils', () => {
       let liquidationAmount = await calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, ltvTarget)
       expect(liquidationAmount).toEqual(68181818181818181818n)
 
-      // Unhealthy loan - liquidate 100% of the loan
+      // Unhealthy loan - liquidation amount > collateral value
       // L = 100, C = 100, F = 300 (3%), T = 8000 (80%)
       // LTV = L / C = 100 / 100 = 100% > 80%
       loanValue = expandTo18Decimals(100n)
@@ -127,7 +122,17 @@ describe('LendingMarketplaceUtils', () => {
       liquidationFee = expandTo18Decimals(300n)
       ltvTarget = expandTo18Decimals(8000n)
       liquidationAmount = await calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, ltvTarget)
-      expect(liquidationAmount).toEqual(100000000000000000000n)
+      expect(liquidationAmount).toEqual(113636363636363636363n)
+
+      // Unhealthy loan - liquidation amount = collateral value
+      // L = 107.36, C = 110, F = 300 (3%), T = 8000 (80%)
+      // LTV = L / C = 107.36 / 110 = 97.6% > 80%
+      loanValue = BigInt(107.36 * 10 ** 18)
+      collateralValue = expandTo18Decimals(110n)
+      liquidationFee = expandTo18Decimals(300n)
+      ltvTarget = expandTo18Decimals(8000n)
+      liquidationAmount = await calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, ltvTarget)
+      expect(liquidationAmount).toEqual(collateralValue)
     })
 
     it('should return 0 if the loan is healthy', async () => {

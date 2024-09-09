@@ -1,8 +1,9 @@
 Contract LendingMarketplace(
   loanTemplateId: ByteVec,    // Contract ID of the loan template
   oracleContractId: ByteVec,  // Contract ID of the oracle contract
+  liquidationFee: U256,       // Liquidation fee, in basis points
+  mut borrowingFee: U256,     // Fee rate for borrowing, in basis points
   mut totalLoans: U256,       // Total number of loans created
-  mut feeRate: U256,          // Fee rate for borrowing, in basis points
   mut lendingEnabled: Bool,   // Flag to enable or disable lending
   upgradeDelay: U256,
   mut owner: Address,
@@ -22,6 +23,7 @@ Contract LendingMarketplace(
   event LoanPaid(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanAccepted(loanId: ByteVec, by: Address, timestamp: U256)
   event LoanLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
+  event LoanPartiallyLiquidated(loanId: ByteVec, by: Address, timestamp: U256)
   event CollateralClaimed(loanId: ByteVec, by: Address, timestamp: U256)
 
   enum ErrorCodes {
@@ -40,7 +42,7 @@ Contract LendingMarketplace(
   }
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
-  pub fn getFeeRate() -> U256 { return feeRate }
+  pub fn getBorrowingFee() -> U256 { return borrowingFee }
   pub fn isFeeToken(tokenId: ByteVec) -> Bool { return feeTokens.contains!(tokenId) }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
@@ -74,6 +76,7 @@ Contract LendingMarketplace(
       interestRate,
       duration,
       canBeLiquidated,
+      //TODO: Set maximum LTV
       0,
       nullContractAddress!(),
       0
@@ -145,38 +148,50 @@ Contract LendingMarketplace(
 
   @using(preapprovedAssets = true, checkExternalCaller = false)
   pub fn liquidateLoan(loanId: ByteVec) -> () {
+    let caller = callerAddress!()
     let loan = Loan(loanId)
 
     assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
     assert!(loan.getCanBeLiquidated() == true, ErrorCodes.LoanNotLiquidatable)
 
-    let collateralTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(loan.getCollateralTokenId())
-    let borrowedTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(loan.getLendingTokenId())
-    let ltv = calculateLTV(loan.getCollateralAmount(), collateralTokenPrice, loan.getLendingAmount(), borrowedTokenPrice)
-    assert!(ltv < loan.getMinimumLTV(), ErrorCodes.LoanIsHealthy)
-
-    // Initial loan amount (L) = $100
-    // Current collateral value (C) = $110
-    // Target 1 / LTV = 1 / 80% = 125%
-    // Liquidation fee = 3% = 300 basis points
-    // X = value of collateral to liquidate
-    // New collateral value = C - X
-    // New loan amount = L - (1 - liquidation fee) * X
-    // Target LTV = (C - X) / (L - (1 - liquidation fee) * X)
-    // X =
-
-    // Calculate the amount of collateral that can be liquidated
-    // let collateralValue = loan.getCollateralAmount() * collateralPrice
-    // let loanAmount = loan.getLendingAmount()
-    // let liquidationFee = 300 // 3%
-    // let collateralToLiquidate = (loanAmount - (10000 - liquidationFee) * x) / (collateralValue - x) = loan.getMinimumLTV()
-    let collateralToLiquidate = 0
-    let amountToRepay = 0
-
     let lendingTokenId = loan.getLendingTokenId()
-    let caller = callerAddress!()
+    let collateralTokenId = loan.getCollateralTokenId()
+    let collateralAmount = loan.getCollateralAmount()
+    let lendingAmount = loan.getLendingAmount()
+    let interestAmount = loan.getInterest()
+    let maxLTV = loan.getMaximumLTV()
+
+    let collateralTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(collateralTokenId)
+    let borrowedTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(lendingTokenId)
+
+    let ltv = calculateLTV(collateralAmount, collateralTokenPrice, lendingAmount + interestAmount, borrowedTokenPrice)
+    assert!(ltv < maxLTV, ErrorCodes.LoanIsHealthy)
+
+    let collateralValue = collateralAmount * collateralTokenPrice.price
+    let loanValue = (lendingAmount + interestAmount) * borrowedTokenPrice.price
+    let liquidationAmount = calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, maxLTV)
+    assert!(liquidationAmount > 0, ErrorCodes.LoanIsHealthy)
+
+    let mut collateralToLiquidate = 0
+    let mut amountToRepay = 0
+    let mut liquidatorFee = liquidationAmount * liquidationFee / 10000
+    if (liquidationAmount >= collateralValue) {
+      // Entire collateral has to be liquidated
+      collateralToLiquidate = collateralAmount
+      // Since the liquidator fee is not already included in the liquidation amount,
+      // we need to subtract it from the amount to repay
+      liquidatorFee = collateralValue * liquidationFee / 10000
+      amountToRepay = (collateralValue - liquidatorFee) * 10 ** PRECISION_DECIMALS / normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+      emit LoanLiquidated(loanId, caller, blockTimeStamp!())
+    } else {
+      // Liquidate some of the collateral
+      amountToRepay = liquidationAmount * 10 ** PRECISION_DECIMALS / normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+      // Add the liquidator fee to the liquidation amount
+      collateralToLiquidate = (liquidationAmount + liquidatorFee) * 10 ** PRECISION_DECIMALS / normalizeAmount(collateralTokenPrice.price, collateralTokenPrice.decimals)
+      emit LoanPartiallyLiquidated(loanId, caller, blockTimeStamp!())
+    }
+
     loan.liquidate{ caller -> lendingTokenId: amountToRepay }(caller, amountToRepay, collateralToLiquidate)
-    emit LoanLiquidated(loanId, callerAddress!(), blockTimeStamp!())
   }
 
   //////////////////////////
@@ -184,10 +199,10 @@ Contract LendingMarketplace(
   //////////////////////////
 
   @using(updateFields = true)
-  pub fn updateFeeRate(value: U256) -> () {
+  pub fn updateBorrowingFee(newFee: U256) -> () {
     assertOnlyOwner(callerAddress!())
 
-    feeRate = value
+    borrowingFee = newFee
   }
 
   @using(updateFields = true)

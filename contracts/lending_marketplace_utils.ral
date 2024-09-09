@@ -18,8 +18,8 @@ Abstract Contract LendingMarketplaceUtils() {
     return calculateInterestPayment(days * Day, 0, amount, interest, days)
   }
 
-  pub fn calculateMarketplaceFee(amount: U256, feeRateValue: U256) -> U256 {
-    return amount * feeRateValue / 10000
+  pub fn calculateMarketplaceFee(amount: U256, feeRate: U256) -> U256 {
+    return amount * feeRate / 10000
   }
 
   pub fn normalizeAmount(amount: U256, decimals: U256) -> U256 {
@@ -32,7 +32,6 @@ Abstract Contract LendingMarketplaceUtils() {
     }
   }
 
-  @using(checkExternalCaller = false)
   pub fn calculateLTV(
     collateralTokenAmount: U256,
     collateralTokenPrice: TokenPrice,
@@ -47,15 +46,17 @@ Abstract Contract LendingMarketplaceUtils() {
     return collateralValue * 10 ** PRECISION_DECIMALS / borrowedValue
   }
 
-  // Calculate the amount of collateral to liquidate and pay back to reach the target LTV
-  // L - loan value, C - collateral value, F - liquidation fee, T - target LTV, X - liquidation amount
+  // Calculate the amount of collateral to liquidate to reach the target LTV
+  // L - loan value, C - collateral value, F - liquidation fee, X - liquidation amount
+  // L' - new loan value after liquidation
+  // C' - new collateral value after liquidation
   // LTV = L / C
-  // L' = L - X New loan value after liquidation
-  // C' = C - X - X * F New collateral value after liquidation
-  // T = L' / C' = (L - X) / (C - X - X * F)
+  // L' = L - X
+  // C' = C - X - X * F
+  // LTV' = L' / C' = (L - X) / (C - X - X * F)
   // We solve for X:
   // X = (L - T * C) / (1 - T * (1 + F))
-  pub fn calculateLiquidationAmount(collateralValue: U256, loanValue: U256, liquidationFee: U256, ltvTarget: U256) -> U256 {
+  pub fn calculateLiquidationAmount(collateralValue: U256, loanValue: U256, fee: U256, ltvTarget: U256) -> U256 {
     let precision = 10 ** PRECISION_DECIMALS
     let basisPoints = 10000
 
@@ -71,15 +72,9 @@ Abstract Contract LendingMarketplaceUtils() {
     let denominator = loanValue - ltvTarget * collateralValue / precision / basisPoints
 
     // Calculate numerator: (1 - T * (1 + F)
-    let numerator = 1 * precision - ltvTarget * (basisPoints * precision + liquidationFee) / precision / basisPoints / basisPoints
+    let numerator = 1 * precision - ltvTarget * (basisPoints * precision + fee) / precision / basisPoints / basisPoints
 
     // Calculate X
-    let liquidationAmount = denominator * precision / numerator
-
-    if (liquidationAmount > collateralValue) {
-      return collateralValue
-    } else {
-      return liquidationAmount
-    }
+    return denominator * precision / numerator
   }
 }

@@ -105,7 +105,7 @@ describe('LendingMarketplace', () => {
     })
     it('should create a loan that can be liquidated if oracle data is available for both tokens', async () => {
       const pairSymbol = stringToHex('TOKENAUSD')
-      await setPrice(diaOracle, pairSymbol, 10000000n, owner)
+      await setPrice(diaOracle, pairSymbol, 10000000n, BigInt(Date.now()), owner)
       await oracleHelper.addPair(oracle.address, lendingTokenId, { symbol: pairSymbol, decimals: 8n }, owner)
       const canBeLiquidated = true
       await expect(
@@ -121,7 +121,7 @@ describe('LendingMarketplace', () => {
         )
       ).rejects.toThrow()
       const alphPairSymbol = stringToHex('ALPHUSD')
-      await setPrice(diaOracle, alphPairSymbol, 20000000n, owner)
+      await setPrice(diaOracle, alphPairSymbol, 20000000n, BigInt(Date.now()), owner)
       await oracleHelper.addPair(oracle.address, ALPH_TOKEN_ID, { symbol: alphPairSymbol, decimals: 8n }, owner)
       const { txId } = await marketplaceHelper.createLoan(
         lender,
@@ -239,12 +239,12 @@ describe('LendingMarketplace', () => {
       const marketplaceBalanceBefore = await balanceOf(lendingTokenId, marketplaceInstance.address)
       await marketplaceHelper.borrow(borrower, txDetails.generatedOutputs[0].address, ALPH_TOKEN_ID, collateralAmount)
 
-      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getBorrowingFee()).returns
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
           args: {
             amount: lendingAmount,
-            feeRateValue: feeRate
+            feeRate: feeRate
           }
         })
       ).returns
@@ -276,12 +276,12 @@ describe('LendingMarketplace', () => {
       )
       const borrowTxDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
       const gasFee = BigInt(borrowTxDetails.unsigned.gasAmount) * BigInt(borrowTxDetails.unsigned.gasPrice)
-      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getBorrowingFee()).returns
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
           args: {
             amount: lendingAmount,
-            feeRateValue: feeRate
+            feeRate: feeRate
           }
         })
       ).returns
@@ -310,12 +310,12 @@ describe('LendingMarketplace', () => {
 
       const { txId } = await marketplaceHelper.borrow(borrower, loanAddress, collateralTokenId, collateralAmount)
 
-      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getFeeRate()).returns
+      const feeRate = (await LendingMarketplace.at(marketplaceInstance.address).view.getBorrowingFee()).returns
       const fee = (
         await LendingMarketplace.at(marketplaceInstance.address).view.calculateMarketplaceFee({
           args: {
             amount: lendingAmount,
-            feeRateValue: feeRate
+            feeRate: feeRate
           }
         })
       ).returns
@@ -328,6 +328,23 @@ describe('LendingMarketplace', () => {
         borrowerBalanceBefore - gasFee + lendingAmount - fee
       )
       expect(await balanceOf(collateralTokenId, loanAddress)).toEqual(collateralAmount)
+    })
+  })
+
+  describe('liquidate', () => {
+    test('attempting to liquidate a healthy loan fails', async () => {
+      const { txId } = await marketplaceHelper.createLoan(
+        lender,
+        lendingTokenId,
+        ALPH_TOKEN_ID,
+        lendingAmount,
+        collateralAmount,
+        interestRate,
+        duration
+      )
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const loanAddress = txDetails.generatedOutputs[0].address
+      //await expect(marketplaceHelper.liquidate(borrower, loanAddress)).rejects.toThrow(Error)
     })
   })
 

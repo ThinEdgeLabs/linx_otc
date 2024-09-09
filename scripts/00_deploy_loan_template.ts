@@ -21,7 +21,7 @@ const deployLoanTemplate: DeployFunction<Settings> = async (deployer: Deployer):
   })
   const contractId = result.contractInstance.contractId
   const contractAddress = result.contractInstance.address
-  console.log(`LendingOffer Template: ${contractAddress}, contract id: ${contractId}`)
+  console.log(`Loan Template: ${contractAddress}, contract id: ${contractId}`)
 }
 
 export default deployLoanTemplate

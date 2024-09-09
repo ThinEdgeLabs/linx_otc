@@ -49,7 +49,8 @@ export function createLoan(
   contractId?: string,
   loanTimeStamp?: bigint,
   asset?: Asset,
-  marketContractFixture?: ContractFixture<LendingMarketplaceTypes.Fields>
+  marketContractFixture?: ContractFixture<LendingMarketplaceTypes.Fields>,
+  maximumLTV?: bigint
 ) {
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
   const contractState = Loan.stateForTest(
@@ -66,7 +67,7 @@ export function createLoan(
       canBeLiquidated: false,
       borrower: borrower ?? ZERO_ADDRESS,
       loanTimeStamp: loanTimeStamp ?? 0n,
-      minimumLTV: 0n
+      maximumLTV: maximumLTV ?? 0n
     },
     asset,
     address
@@ -86,7 +87,8 @@ export function createLendingMarketplace(
     {
       loanTemplateId: loanTemplate.contractId,
       totalLoans: 0n,
-      feeRate: feeRate ?? 100n,
+      borrowingFee: feeRate ?? 100n,
+      liquidationFee: 300n,
       lendingEnabled: lendingEnabled ?? true,
       oracleContractId: randomContractId(),
       upgradeDelay: 604800000n, // 1 week in milliseconds

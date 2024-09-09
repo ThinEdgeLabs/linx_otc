@@ -9,7 +9,7 @@ Contract Loan(
   interestRate: U256,                    // in basis points
   duration: U256,                        // Duration of the loan, in days
   canBeLiquidated: Bool,                 // Whether the loan can be automatically liquidated or not
-  minimumLTV: U256,                      // Minimum LTV ratio that has to be maintained to prevent liquidation
+  maximumLTV: U256,                      // LTV threshold above which the loan can be liquidated
   mut borrower: Address,                 // Borrower address
   mut loanTimeStamp: U256                // Timestamp when the loan started
 ) extends LendingMarketplaceUtils() {
@@ -29,7 +29,7 @@ Contract Loan(
   pub fn getCollateralAmount() -> U256 { return collateralAmount }
   pub fn getLoanTimeStamp() -> U256 { return loanTimeStamp }
   pub fn getDuration() -> U256 { return duration }
-  pub fn getMinimumLTV() -> U256 { return minimumLTV }
+  pub fn getMaximumLTV() -> U256 { return maximumLTV }
   pub fn getCanBeLiquidated() -> Bool { return canBeLiquidated }
 
   // Returns the interest amount owed by the borrower
@@ -46,7 +46,7 @@ Contract Loan(
     assert!(borrower == nullContractAddress!(), ErrorCodes.LoanIsActive)
 
     let marketplace = LendingMarketplace(marketplaceContractId)
-    let marketplaceFee = calculateMarketplaceFee(lendingAmount, marketplace.getFeeRate())
+    let marketplaceFee = calculateMarketplaceFee(lendingAmount, marketplace.getBorrowingFee())
     let mut receivedAmount = lendingAmount
 
     if (marketplace.isFeeToken(lendingTokenId)) {
