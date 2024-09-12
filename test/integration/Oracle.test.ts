@@ -3,7 +3,7 @@ import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { OracleWrapper, OracleWrapperInstance, TestOracleInstance } from '../../artifacts/ts'
 import { deployTestOracle, expandTo18Decimals, getEventByTxId, setPrice } from '../../shared/utils'
-import { OracleHelper } from '../../shared/oracle_wrapper'
+import { OracleHelper } from '../../shared/oracle_helper'
 
 describe('Oracle', () => {
   let owner: PrivateKeyWallet
