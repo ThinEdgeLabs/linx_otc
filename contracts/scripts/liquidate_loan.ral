@@ -1,3 +1,27 @@
-TxScript LiquidateLoan(marketplace: LendingMarketplace, loanId: ByteVec) {
-  marketplace.liquidateLoan(loanId)
+TxScript LiquidateLoan(marketplace: LendingMarketplace, loanId: ByteVec, amount: U256) {
+  let loan = Loan(loanId)
+  let lendingTokenId = loan.getLendingTokenId()
+  // let collateralTokenId = loan.getCollateralTokenId()
+  // let collateralAmount = loan.getCollateralAmount()
+  // let lendingAmount = loan.getLendingAmount()
+  // let interestAmount = loan.getInterest()
+  // let maximumLTV = loan.getMaximumLTV()
+  // let oracleContractId = marketplace.getOracleContractId()
+  // let liquidationFee = marketplace.getLiquidationFee()
+
+  // // Get the collateral and borrowed token prices
+  // let collateralTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(collateralTokenId)
+  // let borrowedTokenPrice = OracleWrapper(oracleContractId).getTokenPrice(lendingTokenId)
+
+  // // Calculate the collateral and loan value
+  // let collateralValue = collateralAmount * collateralTokenPrice.price
+  // let loanValue = (lendingAmount + interestAmount) * borrowedTokenPrice.price
+
+  // // Calculate the liquidation amount
+  // let liquidationAmount = marketplace.calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, maximumLTV)
+
+  // // Convert the liquidation amount to the correct token amount
+  // let amountToRepay = liquidationAmount * 10 ** 18 / marketplace.normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+
+  marketplace.liquidateLoan{ callerAddress!() -> lendingTokenId: amount }(loanId)
 }

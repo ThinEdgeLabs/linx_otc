@@ -43,7 +43,9 @@ Contract LendingMarketplace(
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
   pub fn getBorrowingFee() -> U256 { return borrowingFee }
+  pub fn getLiquidationFee() -> U256 { return liquidationFee }
   pub fn isFeeToken(tokenId: ByteVec) -> Bool { return feeTokens.contains!(tokenId) }
+  pub fn getOracleContractId() -> ByteVec { return oracleContractId }
 
   @using(preapprovedAssets = true, checkExternalCaller = false, updateFields = true)
   pub fn createLoan(lendingTokenId: ByteVec, collateralTokenId: ByteVec, lendingAmount: U256, collateralAmount: U256, interestRate: U256, duration: U256, canBeLiquidated: Bool) -> (Address) {
@@ -63,8 +65,10 @@ Contract LendingMarketplace(
     let _ = calculateTotalInterestPayment(lendingAmount, interestRate, duration)
 
     let lender = callerAddress!()
-    let key = toByteVec!(totalLoans)
     let id = totalLoans
+    // TODO: This value should vary depending on the collateral
+    // e.g. max LTV for wBTC is greater than max LTV for ALPH
+    let maximumLTV = 8000 * 10 ** 18 // 80%
     let (encodeImmutableFields, encodeMutableFields) = Loan.encodeFields!(
       id,
       lender,
@@ -76,13 +80,12 @@ Contract LendingMarketplace(
       interestRate,
       duration,
       canBeLiquidated,
-      //TODO: Set maximum LTV
-      0,
+      maximumLTV,
       nullContractAddress!(),
       0
     )
     let loanId = copyCreateSubContract!{lender -> ALPH: minimalContractDeposit!(), lendingTokenId: lendingAmount}(
-      key, loanTemplateId, encodeImmutableFields, encodeMutableFields
+      toByteVec!(totalLoans), loanTemplateId, encodeImmutableFields, encodeMutableFields
     )
     totalLoans = totalLoans + 1
 

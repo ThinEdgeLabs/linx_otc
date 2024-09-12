@@ -170,13 +170,25 @@ export class LendingMarketplaceHelper {
     })
   }
 
-  async liquidateLoan(signer: SignerProvider, loanId: string): Promise<ExecuteScriptResult> {
+  async liquidateLoan(
+    signer: SignerProvider,
+    loanId: string,
+    tokenId: string,
+    amount: bigint
+  ): Promise<ExecuteScriptResult> {
     return LiquidateLoan.execute(signer, {
       initialFields: {
         loanId,
-        marketplace: this.contractId!
+        marketplace: this.contractId!,
+        amount
       },
-      attoAlphAmount: DUST_AMOUNT
+      attoAlphAmount: DUST_AMOUNT,
+      tokens: [
+        {
+          id: tokenId,
+          amount
+        }
+      ]
     })
   }
 
