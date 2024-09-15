@@ -1,5 +1,6 @@
 import {
   ALPH_TOKEN_ID,
+  DUST_AMOUNT,
   MINIMAL_CONTRACT_DEPOSIT,
   NodeProvider,
   SignerProvider,
@@ -102,8 +103,6 @@ describe('LendingMarketplace', () => {
   const group = 0
   const lendingAmount = expandTo18Decimals(10n)
   const collateralAmount = expandTo18Decimals(20n)
-  const interestRate = 1000n // 10%
-  const duration = 30n // 30 days
   const initialAlphBalance = expandTo18Decimals(200n)
   const initialTokenBalance = expandTo18Decimals(1000n)
   const alphUsdPair = stringToHex('ALPHUSD')
@@ -309,23 +308,68 @@ describe('LendingMarketplace', () => {
       const error = 'Error Code: 10' // LoanIsHealthy
       await expect(promise).rejects.toThrow(error)
     })
-    test('loan is partially liquidated', async () => {
+
+    test('borrow USDT against ALPH loan is partially liquidated', async () => {
       // Given
+      const usdtPrice = BigInt(1 * 10 ** 8)
+      const alphPrice = BigInt(0.6 * 10 ** 8)
       const canBeLiquidated = true
       const loanAddress = await createLoan(marketplaceHelper, lender, lendingTokenId, ALPH_TOKEN_ID, canBeLiquidated)
       await borrow(marketplaceHelper, borrower, loanAddress)
-      console.log(`Collateral amount: ${collateralAmount}`)
-      console.log(`Borrowed amount: ${lendingAmount}`)
-      await setPrice(diaOracle, alphUsdPair, BigInt(0.6 * 10 ** 8), BigInt(Date.now()), owner)
-      await setPrice(diaOracle, usdtUsdPair, BigInt(1 * 10 ** 8), BigInt(Date.now()), owner)
+      await setPrice(diaOracle, alphUsdPair, alphPrice, BigInt(Date.now()), owner)
+      await setPrice(diaOracle, usdtUsdPair, usdtPrice, BigInt(Date.now()), owner)
+      const alphBalanceBefore = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
+      const usdtBalanceBefore = await balanceOf(lendingTokenId, lender.address)
 
       // When
-      const repayAmount = lendingAmount
-      // TODO: Required repay amount is not correct
-      const promise = liquidateLoan(marketplaceHelper, liquidator, loanAddress, repayAmount)
+      const repayAmount = 7954545454545454545n // in USDT
+      const liquidatedCollateral = 13655303030303030301n // in ALPH, including fee
+      const { txId } = await liquidateLoan(marketplaceHelper, liquidator, loanAddress, repayAmount)
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const gasFee = BigInt(txDetails.unsigned.gasAmount) * BigInt(txDetails.unsigned.gasPrice)
 
       // Then
-      await promise
+      // Loan collateral is updated
+      expect((await Loan.at(loanAddress).view.getCollateralAmount()).returns).toEqual(
+        collateralAmount - liquidatedCollateral
+      )
+      // Borrowed amount is updated
+      expect((await Loan.at(loanAddress).view.getLendingAmount()).returns).toEqual(lendingAmount - repayAmount)
+      // Liquidator receives collateral
+      const alphBalanceAfter = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
+      expect(alphBalanceAfter).toEqual(alphBalanceBefore + liquidatedCollateral - gasFee - DUST_AMOUNT)
+      // Lender is repaid
+      const usdtBalanceAfter = await balanceOf(lendingTokenId, lender.address)
+      expect(usdtBalanceAfter).toEqual(usdtBalanceBefore + repayAmount)
+    })
+
+    test('loan is completely liquidated', async () => {
+      const usdtPrice = BigInt(1 * 10 ** 8)
+      const alphPrice = BigInt(0.45 * 10 ** 8)
+      const canBeLiquidated = true
+      const loanAddress = await createLoan(marketplaceHelper, lender, lendingTokenId, ALPH_TOKEN_ID, canBeLiquidated)
+      await borrow(marketplaceHelper, borrower, loanAddress)
+      await setPrice(diaOracle, alphUsdPair, alphPrice, BigInt(Date.now()), owner)
+      await setPrice(diaOracle, usdtUsdPair, usdtPrice, BigInt(Date.now()), owner)
+      const alphBalanceBefore = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
+      const usdtBalanceBefore = await balanceOf(lendingTokenId, lender.address)
+
+      // When
+      const repayAmount = 8730000000000000000n // in USDT
+      const liquidatedCollateral = 20000000000000000000n // in ALPH, including fee
+      const { txId } = await liquidateLoan(marketplaceHelper, liquidator, loanAddress, repayAmount)
+      const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
+      const gasFee = BigInt(txDetails.unsigned.gasAmount) * BigInt(txDetails.unsigned.gasPrice)
+
+      // Then
+      // Loan is destroyed
+      await expect(new LoanInstance(loanAddress).fetchState()).rejects.toThrow(Error)
+      // // Liquidator receives collateral
+      const alphBalanceAfter = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
+      expect(alphBalanceAfter).toEqual(alphBalanceBefore + liquidatedCollateral - gasFee - DUST_AMOUNT)
+      // Lender is repaid
+      const usdtBalanceAfter = await balanceOf(lendingTokenId, lender.address)
+      expect(usdtBalanceAfter).toEqual(usdtBalanceBefore + repayAmount)
     })
   })
 

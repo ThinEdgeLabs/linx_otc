@@ -170,31 +170,38 @@ Contract LendingMarketplace(
     let ltv = calculateLTV(collateralAmount, collateralTokenPrice, lendingAmount + interestAmount, borrowedTokenPrice)
     assert!(ltv < maxLTV, ErrorCodes.LoanIsHealthy)
 
-    let collateralValue = collateralAmount * collateralTokenPrice.price
-    let loanValue = (lendingAmount + interestAmount) * borrowedTokenPrice.price
+    let collateralPrice = normalizeAmount(collateralTokenPrice.price, collateralTokenPrice.decimals)
+    let borrowedPrice = normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+
+    let collateralValue = collateralAmount * collateralPrice / 10 ** PRECISION_DECIMALS
+    let loanValue = (lendingAmount + interestAmount) * borrowedPrice / 10 ** PRECISION_DECIMALS
+
+    // In usd
     let liquidationAmount = calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, maxLTV)
     assert!(liquidationAmount > 0, ErrorCodes.LoanIsHealthy)
 
     let mut collateralToLiquidate = 0
     let mut amountToRepay = 0
-    let mut liquidatorFee = liquidationAmount * liquidationFee / 10000
-    if (liquidationAmount >= collateralValue) {
+    let mut liquidatorFee = 0
+
+    if (liquidationAmount < collateralValue) {
+      // Partial liquidation
+      amountToRepay = liquidationAmount * 10 ** PRECISION_DECIMALS / normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
+      liquidatorFee = liquidationAmount * liquidationFee / 10 ** PRECISION_DECIMALS / 10000
+      // Add the liquidator fee to the liquidation amount
+      collateralToLiquidate = (liquidationAmount + liquidatorFee) * 10 ** PRECISION_DECIMALS / normalizeAmount(collateralTokenPrice.price, collateralTokenPrice.decimals)
+      emit LoanPartiallyLiquidated(loanId, caller, blockTimeStamp!())
+    } else {
       // Entire collateral has to be liquidated
       collateralToLiquidate = collateralAmount
       // Since the liquidator fee is not already included in the liquidation amount,
       // we need to subtract it from the amount to repay
-      liquidatorFee = collateralValue * liquidationFee / 10000
+      liquidatorFee = collateralValue * liquidationFee / 10 ** PRECISION_DECIMALS / 10000
       amountToRepay = (collateralValue - liquidatorFee) * 10 ** PRECISION_DECIMALS / normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
       emit LoanLiquidated(loanId, caller, blockTimeStamp!())
-    } else {
-      // Liquidate some of the collateral
-      amountToRepay = liquidationAmount * 10 ** PRECISION_DECIMALS / normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
-      // Add the liquidator fee to the liquidation amount
-      collateralToLiquidate = (liquidationAmount + liquidatorFee) * 10 ** PRECISION_DECIMALS / normalizeAmount(collateralTokenPrice.price, collateralTokenPrice.decimals)
-      emit LoanPartiallyLiquidated(loanId, caller, blockTimeStamp!())
     }
 
-    loan.liquidate{ caller -> lendingTokenId: amountToRepay }(caller, amountToRepay, collateralToLiquidate)
+    loan.liquidate{ caller -> lendingTokenId: amountToRepay, ALPH: dustAmount!() }(caller, amountToRepay, collateralToLiquidate)
   }
 
   //////////////////////////

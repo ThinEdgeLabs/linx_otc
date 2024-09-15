@@ -20,7 +20,7 @@ import {
   RemoveFeeToken,
   ClaimCollateral
 } from '../artifacts/ts'
-import { randomContractId } from './utils'
+import { expandTo18Decimals, randomContractId } from './utils'
 
 export class LendingMarketplaceHelper {
   public contractId: string | undefined
@@ -60,7 +60,7 @@ export class LendingMarketplaceHelper {
         oracleContractId,
         totalLoans: 0n,
         borrowingFee: 100n,
-        liquidationFee: 300n,
+        liquidationFee: expandTo18Decimals(300n),
         lendingEnabled: true,
         upgradeDelay: 604800000n, // 1 week
         owner: owner,

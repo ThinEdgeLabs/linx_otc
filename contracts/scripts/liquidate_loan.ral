@@ -23,5 +23,5 @@ TxScript LiquidateLoan(marketplace: LendingMarketplace, loanId: ByteVec, amount:
   // // Convert the liquidation amount to the correct token amount
   // let amountToRepay = liquidationAmount * 10 ** 18 / marketplace.normalizeAmount(borrowedTokenPrice.price, borrowedTokenPrice.decimals)
 
-  marketplace.liquidateLoan{ callerAddress!() -> lendingTokenId: amount }(loanId)
+  marketplace.liquidateLoan{ callerAddress!() -> ALPH: dustAmount!(), lendingTokenId: amount }(loanId)
 }

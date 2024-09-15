@@ -133,6 +133,13 @@ describe('LendingMarketplaceUtils', () => {
       ltvTarget = expandTo18Decimals(8000n)
       liquidationAmount = await calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, ltvTarget)
       expect(liquidationAmount).toEqual(collateralValue)
+
+      loanValue = expandTo18Decimals(11)
+      collateralValue = expandTo18Decimals(12)
+      liquidationFee = expandTo18Decimals(300)
+      ltvTarget = expandTo18Decimals(8000n)
+      liquidationAmount = await calculateLiquidationAmount(collateralValue, loanValue, liquidationFee, ltvTarget)
+      expect(liquidationAmount).toEqual(7954545454545454545n)
     })
 
     it('should return 0 if the loan is healthy', async () => {
