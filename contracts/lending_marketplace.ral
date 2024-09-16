@@ -38,7 +38,7 @@ Contract LendingMarketplace(
     LoanNotActive = 8
     LoanNotOverdue = 9
     LoanIsHealthy = 10
-    LoanNotLiquidatable = 11
+    LoanCannotBeLiquidated = 11
   }
 
   pub fn getTotalLoans() -> U256 { return totalLoans }
@@ -155,7 +155,7 @@ Contract LendingMarketplace(
     let loan = Loan(loanId)
 
     assert!(loan.isActive() == true, ErrorCodes.LoanNotActive)
-    assert!(loan.getCanBeLiquidated() == true, ErrorCodes.LoanNotLiquidatable)
+    assert!(loan.canBeLiquidated() == true, ErrorCodes.LoanCannotBeLiquidated)
 
     let lendingTokenId = loan.getLendingTokenId()
     let collateralTokenId = loan.getCollateralTokenId()

@@ -30,7 +30,7 @@ Contract Loan(
   pub fn getLoanTimeStamp() -> U256 { return loanTimeStamp }
   pub fn getDuration() -> U256 { return duration }
   pub fn getMaximumLTV() -> U256 { return maximumLTV }
-  pub fn getCanBeLiquidated() -> Bool { return canBeLiquidated }
+  pub fn canBeLiquidated() -> Bool { return canBeLiquidated }
 
   // Returns the interest amount owed by the borrower
   pub fn getInterest() -> U256 { return lendingAmount * interestRate / 10000 }

@@ -291,7 +291,7 @@ describe('LendingMarketplace', () => {
       const promise = liquidateLoan(marketplaceHelper, liquidator, loanAddress, repayAmount)
 
       // Then
-      const error = 'Error Code: 11' // LoanNotLiquidatable
+      const error = 'Error Code: 11' // LoanCannotBeLiquidated
       await expect(promise).rejects.toThrow(error)
     })
     test('fails if the loan is healthy', async () => {
