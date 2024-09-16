@@ -20,7 +20,7 @@ import {
   RemoveFeeToken,
   ClaimCollateral
 } from '../artifacts/ts'
-import { expandTo18Decimals, randomContractId } from './utils'
+import { randomContractId } from './utils'
 
 export class LendingMarketplaceHelper {
   public contractId: string | undefined
@@ -43,6 +43,7 @@ export class LendingMarketplaceHelper {
         marketplaceContractId: ZERO_ADDRESS,
         lendingAmount: 0n,
         collateralAmount: 0n,
+        outstandingDebt: 0n,
         interestRate: 0n,
         duration: 0n,
         canBeLiquidated: false,

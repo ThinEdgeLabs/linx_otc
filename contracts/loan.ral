@@ -4,8 +4,9 @@ Contract Loan(
   lendingTokenId: ByteVec,               // Contract ID of the borrowed token
   collateralTokenId: ByteVec,            // Contract ID of the collateral token
   marketplaceContractId: ByteVec,        // Contract ID of the marketplace contract
-  mut lendingAmount: U256,               // Loan amount
+  lendingAmount: U256,                   // Loan amount
   mut collateralAmount: U256,            // Collateral amount
+  mut outstandingDebt: U256,             // Outstanding debt
   interestRate: U256,                    // in basis points
   duration: U256,                        // Duration of the loan, in days
   canBeLiquidated: Bool,                 // Whether the loan can be automatically liquidated or not
@@ -27,6 +28,7 @@ Contract Loan(
   pub fn getCollateralTokenId() -> ByteVec { return collateralTokenId }
   pub fn getLendingAmount() -> U256 { return lendingAmount }
   pub fn getCollateralAmount() -> U256 { return collateralAmount }
+  pub fn getOutstandingDebt() -> U256 { return outstandingDebt }
   pub fn getLoanTimeStamp() -> U256 { return loanTimeStamp }
   pub fn getDuration() -> U256 { return duration }
   pub fn getMaximumLTV() -> U256 { return maximumLTV }
@@ -37,8 +39,6 @@ Contract Loan(
 
   // Returns whether the loan is active or not
   pub fn isActive() -> Bool { return borrower != nullContractAddress!() && loanTimeStamp != 0 }
-
-  pub fn getLTVRatio(collateralPrice: U256) -> U256 { return collateralAmount * collateralPrice / lendingAmount }
 
   @using(assetsInContract = true, preapprovedAssets = true, updateFields = true)
   pub fn borrow(caller: Address) -> () {
@@ -56,6 +56,7 @@ Contract Loan(
 
     loanTimeStamp = blockTimeStampInSeconds()
     borrower = caller
+    outstandingDebt = lendingAmount + getInterest()
 
     transferTokenToSelf!(borrower, collateralTokenId, collateralAmount)
     transferTokenFromSelf!(borrower, lendingTokenId, receivedAmount)
@@ -72,8 +73,7 @@ Contract Loan(
   pub fn repay() -> () {
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
-    let interest = getInterest()
-    transferToken!(borrower, lender, lendingTokenId, lendingAmount + interest)
+    transferToken!(borrower, lender, lendingTokenId, outstandingDebt)
     transferTokenFromSelf!(borrower, collateralTokenId, collateralAmount)
 
     destroySelf!(lender)
@@ -84,7 +84,7 @@ Contract Loan(
     checkCaller!(callerContractId!() == marketplaceContractId, ErrorCodes.MarketplaceAllowedOnly)
 
     // Update state
-    lendingAmount = lendingAmount - amountToRepay
+    outstandingDebt = outstandingDebt - amountToRepay
     collateralAmount = collateralAmount - amountToLiquidate
 
     // Transfer dust to lender if lending token is not ALPH

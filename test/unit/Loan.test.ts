@@ -227,6 +227,7 @@ describe('Loan', () => {
     })
 
     it('borrower provides collateral and receives the amount', async () => {
+      // Given
       const blockTimeStamp = Date.now()
       const loanTimeStamp = BigInt(Math.floor(blockTimeStamp / 1000))
       const inputAssets = [
@@ -238,15 +239,18 @@ describe('Loan', () => {
           }
         }
       ]
+
+      // When
       const testResult = await borrow(fixture, borrower, inputAssets, undefined, undefined, blockTimeStamp)
 
+      // Then
       expect(fixture.selfState.fields.loanTimeStamp).toBe(0n)
       const state = getContractState<LoanTypes.Fields>(testResult.contracts, fixture.contractId)
       expect(state.fields.borrower).toEqual(borrower.address)
       expect(state.fields.loanTimeStamp).toEqual(loanTimeStamp)
+      expect(state.fields.outstandingDebt).toEqual(lendingAmount + (state.fields.interestRate * lendingAmount) / 10000n)
       expect(contractBalanceOf(state, lendingTokenId)).toEqual(0n)
       expect(contractBalanceOf(state, collateralTokenId)).toEqual(collateralAmount)
-
       const output = getOutput(testResult.txOutputs, 'AssetOutput', borrower.address)
       expect(output.tokens?.find((t) => t.id === lendingTokenId)?.amount).toEqual(lendingAmount)
     })

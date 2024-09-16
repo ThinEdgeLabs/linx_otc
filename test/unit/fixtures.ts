@@ -52,6 +52,8 @@ export function createLoan(
   marketContractFixture?: ContractFixture<LendingMarketplaceTypes.Fields>,
   maximumLTV?: bigint
 ) {
+  lendingAmount = lendingAmount ?? expandTo18Decimals(1000n)
+  interestRate = interestRate ?? 2000n
   const address = contractId ? addressFromContractId(contractId) : randomContractAddress()
   const contractState = Loan.stateForTest(
     {
@@ -60,9 +62,10 @@ export function createLoan(
       lendingTokenId: lendingTokenId ?? '',
       collateralTokenId: collateralTokenId ?? '',
       marketplaceContractId: marketplaceContractId ?? ZERO_ADDRESS,
-      lendingAmount: lendingAmount ?? expandTo18Decimals(1000n),
+      lendingAmount: lendingAmount,
       collateralAmount: collateralAmount ?? expandTo18Decimals(2000n),
-      interestRate: interestRate ?? 2000n,
+      outstandingDebt: borrower ? lendingAmount + (interestRate * lendingAmount) / 10000n : 0n,
+      interestRate: interestRate,
       duration: duration ?? 30n,
       canBeLiquidated: false,
       borrower: borrower ?? ZERO_ADDRESS,

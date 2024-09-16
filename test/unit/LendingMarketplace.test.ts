@@ -443,7 +443,8 @@ describe('LendingMarketplace', () => {
         borrower: ZERO_ADDRESS,
         canBeLiquidated: false,
         loanTimeStamp: 0n,
-        maximumLTV: 8000n
+        maximumLTV: 8000n,
+        outstandingDebt: 0n
       })
       expect(contractBalanceOf(loanState, lendingTokenId)).toEqual(lendingAmount)
 

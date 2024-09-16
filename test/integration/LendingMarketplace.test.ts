@@ -341,8 +341,11 @@ describe('LendingMarketplace', () => {
       expect((await Loan.at(loanAddress).view.getCollateralAmount()).returns).toEqual(
         collateralAmount - liquidatedCollateral
       )
-      // Borrowed amount is updated
-      expect((await Loan.at(loanAddress).view.getLendingAmount()).returns).toEqual(lendingAmount - repayAmount)
+      // Outstanding debt is updated
+      const interest = (await Loan.at(loanAddress).view.getInterest()).returns
+      expect((await Loan.at(loanAddress).view.getOutstandingDebt()).returns).toEqual(
+        lendingAmount + interest - repayAmount
+      )
       // Liquidator receives collateral
       const alphBalanceAfter = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
       expect(alphBalanceAfter).toEqual(alphBalanceBefore + liquidatedCollateral - gasFee - DUST_AMOUNT)
