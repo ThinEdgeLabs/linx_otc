@@ -60,7 +60,7 @@ export class LendingMarketplaceHelper {
         oracleContractId,
         totalLoans: 0n,
         borrowingFee: 100n,
-        liquidationFee: expandTo18Decimals(300n),
+        liquidationFee: 300n,
         lendingEnabled: true,
         upgradeDelay: 604800000n, // 1 week
         owner: owner,

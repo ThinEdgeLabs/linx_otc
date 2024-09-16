@@ -43,7 +43,7 @@ Abstract Contract LendingMarketplaceUtils() {
     let collateralValue = collateralTokenAmount * collateralPrice
     let borrowedValue = borrowedTokenAmount * borrowedPrice
 
-    return collateralValue * 10 ** PRECISION_DECIMALS / borrowedValue
+    return borrowedValue * 10000 / collateralValue
   }
 
   // Calculate the amount of collateral to liquidate to reach the target LTV
@@ -57,24 +57,23 @@ Abstract Contract LendingMarketplaceUtils() {
   // We solve for X:
   // X = (L - T * C) / (1 - T * (1 + F))
   pub fn calculateLiquidationAmount(collateralValue: U256, loanValue: U256, fee: U256, ltvTarget: U256) -> U256 {
-    let precision = 10 ** PRECISION_DECIMALS
     let basisPoints = 10000
 
     // If the LTV is already healthy, return 0
     // LTV >= L / C
     // LTV * C >= L
     // L <= LTV * C
-    if (loanValue * basisPoints <= ltvTarget * collateralValue / precision) {
+    if (loanValue * basisPoints <= ltvTarget * collateralValue) {
       return 0
     }
 
     // Calculate denominator: (L - T * C)
-    let denominator = loanValue - ltvTarget * collateralValue / precision / basisPoints
+    let denominator = loanValue - ltvTarget * collateralValue / basisPoints
 
     // Calculate numerator: (1 - T * (1 + F)
-    let numerator = 1 * precision - ltvTarget * (basisPoints * precision + fee) / precision / basisPoints / basisPoints
+    let numerator = basisPoints - ltvTarget * (basisPoints + fee) / basisPoints
 
     // Calculate X
-    return denominator * precision / numerator
+    return denominator * basisPoints / numerator
   }
 }

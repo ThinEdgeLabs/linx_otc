@@ -38,7 +38,7 @@ async function createLoan(
   lendingTokenId: string,
   collateralTokenId: string,
   canBeLiquidated: boolean,
-  maximumLTV: bigint = expandTo18Decimals(8000),
+  maximumLTV: bigint = 8000n,
   lendingAmount: bigint = expandTo18Decimals(10),
   collateralAmount: bigint = expandTo18Decimals(20),
   interestRate: bigint = 1000n,
@@ -295,6 +295,10 @@ describe('LendingMarketplace', () => {
       await expect(promise).rejects.toThrow(error)
     })
     test('fails if the loan is healthy', async () => {
+      // ALPH/USD = 1.5, USDT/USD = 1.01
+      // Borrow 10 USDT, Collateral 20 ALPH
+      // LTV = 33.6%, Max LTV = 80%
+
       // Given
       const canBeLiquidated = true
       const loanAddress = await createLoan(marketplaceHelper, lender, lendingTokenId, ALPH_TOKEN_ID, canBeLiquidated)
@@ -310,6 +314,10 @@ describe('LendingMarketplace', () => {
     })
 
     test('borrow USDT against ALPH loan is partially liquidated', async () => {
+      // ALPH/USD = 0.6, USDT/USD = 1
+      // Borrow 10 USDT, Collateral 20 ALPH
+      // LTV = 83.3%, Max LTV = 80%
+
       // Given
       const usdtPrice = BigInt(1 * 10 ** 8)
       const alphPrice = BigInt(0.6 * 10 ** 8)
