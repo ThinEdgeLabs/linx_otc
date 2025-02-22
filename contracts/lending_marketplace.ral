@@ -1,6 +1,6 @@
 Contract LendingMarketplace(
   loanTemplateId: ByteVec,    // Contract ID of the loan template
-  oracleContractId: ByteVec,  // Contract ID of the oracle contract
+  oracleContractId: ByteVec,  // Contract ID of the oracle wrapper contract
   liquidationFee: U256,       // Liquidation fee, in basis points
   mut borrowingFee: U256,     // Fee rate for borrowing, in basis points
   mut totalLoans: U256,       // Total number of loans created

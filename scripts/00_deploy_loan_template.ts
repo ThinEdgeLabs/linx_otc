@@ -13,8 +13,11 @@ const deployLoanTemplate: DeployFunction<Settings> = async (deployer: Deployer):
       marketplaceContractId: ZERO_ADDRESS,
       lendingAmount: 0n,
       collateralAmount: 0n,
+      outstandingDebt: 0n,
       interestRate: 0n,
       duration: 0n,
+      canBeLiquidated: false,
+      maximumLTV: 0n,
       borrower: ZERO_ADDRESS,
       loanTimeStamp: 0n
     }

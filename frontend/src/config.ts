@@ -108,7 +108,7 @@ export function getMarketplaceConfig(): MarketplaceConfig {
     marketplaceAdminAddress,
     marketplaceContractId: marketPlace?.contractId ?? '',
     marketplaceContractAddress: marketPlace?.address ?? '',
-    nftTemplateId: deployments?.contracts.LendingOffer.contractInstance.contractId ?? '',
+    nftTemplateId: deployments?.contracts.Loan.contractInstance.contractId ?? '',
     fee: lendingFee,
     defaultNodeUrl: getDefaultNodeUrl(),
     defaultExplorerUrl: getDefaultExplorerUrl()

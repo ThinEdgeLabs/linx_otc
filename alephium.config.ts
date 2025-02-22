@@ -2,20 +2,26 @@ import { Configuration } from '@alephium/cli'
 import { Number256 } from '@alephium/web3'
 
 export type Settings = {
-  fee: Number256
-  admin: string
+  liquidationFee: Number256
+  borrowingFee: Number256
+  ownerAddress: string
+  oracleContractId: string
 }
 
 export const loadSettings = (network: 'devnet' | 'testnet' | 'mainnet'): Settings => {
   if (network === 'devnet') {
     return {
-      fee: 70n,
-      admin: '1EJCtZP3HZP5rDX5v2o32woqLTxp6GS4GoLQGpzVPQm6E'
+      ownerAddress: '1EJCtZP3HZP5rDX5v2o32woqLTxp6GS4GoLQGpzVPQm6E',
+      liquidationFee: 300n,
+      borrowingFee: 100n,
+      oracleContractId: '' // Set this value after deploying the TestOracle contract
     }
   } else if (network === 'testnet' || network === 'mainnet') {
     return {
-      fee: process.env.FEE as Number256,
-      admin: process.env.ADMIN_ADDRESS as string
+      ownerAddress: process.env.OWNER_ADDRESS as string,
+      borrowingFee: process.env.BORROWING_FEE as Number256,
+      liquidationFee: process.env.LIQUIDATION_FEE as Number256,
+      oracleContractId: process.env.ORACLE_CONTRACT_ID as string
     }
   } else {
     throw new Error('Invalid network')
@@ -23,6 +29,7 @@ export const loadSettings = (network: 'devnet' | 'testnet' | 'mainnet'): Setting
 }
 
 const configuration: Configuration<Settings> = {
+  forceRecompile: true,
   networks: {
     devnet: {
       nodeUrl: 'http://127.0.0.1:22973',

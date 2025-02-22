@@ -355,6 +355,7 @@ describe('LendingMarketplace', () => {
     })
 
     test('loan is completely liquidated', async () => {
+      // Given
       const usdtPrice = BigInt(1 * 10 ** 8)
       const alphPrice = BigInt(0.45 * 10 ** 8)
       const canBeLiquidated = true
@@ -367,13 +368,13 @@ describe('LendingMarketplace', () => {
 
       // When
       const repayAmount = 8730000000000000000n // in USDT
-      const liquidatedCollateral = 20000000000000000000n // in ALPH, including fee
       const { txId } = await liquidateLoan(marketplaceHelper, liquidator, loanAddress, repayAmount)
       const txDetails = await web3.getCurrentNodeProvider().transactions.getTransactionsDetailsTxid(txId)
       const gasFee = BigInt(txDetails.unsigned.gasAmount) * BigInt(txDetails.unsigned.gasPrice)
 
       // Then
       // Loan is destroyed
+      const liquidatedCollateral = 20000000000000000000n // in ALPH, including fee
       await expect(new LoanInstance(loanAddress).fetchState()).rejects.toThrow(Error)
       // // Liquidator receives collateral
       const alphBalanceAfter = await balanceOf(ALPH_TOKEN_ID, liquidator.address)
