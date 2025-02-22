@@ -1,8 +1,8 @@
 {
-  "version": "v3.4.0",
+  "version": "v3.6.2",
   "name": "Loan",
-  "bytecode": "0b14164042405f407440824090409e40ac40ba40c840d640e440f24107411c417f419941c441ee4202010000000109d3f5f09369561343e82d0d13203b2e02010005070113d3cb25b2a8160016012b1705160216032c1367102d1706160616052c138001518016042c2d0201000303010ad3afb49010160213800151802c0c160016011602000102010002020107d3f620a25b160016012c1367102d02010000000103d389148c31ce0002010000000103d3e7228672ce0102010000000103d3c3fc000aa00002010000000103d3102cc693ce0202010000000103d3b3f25115ce0302010000000103d30218fd99ce0502010000000103d35409971bce0602010000000103d3721b9ae2a00102010000000103d31af0ff4ace0802010000000107d392ef9a72ce05ce072c1367102d02010000000109d3a888d196a000ca46a0010c301a0201010104004036d38853e253b3ce04410c7ba000ca450d7bce041701ce050c0d1601011700031702ce051703ce020d0d160101254c0ece0516022b1703b2ce021602a3ce0216020e0c160101220000a1011600a100a000ce03ce06aca000ce021603ab01020000000dd3a7633c58b3ce04410c7ba000ca450d7bce01b0010100010015d324d591b3b3ce04410c7b000d1700a000ce01ce02ce0516002aaaa000ce03ce06abce01b0010200000016d367f64a14b3ce04410c7ba000ca460e7b0000a001ce0813800151802c2a330f7bce01b0010200000008d3525448bbb3ce04410c7bce01b0",
-  "codeHash": "adb9367334cd5e11cf8f2ee6d9d71ce60d16816be582a7390bfb7162d718bf5b",
+  "bytecode": "0e1a164042405f407440ac40df412541334141414f415d416b41794187419541a341b141bf41cd41e241f74261427b429f42ec4300010000000109d3f5f09369561343e82d0d13203b2e02010005070113d3cb25b2a8160016012b1705160216032c1367102d1706160616052c138001518016042c2d0201000303010ad3afb49010160213800151802c0c160016011602000102010002020107d3f620a25b160016012c1367102d0201000202011dd33ecfc09916011312334c091600130a160113122b832d024a0f16011312314c091600130a131216012b832c024a021600020100080c0117d3d3609a6c16011603000417081605160700041709160016082c170a160416092c170b160b1367102c160a2d0201000407014025d30a0d43351367101704160116042c160316002c324c020c021601160316002c16042d2b170516041603160416022a2c16042d2b1706160516042c16062d02010000000103d389148c31ce0002010000000103d3e7228672ce0102010000000103d3c3fc000aa00202010000000103d3102cc693ce0202010000000103d3b3f25115ce0302010000000103d30218fd99ce0502010000000103d35409971ba00002010000000103d34917d133a00102010000000103d3721b9ae2a00302010000000103d31af0ff4ace0702010000000103d34a08e458ce0902010000000103d318ae3c3dce0802010000000107d392ef9a72ce05ce062c1367102d02010000000109d3a888d196a002ca46a0030c301a020101010400403ad38853e253b3ce04410c7ba002ca450d7bce041701ce050c0d1601011a00031702ce051703ce020d0d1601011c4c0ece0516022b1703b2ce021602a3ce0216020e0c160101280000a1031600a102ce0500132aa101a002ce03a000aca002ce021603ab01020000000dd3a7633c58b3ce04410c7ba002ca450d7bce01b0010100000011d324d591b3b3ce04410c7ba002ce01ce02a001aaa002ce03a000abce01b001010303004025d35fff4416b3ce04410c7ba00116012ba101a00016022ba100ce02cd424c041600ce0113c3038d7ea4c68000a71600ce01ce021601aa1600ce031602aba0000c2f4c02ce01b0010200000008d3525448bbb3ce04410c7bce01b0",
+  "codeHash": "299ee84f35d547f8fc7b2ef882673f82a0f68b7cc9f472e71094b6d5f1d18006",
   "fieldsSig": {
     "names": [
       "id",
@@ -12,8 +12,11 @@
       "marketplaceContractId",
       "lendingAmount",
       "collateralAmount",
+      "outstandingDebt",
       "interestRate",
       "duration",
+      "canBeLiquidated",
+      "maximumLTV",
       "borrower",
       "loanTimeStamp"
     ],
@@ -27,6 +30,9 @@
       "U256",
       "U256",
       "U256",
+      "U256",
+      "Bool",
+      "U256",
       "Address",
       "U256"
     ],
@@ -36,6 +42,9 @@
       false,
       false,
       false,
+      false,
+      true,
+      true,
       false,
       false,
       false,
@@ -107,13 +116,79 @@
       "name": "calculateMarketplaceFee",
       "paramNames": [
         "amount",
-        "feeRateValue"
+        "feeRate"
       ],
       "paramTypes": [
         "U256",
         "U256"
       ],
       "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "normalizeAmount",
+      "paramNames": [
+        "amount",
+        "decimals"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateLTV",
+      "paramNames": [
+        "collateralTokenAmount",
+        "collateralTokenPrice",
+        "borrowedTokenAmount",
+        "borrowedTokenPrice"
+      ],
+      "paramTypes": [
+        "U256",
+        "TokenPrice",
+        "U256",
+        "TokenPrice"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateLiquidationAmount",
+      "paramNames": [
+        "collateralValue",
+        "loanValue",
+        "fee",
+        "ltvTarget"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
         false,
         false
       ],
@@ -185,6 +260,15 @@
       ]
     },
     {
+      "name": "getOutstandingDebt",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
       "name": "getLoanTimeStamp",
       "paramNames": [],
       "paramTypes": [],
@@ -200,6 +284,24 @@
       "paramIsMutable": [],
       "returnTypes": [
         "U256"
+      ]
+    },
+    {
+      "name": "getMaximumLTV",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "canBeLiquidated",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "Bool"
       ]
     },
     {
@@ -249,9 +351,21 @@
     },
     {
       "name": "liquidate",
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
+      "paramNames": [
+        "liquidator",
+        "amountToRepay",
+        "amountToLiquidate"
+      ],
+      "paramTypes": [
+        "Address",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
       "returnTypes": []
     },
     {
@@ -287,20 +401,6 @@
           "value": {
             "type": "U256",
             "value": "1"
-          }
-        },
-        {
-          "name": "LoanNotActive",
-          "value": {
-            "type": "U256",
-            "value": "2"
-          }
-        },
-        {
-          "name": "LoanNotOverdue",
-          "value": {
-            "type": "U256",
-            "value": "3"
           }
         }
       ]

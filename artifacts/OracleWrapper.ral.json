@@ -1,13 +1,13 @@
 {
   "version": "v3.6.2",
-  "name": "TestUpgradable",
-  "bytecode": "091640294051407d40a140d1410941194127413541434151415f416d417b419341a241b041c941d941e941fa420b010001010012d3e8e81bc9b4000f00101600a1021400a1041400a1051400a10656a10305a001a0025f010001040012d3c7e7c76db4000f0010caa1021600a1041400a1051400a10656a10307a001a0045f010003030014d3faf4fa3cb4000f0010caa1021600a1041601a1051602a10656a10309a001a004a005a00661010000000010d3eb8e3fa9b4000f0011a002ca461372ce7b06a001a0025fa002a101000e010000000018d359022261b4000f0011a004140042a0051400411aa0061400411a1372cc7b08a001a0045fa004ba000e01000000001cd3c3f859f4b4000f0011a004140042a0051400421aa0061400421a1372cd7b0aa001a004a005a00661a004a005a006bb000e010000000004d37a8fa0fdb4000f000e010000000103d3d88dd69bce0102010000000103d34ffef083a00102010000000103d3a73dfe2da00202010000000103d33849fdc7a00302010000000103d37dbbcbc9a00402010000000103d3f6b008faa00502010000000103d3ec4f54cda0060200000000000a0ca103caa1021400a1041400a1051400a1060000010100051600a001451372c87b000000000005a0030c2f1372c97b00000000000ca0030c301372ca7b56a003ce012a331372cb7b010000000105d3e73fcbc4ce000e2c02010000000105d38bdb6d77a0000e2c02010000000105d3857543c8001200132a02010001010005d363e1068316000e2ca100",
-  "codeHash": "145075d472d06d94e2c129f8307ef0412cc49679146f101a5d1c275a1a0afc4e",
+  "name": "OracleWrapper",
+  "bytecode": "091540294051407d40a140d1410941194127413541434151415f416d417b419341a241b041c94207424642a8010001010012d3e8e81bc9b4000f00101600a1011400a1031400a1041400a10556a10205a000a0015f010001040012d3c7e7c76db4000f0010caa1011600a1031400a1041400a10556a10207a000a0035f010003030014d3faf4fa3cb4000f0010caa1011600a1031601a1041602a10556a10209a000a003a004a00561010000000010d3eb8e3fa9b4000f0011a001ca461372ce7b06a000a0015fa001a100000e010000000018d359022261b4000f0011a003140042a0041400411aa0051400411a1372cc7b08a000a0035fa003ba000e01000000001cd3c3f859f4b4000f0011a003140042a0041400421aa0051400421a1372cd7b0aa000a003a004a00561a003a004a005bb000e010000000004d37a8fa0fdb4000f000e010000000103d3d88dd69bce0202010000000103d34ffef083a00002010000000103d3a73dfe2da00102010000000103d33849fdc7a00202010000000103d37dbbcbc9a00302010000000103d3f6b008faa00402010000000103d3ec4f54cda0050200000000000a0ca102caa1011400a1031400a1041400a1050000010100051600a000451372c87b000000000005a0020c2f1372c97b00000000000ca0020c301372ca7b56a002ce022a331372cb7b010303030019d39cebee55b4000f16010d0ece00d4a0e6c2311818b4d1a2140a5f5f6d61705f5f305f5f16004416011602b1d20300120616001601160260010001020218d375a5286c140a5f5f6d61705f5f305f5f160044cbc50c7b0c0d0d140a5f5f6d61705f5f305f5f160044cb1701160101000d0d0d16010100020100010603402bd3e5a80fc6140a5f5f6d61705f5f305f5f160044cbc50c7b0c0d0d140a5f5f6d61705f5f305f5f160044cb1705160501000d0d0d160501001702170116010d0ece00d4a0e6c23117041703160456ce012b330d7b16031604160202",
+  "codeHash": "979d66389e09486b5a0400c4f7840fd3d02534968a199c26da0e393e3a64a764",
   "fieldsSig": {
     "names": [
-      "immValue",
+      "oracleContractId",
+      "heartbeatInterval",
       "upgradeDelay",
-      "mutValue",
       "owner",
       "newOwner",
       "upgradeInitiated",
@@ -16,7 +16,7 @@
       "newMutFieldsEncoded"
     ],
     "types": [
-      "U256",
+      "ByteVec",
       "U256",
       "U256",
       "Address",
@@ -29,7 +29,7 @@
     "isMutable": [
       false,
       false,
-      true,
+      false,
       true,
       true,
       true,
@@ -111,6 +111,19 @@
         "ByteVec",
         "ByteVec",
         "ByteVec"
+      ]
+    },
+    {
+      "name": "PairAdded",
+      "fieldNames": [
+        "tokenId",
+        "symbol",
+        "decimals"
+      ],
+      "fieldTypes": [
+        "ByteVec",
+        "ByteVec",
+        "U256"
       ]
     }
   ],
@@ -286,44 +299,50 @@
       "returnTypes": []
     },
     {
-      "name": "getImmValue",
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    },
-    {
-      "name": "getMutValue",
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    },
-    {
-      "name": "getTotal",
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    },
-    {
-      "name": "setMutValue",
+      "name": "addPair",
       "paramNames": [
-        "newMutValue"
+        "tokenId",
+        "pairInfo"
       ],
       "paramTypes": [
-        "U256"
+        "ByteVec",
+        "PairInfo"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getPairInfo",
+      "paramNames": [
+        "tokenId"
+      ],
+      "paramTypes": [
+        "ByteVec"
       ],
       "paramIsMutable": [
         false
       ],
-      "returnTypes": []
+      "returnTypes": [
+        "PairInfo"
+      ]
+    },
+    {
+      "name": "getTokenPrice",
+      "paramNames": [
+        "tokenId"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "TokenPrice"
+      ]
     }
   ],
   "constants": [],
@@ -381,6 +400,33 @@
           }
         }
       ]
+    },
+    {
+      "name": "ErrorCodes",
+      "fields": [
+        {
+          "name": "InvalidTokenId",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "StaleOracle",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "mapsSig": {
+    "names": [
+      "pairsByBaseTokenId"
+    ],
+    "types": [
+      "Map[ByteVec,PairInfo]"
+    ]
+  }
 }

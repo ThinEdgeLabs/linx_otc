@@ -3,17 +3,30 @@
 /* eslint-disable */
 
 import { Contract, ContractFactory } from "@alephium/web3";
-import { LendingMarketplace, Loan, TestToken, TestUpgradable } from ".";
+import {
+  LendingMarketplace,
+  Loan,
+  OracleWrapper,
+  TestLendingMarketplaceUtils,
+  TestOracle,
+  TestToken,
+  TestUpgradable,
+} from ".";
 
 let contracts: ContractFactory<any>[] | undefined = undefined;
 export function getContractByCodeHash(codeHash: string): Contract {
   if (contracts === undefined) {
-    contracts = [LendingMarketplace, Loan, TestToken, TestUpgradable];
+    contracts = [
+      LendingMarketplace,
+      Loan,
+      OracleWrapper,
+      TestLendingMarketplaceUtils,
+      TestOracle,
+      TestToken,
+      TestUpgradable,
+    ];
   }
-  const c = contracts.find(
-    (c) =>
-      c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash
-  );
+  const c = contracts.find((c) => c.contract.hasCodeHash(codeHash));
   if (c === undefined) {
     throw new Error("Unknown code with code hash: " + codeHash);
   }

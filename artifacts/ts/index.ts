@@ -4,6 +4,9 @@
 
 export * from "./LendingMarketplace";
 export * from "./Loan";
+export * from "./OracleWrapper";
+export * from "./TestLendingMarketplaceUtils";
+export * from "./TestOracle";
 export * from "./TestToken";
 export * from "./TestUpgradable";
 export * from "./scripts";

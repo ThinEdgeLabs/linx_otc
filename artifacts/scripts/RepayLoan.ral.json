@@ -1,7 +1,7 @@
 {
-  "version": "v3.4.0",
+  "version": "v3.6.2",
   "name": "RepayLoan",
-  "bytecodeTemplate": "01010300000009b4{2}{3}a3{1}0d0c{0}011b",
+  "bytecodeTemplate": "01010300000009b4{2}{3}a3{1}0d0c{0}0121",
   "fieldsSig": {
     "names": [
       "marketplace",

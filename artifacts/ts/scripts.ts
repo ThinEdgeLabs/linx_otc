@@ -28,26 +28,36 @@ import { default as IUpgradableResetUpgradeTXScriptJson } from "../lib/IUpgradab
 import { default as LiquidateLoanScriptJson } from "../scripts/LiquidateLoan.ral.json";
 import { default as RemoveFeeTokenScriptJson } from "../scripts/RemoveFeeToken.ral.json";
 import { default as RepayLoanScriptJson } from "../scripts/RepayLoan.ral.json";
+import { PairInfo, TokenPrice, Value, AllStructs } from "./types";
 
 export const AddFeeToken = new ExecutableScript<{
   marketplace: HexString;
   tokenId: HexString;
-}>(Script.fromJson(AddFeeTokenScriptJson, "", []), getContractByCodeHash);
+}>(
+  Script.fromJson(AddFeeTokenScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const Borrow = new ExecutableScript<{
   loanId: HexString;
   lendingMarketplace: HexString;
-}>(Script.fromJson(BorrowScriptJson, "", []), getContractByCodeHash);
+}>(Script.fromJson(BorrowScriptJson, "", AllStructs), getContractByCodeHash);
 
 export const CancelLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
-}>(Script.fromJson(CancelLoanScriptJson, "", []), getContractByCodeHash);
+}>(
+  Script.fromJson(CancelLoanScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const ClaimCollateral = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
-}>(Script.fromJson(ClaimCollateralScriptJson, "", []), getContractByCodeHash);
+}>(
+  Script.fromJson(ClaimCollateralScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const CreateLoan = new ExecutableScript<{
   lendingTokenId: HexString;
@@ -56,19 +66,23 @@ export const CreateLoan = new ExecutableScript<{
   collateralAmount: bigint;
   interestRate: bigint;
   duration: bigint;
+  canBeLiquidated: boolean;
   marketplace: HexString;
-}>(Script.fromJson(CreateLoanScriptJson, "", []), getContractByCodeHash);
+}>(
+  Script.fromJson(CreateLoanScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const GetToken = new ExecutableScript<{
   token: HexString;
   sender: Address;
   amount: bigint;
-}>(Script.fromJson(GetTokenScriptJson, "", []), getContractByCodeHash);
+}>(Script.fromJson(GetTokenScriptJson, "", AllStructs), getContractByCodeHash);
 
 export const IUpgradableChangeOwnerApplyTX = new ExecutableScript<{
   upgradable: HexString;
 }>(
-  Script.fromJson(IUpgradableChangeOwnerApplyTXScriptJson, "", []),
+  Script.fromJson(IUpgradableChangeOwnerApplyTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
@@ -76,14 +90,14 @@ export const IUpgradableChangeOwnerTX = new ExecutableScript<{
   upgradable: HexString;
   changeOwner: Address;
 }>(
-  Script.fromJson(IUpgradableChangeOwnerTXScriptJson, "", []),
+  Script.fromJson(IUpgradableChangeOwnerTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
 export const IUpgradableMigrateApplyTX = new ExecutableScript<{
   upgradable: HexString;
 }>(
-  Script.fromJson(IUpgradableMigrateApplyTXScriptJson, "", []),
+  Script.fromJson(IUpgradableMigrateApplyTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
@@ -91,14 +105,18 @@ export const IUpgradableMigrateTX = new ExecutableScript<{
   upgradable: HexString;
   changeCode: HexString;
 }>(
-  Script.fromJson(IUpgradableMigrateTXScriptJson, "", []),
+  Script.fromJson(IUpgradableMigrateTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
 export const IUpgradableMigrateWithFieldsApplyTX = new ExecutableScript<{
   upgradable: HexString;
 }>(
-  Script.fromJson(IUpgradableMigrateWithFieldsApplyTXScriptJson, "", []),
+  Script.fromJson(
+    IUpgradableMigrateWithFieldsApplyTXScriptJson,
+    "",
+    AllStructs
+  ),
   getContractByCodeHash
 );
 
@@ -108,30 +126,37 @@ export const IUpgradableMigrateWithFieldsTX = new ExecutableScript<{
   changeImmFieldsEncoded: HexString;
   changeMutFieldsEncoded: HexString;
 }>(
-  Script.fromJson(IUpgradableMigrateWithFieldsTXScriptJson, "", []),
+  Script.fromJson(IUpgradableMigrateWithFieldsTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
 export const IUpgradableResetUpgradeTX = new ExecutableScript<{
   upgradable: HexString;
 }>(
-  Script.fromJson(IUpgradableResetUpgradeTXScriptJson, "", []),
+  Script.fromJson(IUpgradableResetUpgradeTXScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
 export const LiquidateLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
-}>(Script.fromJson(LiquidateLoanScriptJson, "", []), getContractByCodeHash);
+  amount: bigint;
+}>(
+  Script.fromJson(LiquidateLoanScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const RemoveFeeToken = new ExecutableScript<{
   marketplace: HexString;
   tokenId: HexString;
-}>(Script.fromJson(RemoveFeeTokenScriptJson, "", []), getContractByCodeHash);
+}>(
+  Script.fromJson(RemoveFeeTokenScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const RepayLoan = new ExecutableScript<{
   marketplace: HexString;
   loanId: HexString;
   borrowedTokenId: HexString;
   amount: bigint;
-}>(Script.fromJson(RepayLoanScriptJson, "", []), getContractByCodeHash);
+}>(Script.fromJson(RepayLoanScriptJson, "", AllStructs), getContractByCodeHash);

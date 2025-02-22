@@ -1,0 +1,11 @@
+{
+  "constants": [
+    {
+      "name": "PRECISION_DECIMALS",
+      "value": {
+        "type": "U256",
+        "value": "18"
+      }
+    }
+  ]
+}

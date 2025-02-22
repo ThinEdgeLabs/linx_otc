@@ -32,16 +32,17 @@ import {
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
-import { default as TestUpgradableContractJson } from "../test/TestUpgradable.ral.json";
+import { default as OracleWrapperContractJson } from "../OracleWrapper.ral.json";
 import { getContractByCodeHash } from "./contracts";
 import { PairInfo, TokenPrice, Value, AllStructs } from "./types";
+import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
-export namespace TestUpgradableTypes {
+export namespace OracleWrapperTypes {
   export type Fields = {
-    immValue: bigint;
+    oracleContractId: HexString;
+    heartbeatInterval: bigint;
     upgradeDelay: bigint;
-    mutValue: bigint;
     owner: Address;
     newOwner: Address;
     upgradeInitiated: bigint;
@@ -79,6 +80,11 @@ export namespace TestUpgradableTypes {
     changeCode: HexString;
     changeImmFieldsEncoded: HexString;
     changeMutFieldsEncoded: HexString;
+  }>;
+  export type PairAddedEvent = ContractEvent<{
+    tokenId: HexString;
+    symbol: HexString;
+    decimals: bigint;
   }>;
 
   export interface CallMethodTable {
@@ -158,21 +164,17 @@ export namespace TestUpgradableTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
-    getImmValue: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<bigint>;
-    };
-    getMutValue: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<bigint>;
-    };
-    getTotal: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<bigint>;
-    };
-    setMutValue: {
-      params: CallContractParams<{ newMutValue: bigint }>;
+    addPair: {
+      params: CallContractParams<{ tokenId: HexString; pairInfo: PairInfo }>;
       result: CallContractResult<null>;
+    };
+    getPairInfo: {
+      params: CallContractParams<{ tokenId: HexString }>;
+      result: CallContractResult<PairInfo>;
+    };
+    getTokenPrice: {
+      params: CallContractParams<{ tokenId: HexString }>;
+      result: CallContractResult<TokenPrice>;
     };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
@@ -268,20 +270,19 @@ export namespace TestUpgradableTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    getImmValue: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+    addPair: {
+      params: SignExecuteContractMethodParams<{
+        tokenId: HexString;
+        pairInfo: PairInfo;
+      }>;
       result: SignExecuteScriptTxResult;
     };
-    getMutValue: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+    getPairInfo: {
+      params: SignExecuteContractMethodParams<{ tokenId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
-    getTotal: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-    setMutValue: {
-      params: SignExecuteContractMethodParams<{ newMutValue: bigint }>;
+    getTokenPrice: {
+      params: SignExecuteContractMethodParams<{ tokenId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -289,13 +290,15 @@ export namespace TestUpgradableTypes {
     SignExecuteMethodTable[T]["params"];
   export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
     SignExecuteMethodTable[T]["result"];
+
+  export type Maps = { pairsByBaseTokenId?: Map<HexString, PairInfo> };
 }
 
 class Factory extends ContractFactory<
-  TestUpgradableInstance,
-  TestUpgradableTypes.Fields
+  OracleWrapperInstance,
+  OracleWrapperTypes.Fields
 > {
-  encodeFields(fields: TestUpgradableTypes.Fields) {
+  encodeFields(fields: OracleWrapperTypes.Fields) {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
@@ -310,6 +313,7 @@ class Factory extends ContractFactory<
     MigrateApply: 3,
     MigrateWithFieldsInitiated: 4,
     MigrateWithFieldsApply: 5,
+    PairAdded: 6,
   };
   consts = {
     UpgradeErrorCodes: {
@@ -321,39 +325,43 @@ class Factory extends ContractFactory<
       MigrateWithFieldsNotPending: BigInt("13005"),
       ChangeOwnerNotPending: BigInt("13006"),
     },
+    ErrorCodes: { InvalidTokenId: BigInt("0"), StaleOracle: BigInt("1") },
   };
 
-  at(address: string): TestUpgradableInstance {
-    return new TestUpgradableInstance(address);
+  at(address: string): OracleWrapperInstance {
+    return new OracleWrapperInstance(address);
   }
 
   tests = {
     changeOwner: async (
-      params: TestContractParamsWithoutMaps<
-        TestUpgradableTypes.Fields,
-        { changeOwner: Address }
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { changeOwner: Address },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "changeOwner", params, getContractByCodeHash);
     },
     migrate: async (
-      params: TestContractParamsWithoutMaps<
-        TestUpgradableTypes.Fields,
-        { changeCode: HexString }
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { changeCode: HexString },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "migrate", params, getContractByCodeHash);
     },
     migrateWithFields: async (
-      params: TestContractParamsWithoutMaps<
-        TestUpgradableTypes.Fields,
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
         {
           changeCode: HexString;
           changeImmFieldsEncoded: HexString;
           changeMutFieldsEncoded: HexString;
-        }
+        },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "migrateWithFields",
@@ -363,10 +371,14 @@ class Factory extends ContractFactory<
     },
     changeOwnerApply: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "changeOwnerApply",
@@ -376,18 +388,26 @@ class Factory extends ContractFactory<
     },
     migrateApply: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "migrateApply", params, getContractByCodeHash);
     },
     migrateWithFieldsApply: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "migrateWithFieldsApply",
@@ -397,42 +417,62 @@ class Factory extends ContractFactory<
     },
     resetUpgrade: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "resetUpgrade", params, getContractByCodeHash);
     },
     getUpgradeDelay: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+    ): Promise<TestContractResult<bigint, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "getUpgradeDelay", params, getContractByCodeHash);
     },
     getOwner: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<Address>> => {
+    ): Promise<TestContractResult<Address, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "getOwner", params, getContractByCodeHash);
     },
     getNewOwner: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<Address>> => {
+    ): Promise<TestContractResult<Address, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "getNewOwner", params, getContractByCodeHash);
     },
     getUpgradeInitiated: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+    ): Promise<TestContractResult<bigint, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "getUpgradeInitiated",
@@ -442,18 +482,26 @@ class Factory extends ContractFactory<
     },
     getNewCode: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<HexString>> => {
+    ): Promise<TestContractResult<HexString, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "getNewCode", params, getContractByCodeHash);
     },
     getNewImmFieldsEncoded: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<HexString>> => {
+    ): Promise<TestContractResult<HexString, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "getNewImmFieldsEncoded",
@@ -463,10 +511,14 @@ class Factory extends ContractFactory<
     },
     getNewMutFieldsEncoded: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<HexString>> => {
+    ): Promise<TestContractResult<HexString, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "getNewMutFieldsEncoded",
@@ -476,26 +528,35 @@ class Factory extends ContractFactory<
     },
     resetFields: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "resetFields", params, getContractByCodeHash);
     },
     assertOnlyOwner: async (
-      params: TestContractParamsWithoutMaps<
-        TestUpgradableTypes.Fields,
-        { caller: Address }
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { caller: Address },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(this, "assertOnlyOwner", params, getContractByCodeHash);
     },
     assertUpgradeNotPending: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "assertUpgradeNotPending",
@@ -505,10 +566,14 @@ class Factory extends ContractFactory<
     },
     assertUpgradeDelayElapsed: async (
       params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
+        TestContractParams<
+          OracleWrapperTypes.Fields,
+          never,
+          OracleWrapperTypes.Maps
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
       return testMethod(
         this,
         "assertUpgradeDelayElapsed",
@@ -516,67 +581,71 @@ class Factory extends ContractFactory<
         getContractByCodeHash
       );
     },
-    getImmValue: async (
-      params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
-        "testArgs"
+    addPair: async (
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { tokenId: HexString; pairInfo: PairInfo },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getImmValue", params, getContractByCodeHash);
+    ): Promise<TestContractResult<null, OracleWrapperTypes.Maps>> => {
+      return testMethod(this, "addPair", params, getContractByCodeHash);
     },
-    getMutValue: async (
-      params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
-        "testArgs"
+    getPairInfo: async (
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { tokenId: HexString },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getMutValue", params, getContractByCodeHash);
+    ): Promise<TestContractResult<PairInfo, OracleWrapperTypes.Maps>> => {
+      return testMethod(this, "getPairInfo", params, getContractByCodeHash);
     },
-    getTotal: async (
-      params: Omit<
-        TestContractParamsWithoutMaps<TestUpgradableTypes.Fields, never>,
-        "testArgs"
+    getTokenPrice: async (
+      params: TestContractParams<
+        OracleWrapperTypes.Fields,
+        { tokenId: HexString },
+        OracleWrapperTypes.Maps
       >
-    ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getTotal", params, getContractByCodeHash);
-    },
-    setMutValue: async (
-      params: TestContractParamsWithoutMaps<
-        TestUpgradableTypes.Fields,
-        { newMutValue: bigint }
-      >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "setMutValue", params, getContractByCodeHash);
+    ): Promise<TestContractResult<TokenPrice, OracleWrapperTypes.Maps>> => {
+      return testMethod(this, "getTokenPrice", params, getContractByCodeHash);
     },
   };
 
   stateForTest(
-    initFields: TestUpgradableTypes.Fields,
+    initFields: OracleWrapperTypes.Fields,
     asset?: Asset,
-    address?: string
+    address?: string,
+    maps?: OracleWrapperTypes.Maps
   ) {
-    return this.stateForTest_(initFields, asset, address, undefined);
+    return this.stateForTest_(initFields, asset, address, maps);
   }
 }
 
 // Use this object to test and deploy the contract
-export const TestUpgradable = new Factory(
+export const OracleWrapper = new Factory(
   Contract.fromJson(
-    TestUpgradableContractJson,
-    "",
-    "145075d472d06d94e2c129f8307ef0412cc49679146f101a5d1c275a1a0afc4e",
+    OracleWrapperContractJson,
+    "=78+2=1-1=2-2+5f=2-2+c1=925-1+b=78+7a7e0214696e73657274206174206d617020706174683a2000=356",
+    "aa37e72284ced93789d171ae094c9aba37ba6ddb595b1c32ec561ad458433f25",
     AllStructs
   )
 );
 
 // Use this class to interact with the blockchain
-export class TestUpgradableInstance extends ContractInstance {
+export class OracleWrapperInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<TestUpgradableTypes.State> {
-    return fetchContractState(TestUpgradable, this);
+  maps = {
+    pairsByBaseTokenId: new RalphMap<HexString, PairInfo>(
+      OracleWrapper.contract,
+      this.contractId,
+      "pairsByBaseTokenId"
+    ),
+  };
+
+  async fetchState(): Promise<OracleWrapperTypes.State> {
+    return fetchContractState(OracleWrapper, this);
   }
 
   async getContractEventsCurrentCount(): Promise<number> {
@@ -584,11 +653,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeChangeOwnerInitiatedEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.ChangeOwnerInitiatedEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.ChangeOwnerInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "ChangeOwnerInitiated",
@@ -597,11 +666,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeChangeOwnerApplyEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.ChangeOwnerApplyEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.ChangeOwnerApplyEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "ChangeOwnerApply",
@@ -610,11 +679,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeMigrateInitiatedEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateInitiatedEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.MigrateInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "MigrateInitiated",
@@ -623,11 +692,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeMigrateApplyEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateApplyEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.MigrateApplyEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "MigrateApply",
@@ -636,11 +705,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeMigrateWithFieldsInitiatedEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateWithFieldsInitiatedEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.MigrateWithFieldsInitiatedEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "MigrateWithFieldsInitiated",
@@ -649,11 +718,11 @@ export class TestUpgradableInstance extends ContractInstance {
   }
 
   subscribeMigrateWithFieldsApplyEvent(
-    options: EventSubscribeOptions<TestUpgradableTypes.MigrateWithFieldsApplyEvent>,
+    options: EventSubscribeOptions<OracleWrapperTypes.MigrateWithFieldsApplyEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       "MigrateWithFieldsApply",
@@ -661,19 +730,33 @@ export class TestUpgradableInstance extends ContractInstance {
     );
   }
 
+  subscribePairAddedEvent(
+    options: EventSubscribeOptions<OracleWrapperTypes.PairAddedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      OracleWrapper.contract,
+      this,
+      options,
+      "PairAdded",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
-      | TestUpgradableTypes.ChangeOwnerInitiatedEvent
-      | TestUpgradableTypes.ChangeOwnerApplyEvent
-      | TestUpgradableTypes.MigrateInitiatedEvent
-      | TestUpgradableTypes.MigrateApplyEvent
-      | TestUpgradableTypes.MigrateWithFieldsInitiatedEvent
-      | TestUpgradableTypes.MigrateWithFieldsApplyEvent
+      | OracleWrapperTypes.ChangeOwnerInitiatedEvent
+      | OracleWrapperTypes.ChangeOwnerApplyEvent
+      | OracleWrapperTypes.MigrateInitiatedEvent
+      | OracleWrapperTypes.MigrateApplyEvent
+      | OracleWrapperTypes.MigrateWithFieldsInitiatedEvent
+      | OracleWrapperTypes.MigrateWithFieldsApplyEvent
+      | OracleWrapperTypes.PairAddedEvent
     >,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvents(
-      TestUpgradable.contract,
+      OracleWrapper.contract,
       this,
       options,
       fromCount
@@ -682,10 +765,10 @@ export class TestUpgradableInstance extends ContractInstance {
 
   view = {
     changeOwner: async (
-      params: TestUpgradableTypes.CallMethodParams<"changeOwner">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"changeOwner">> => {
+      params: OracleWrapperTypes.CallMethodParams<"changeOwner">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"changeOwner">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "changeOwner",
         params,
@@ -693,10 +776,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     migrate: async (
-      params: TestUpgradableTypes.CallMethodParams<"migrate">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"migrate">> => {
+      params: OracleWrapperTypes.CallMethodParams<"migrate">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"migrate">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrate",
         params,
@@ -704,10 +787,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     migrateWithFields: async (
-      params: TestUpgradableTypes.CallMethodParams<"migrateWithFields">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"migrateWithFields">> => {
+      params: OracleWrapperTypes.CallMethodParams<"migrateWithFields">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"migrateWithFields">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrateWithFields",
         params,
@@ -715,10 +798,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     changeOwnerApply: async (
-      params?: TestUpgradableTypes.CallMethodParams<"changeOwnerApply">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"changeOwnerApply">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"changeOwnerApply">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"changeOwnerApply">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "changeOwnerApply",
         params === undefined ? {} : params,
@@ -726,10 +809,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     migrateApply: async (
-      params?: TestUpgradableTypes.CallMethodParams<"migrateApply">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"migrateApply">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"migrateApply">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"migrateApply">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrateApply",
         params === undefined ? {} : params,
@@ -737,12 +820,12 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     migrateWithFieldsApply: async (
-      params?: TestUpgradableTypes.CallMethodParams<"migrateWithFieldsApply">
+      params?: OracleWrapperTypes.CallMethodParams<"migrateWithFieldsApply">
     ): Promise<
-      TestUpgradableTypes.CallMethodResult<"migrateWithFieldsApply">
+      OracleWrapperTypes.CallMethodResult<"migrateWithFieldsApply">
     > => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrateWithFieldsApply",
         params === undefined ? {} : params,
@@ -750,10 +833,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     resetUpgrade: async (
-      params?: TestUpgradableTypes.CallMethodParams<"resetUpgrade">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"resetUpgrade">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"resetUpgrade">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"resetUpgrade">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "resetUpgrade",
         params === undefined ? {} : params,
@@ -761,10 +844,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getUpgradeDelay: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getUpgradeDelay">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getUpgradeDelay">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"getUpgradeDelay">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getUpgradeDelay">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getUpgradeDelay",
         params === undefined ? {} : params,
@@ -772,10 +855,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getOwner: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getOwner">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getOwner">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"getOwner">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getOwner">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getOwner",
         params === undefined ? {} : params,
@@ -783,10 +866,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getNewOwner: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getNewOwner">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getNewOwner">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"getNewOwner">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getNewOwner">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewOwner",
         params === undefined ? {} : params,
@@ -794,10 +877,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getUpgradeInitiated: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getUpgradeInitiated">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getUpgradeInitiated">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"getUpgradeInitiated">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getUpgradeInitiated">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getUpgradeInitiated",
         params === undefined ? {} : params,
@@ -805,10 +888,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getNewCode: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getNewCode">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getNewCode">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"getNewCode">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getNewCode">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewCode",
         params === undefined ? {} : params,
@@ -816,12 +899,12 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getNewImmFieldsEncoded: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getNewImmFieldsEncoded">
+      params?: OracleWrapperTypes.CallMethodParams<"getNewImmFieldsEncoded">
     ): Promise<
-      TestUpgradableTypes.CallMethodResult<"getNewImmFieldsEncoded">
+      OracleWrapperTypes.CallMethodResult<"getNewImmFieldsEncoded">
     > => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewImmFieldsEncoded",
         params === undefined ? {} : params,
@@ -829,12 +912,12 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     getNewMutFieldsEncoded: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getNewMutFieldsEncoded">
+      params?: OracleWrapperTypes.CallMethodParams<"getNewMutFieldsEncoded">
     ): Promise<
-      TestUpgradableTypes.CallMethodResult<"getNewMutFieldsEncoded">
+      OracleWrapperTypes.CallMethodResult<"getNewMutFieldsEncoded">
     > => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewMutFieldsEncoded",
         params === undefined ? {} : params,
@@ -842,10 +925,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     resetFields: async (
-      params?: TestUpgradableTypes.CallMethodParams<"resetFields">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"resetFields">> => {
+      params?: OracleWrapperTypes.CallMethodParams<"resetFields">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"resetFields">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "resetFields",
         params === undefined ? {} : params,
@@ -853,10 +936,10 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     assertOnlyOwner: async (
-      params: TestUpgradableTypes.CallMethodParams<"assertOnlyOwner">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"assertOnlyOwner">> => {
+      params: OracleWrapperTypes.CallMethodParams<"assertOnlyOwner">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"assertOnlyOwner">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "assertOnlyOwner",
         params,
@@ -864,12 +947,12 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     assertUpgradeNotPending: async (
-      params?: TestUpgradableTypes.CallMethodParams<"assertUpgradeNotPending">
+      params?: OracleWrapperTypes.CallMethodParams<"assertUpgradeNotPending">
     ): Promise<
-      TestUpgradableTypes.CallMethodResult<"assertUpgradeNotPending">
+      OracleWrapperTypes.CallMethodResult<"assertUpgradeNotPending">
     > => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "assertUpgradeNotPending",
         params === undefined ? {} : params,
@@ -877,58 +960,47 @@ export class TestUpgradableInstance extends ContractInstance {
       );
     },
     assertUpgradeDelayElapsed: async (
-      params?: TestUpgradableTypes.CallMethodParams<"assertUpgradeDelayElapsed">
+      params?: OracleWrapperTypes.CallMethodParams<"assertUpgradeDelayElapsed">
     ): Promise<
-      TestUpgradableTypes.CallMethodResult<"assertUpgradeDelayElapsed">
+      OracleWrapperTypes.CallMethodResult<"assertUpgradeDelayElapsed">
     > => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "assertUpgradeDelayElapsed",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
     },
-    getImmValue: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getImmValue">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getImmValue">> => {
+    addPair: async (
+      params: OracleWrapperTypes.CallMethodParams<"addPair">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"addPair">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
-        "getImmValue",
-        params === undefined ? {} : params,
+        "addPair",
+        params,
         getContractByCodeHash
       );
     },
-    getMutValue: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getMutValue">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getMutValue">> => {
+    getPairInfo: async (
+      params: OracleWrapperTypes.CallMethodParams<"getPairInfo">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getPairInfo">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
-        "getMutValue",
-        params === undefined ? {} : params,
+        "getPairInfo",
+        params,
         getContractByCodeHash
       );
     },
-    getTotal: async (
-      params?: TestUpgradableTypes.CallMethodParams<"getTotal">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"getTotal">> => {
+    getTokenPrice: async (
+      params: OracleWrapperTypes.CallMethodParams<"getTokenPrice">
+    ): Promise<OracleWrapperTypes.CallMethodResult<"getTokenPrice">> => {
       return callMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
-        "getTotal",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
-    },
-    setMutValue: async (
-      params: TestUpgradableTypes.CallMethodParams<"setMutValue">
-    ): Promise<TestUpgradableTypes.CallMethodResult<"setMutValue">> => {
-      return callMethod(
-        TestUpgradable,
-        this,
-        "setMutValue",
+        "getTokenPrice",
         params,
         getContractByCodeHash
       );
@@ -937,185 +1009,175 @@ export class TestUpgradableInstance extends ContractInstance {
 
   transact = {
     changeOwner: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"changeOwner">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"changeOwner">> => {
-      return signExecuteMethod(TestUpgradable, this, "changeOwner", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"changeOwner">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"changeOwner">> => {
+      return signExecuteMethod(OracleWrapper, this, "changeOwner", params);
     },
     migrate: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"migrate">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"migrate">> => {
-      return signExecuteMethod(TestUpgradable, this, "migrate", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"migrate">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"migrate">> => {
+      return signExecuteMethod(OracleWrapper, this, "migrate", params);
     },
     migrateWithFields: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"migrateWithFields">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"migrateWithFields">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"migrateWithFields">
+      OracleWrapperTypes.SignExecuteMethodResult<"migrateWithFields">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrateWithFields",
         params
       );
     },
     changeOwnerApply: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"changeOwnerApply">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"changeOwnerApply">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"changeOwnerApply">
+      OracleWrapperTypes.SignExecuteMethodResult<"changeOwnerApply">
     > => {
-      return signExecuteMethod(
-        TestUpgradable,
-        this,
-        "changeOwnerApply",
-        params
-      );
+      return signExecuteMethod(OracleWrapper, this, "changeOwnerApply", params);
     },
     migrateApply: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"migrateApply">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"migrateApply">> => {
-      return signExecuteMethod(TestUpgradable, this, "migrateApply", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"migrateApply">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"migrateApply">> => {
+      return signExecuteMethod(OracleWrapper, this, "migrateApply", params);
     },
     migrateWithFieldsApply: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"migrateWithFieldsApply">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"migrateWithFieldsApply">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"migrateWithFieldsApply">
+      OracleWrapperTypes.SignExecuteMethodResult<"migrateWithFieldsApply">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "migrateWithFieldsApply",
         params
       );
     },
     resetUpgrade: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"resetUpgrade">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"resetUpgrade">> => {
-      return signExecuteMethod(TestUpgradable, this, "resetUpgrade", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"resetUpgrade">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"resetUpgrade">> => {
+      return signExecuteMethod(OracleWrapper, this, "resetUpgrade", params);
     },
     getUpgradeDelay: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getUpgradeDelay">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getUpgradeDelay">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"getUpgradeDelay">
+      OracleWrapperTypes.SignExecuteMethodResult<"getUpgradeDelay">
     > => {
-      return signExecuteMethod(TestUpgradable, this, "getUpgradeDelay", params);
+      return signExecuteMethod(OracleWrapper, this, "getUpgradeDelay", params);
     },
     getOwner: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getOwner">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getOwner">> => {
-      return signExecuteMethod(TestUpgradable, this, "getOwner", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getOwner">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"getOwner">> => {
+      return signExecuteMethod(OracleWrapper, this, "getOwner", params);
     },
     getNewOwner: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getNewOwner">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getNewOwner">> => {
-      return signExecuteMethod(TestUpgradable, this, "getNewOwner", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getNewOwner">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"getNewOwner">> => {
+      return signExecuteMethod(OracleWrapper, this, "getNewOwner", params);
     },
     getUpgradeInitiated: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getUpgradeInitiated">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getUpgradeInitiated">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"getUpgradeInitiated">
+      OracleWrapperTypes.SignExecuteMethodResult<"getUpgradeInitiated">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getUpgradeInitiated",
         params
       );
     },
     getNewCode: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getNewCode">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getNewCode">> => {
-      return signExecuteMethod(TestUpgradable, this, "getNewCode", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getNewCode">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"getNewCode">> => {
+      return signExecuteMethod(OracleWrapper, this, "getNewCode", params);
     },
     getNewImmFieldsEncoded: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getNewImmFieldsEncoded">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getNewImmFieldsEncoded">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"getNewImmFieldsEncoded">
+      OracleWrapperTypes.SignExecuteMethodResult<"getNewImmFieldsEncoded">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewImmFieldsEncoded",
         params
       );
     },
     getNewMutFieldsEncoded: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getNewMutFieldsEncoded">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getNewMutFieldsEncoded">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"getNewMutFieldsEncoded">
+      OracleWrapperTypes.SignExecuteMethodResult<"getNewMutFieldsEncoded">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "getNewMutFieldsEncoded",
         params
       );
     },
     resetFields: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"resetFields">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"resetFields">> => {
-      return signExecuteMethod(TestUpgradable, this, "resetFields", params);
+      params: OracleWrapperTypes.SignExecuteMethodParams<"resetFields">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"resetFields">> => {
+      return signExecuteMethod(OracleWrapper, this, "resetFields", params);
     },
     assertOnlyOwner: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"assertOnlyOwner">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"assertOnlyOwner">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"assertOnlyOwner">
+      OracleWrapperTypes.SignExecuteMethodResult<"assertOnlyOwner">
     > => {
-      return signExecuteMethod(TestUpgradable, this, "assertOnlyOwner", params);
+      return signExecuteMethod(OracleWrapper, this, "assertOnlyOwner", params);
     },
     assertUpgradeNotPending: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"assertUpgradeNotPending">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"assertUpgradeNotPending">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"assertUpgradeNotPending">
+      OracleWrapperTypes.SignExecuteMethodResult<"assertUpgradeNotPending">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "assertUpgradeNotPending",
         params
       );
     },
     assertUpgradeDelayElapsed: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"assertUpgradeDelayElapsed">
+      params: OracleWrapperTypes.SignExecuteMethodParams<"assertUpgradeDelayElapsed">
     ): Promise<
-      TestUpgradableTypes.SignExecuteMethodResult<"assertUpgradeDelayElapsed">
+      OracleWrapperTypes.SignExecuteMethodResult<"assertUpgradeDelayElapsed">
     > => {
       return signExecuteMethod(
-        TestUpgradable,
+        OracleWrapper,
         this,
         "assertUpgradeDelayElapsed",
         params
       );
     },
-    getImmValue: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getImmValue">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getImmValue">> => {
-      return signExecuteMethod(TestUpgradable, this, "getImmValue", params);
+    addPair: async (
+      params: OracleWrapperTypes.SignExecuteMethodParams<"addPair">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"addPair">> => {
+      return signExecuteMethod(OracleWrapper, this, "addPair", params);
     },
-    getMutValue: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getMutValue">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getMutValue">> => {
-      return signExecuteMethod(TestUpgradable, this, "getMutValue", params);
+    getPairInfo: async (
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getPairInfo">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"getPairInfo">> => {
+      return signExecuteMethod(OracleWrapper, this, "getPairInfo", params);
     },
-    getTotal: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"getTotal">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"getTotal">> => {
-      return signExecuteMethod(TestUpgradable, this, "getTotal", params);
-    },
-    setMutValue: async (
-      params: TestUpgradableTypes.SignExecuteMethodParams<"setMutValue">
-    ): Promise<TestUpgradableTypes.SignExecuteMethodResult<"setMutValue">> => {
-      return signExecuteMethod(TestUpgradable, this, "setMutValue", params);
+    getTokenPrice: async (
+      params: OracleWrapperTypes.SignExecuteMethodParams<"getTokenPrice">
+    ): Promise<OracleWrapperTypes.SignExecuteMethodResult<"getTokenPrice">> => {
+      return signExecuteMethod(OracleWrapper, this, "getTokenPrice", params);
     },
   };
 
-  async multicall<Callss extends TestUpgradableTypes.MultiCallParams[]>(
+  async multicall<Callss extends OracleWrapperTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<TestUpgradableTypes.MulticallReturnType<Callss>> {
+  ): Promise<OracleWrapperTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
-      TestUpgradable,
+      OracleWrapper,
       this,
       callss,
       getContractByCodeHash
-    )) as TestUpgradableTypes.MulticallReturnType<Callss>;
+    )) as OracleWrapperTypes.MulticallReturnType<Callss>;
   }
 }

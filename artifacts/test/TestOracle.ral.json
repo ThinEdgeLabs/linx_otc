@@ -1,0 +1,59 @@
+{
+  "version": "v3.6.2",
+  "name": "TestOracle",
+  "bytecode": "000240364083010001010212d3a0e6c2310c0d0d140a5f5f6d61705f5f305f5f160044cb01000d0d0d140a5f5f6d61705f5f305f5f160044cb010002010303030019d3e6e687ff140a5f5f6d61705f5f305f5f160044cbc54c08b40d0c140a5f5f6d61705f5f305f5f160044cb0103b4d1a2140a5f5f6d61705f5f305f5f16004416011602b1d20300",
+  "codeHash": "55b1d86d7cff21a877f8afa201b9b405b963c6964066f11fa243388d09b0a2b0",
+  "fieldsSig": {
+    "names": [],
+    "types": [],
+    "isMutable": []
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "getValue",
+      "paramNames": [
+        "pair"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "U256",
+        "U256"
+      ]
+    },
+    {
+      "name": "setPrice",
+      "paramNames": [
+        "pair",
+        "price",
+        "timestamp"
+      ],
+      "paramTypes": [
+        "ByteVec",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": []
+    }
+  ],
+  "constants": [],
+  "enums": [],
+  "mapsSig": {
+    "names": [
+      "pricesByPair"
+    ],
+    "types": [
+      "Map[ByteVec,Value]"
+    ]
+  }
+}

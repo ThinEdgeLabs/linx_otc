@@ -1,0 +1,165 @@
+{
+  "version": "v3.6.2",
+  "name": "TestLendingMarketplaceUtils",
+  "bytecode": "0007164042405f407440ac40df4125010000000109d3f5f09369561343e82d0d13203b2e02010005070113d3cb25b2a8160016012b1705160216032c1367102d1706160616052c138001518016042c2d0201000303010ad3afb49010160213800151802c0c160016011602000102010002020107d3f620a25b160016012c1367102d0201000202011dd33ecfc09916011312334c091600130a160113122b832d024a0f16011312314c091600130a131216012b832c024a021600020100080c0117d3d3609a6c16011603000417081605160700041709160016082c170a160416092c170b160b1367102c160a2d0201000407014025d30a0d43351367101704160116042c160316002c324c020c021601160316002c16042d2b170516041603160416022a2c16042d2b1706160516042c16062d02",
+  "codeHash": "1360c78144d45f2f2ff10abfa7d9c5b85586004233f1d67dbc03415d6462ce69",
+  "fieldsSig": {
+    "names": [],
+    "types": [],
+    "isMutable": []
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "blockTimeStampInSeconds",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateInterestPayment",
+      "paramNames": [
+        "currentBlockTimeStamp",
+        "loanTimestamp",
+        "amount",
+        "interest",
+        "days"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateTotalInterestPayment",
+      "paramNames": [
+        "amount",
+        "interest",
+        "days"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateMarketplaceFee",
+      "paramNames": [
+        "amount",
+        "feeRate"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "normalizeAmount",
+      "paramNames": [
+        "amount",
+        "decimals"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateLTV",
+      "paramNames": [
+        "collateralTokenAmount",
+        "collateralTokenPrice",
+        "borrowedTokenAmount",
+        "borrowedTokenPrice"
+      ],
+      "paramTypes": [
+        "U256",
+        "TokenPrice",
+        "U256",
+        "TokenPrice"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "calculateLiquidationAmount",
+      "paramNames": [
+        "collateralValue",
+        "loanValue",
+        "fee",
+        "ltvTarget"
+      ],
+      "paramTypes": [
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    }
+  ],
+  "constants": [
+    {
+      "name": "Day",
+      "value": {
+        "type": "U256",
+        "value": "86400"
+      }
+    }
+  ],
+  "enums": []
+}

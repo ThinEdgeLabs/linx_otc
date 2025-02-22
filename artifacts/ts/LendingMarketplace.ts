@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  Asset,
   ContractInstance,
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
@@ -33,15 +34,17 @@ import {
 } from "@alephium/web3";
 import { default as LendingMarketplaceContractJson } from "../LendingMarketplace.ral.json";
 import { getContractByCodeHash } from "./contracts";
-
+import { PairInfo, TokenPrice, Value, AllStructs } from "./types";
 import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
 export namespace LendingMarketplaceTypes {
   export type Fields = {
     loanTemplateId: HexString;
+    oracleContractId: HexString;
+    liquidationFee: bigint;
+    borrowingFee: bigint;
     totalLoans: bigint;
-    feeRate: bigint;
     lendingEnabled: boolean;
     upgradeDelay: bigint;
     owner: Address;
@@ -118,6 +121,11 @@ export namespace LendingMarketplaceTypes {
     by: Address;
     timestamp: bigint;
   }>;
+  export type LoanPartiallyLiquidatedEvent = ContractEvent<{
+    loanId: HexString;
+    by: Address;
+    timestamp: bigint;
+  }>;
   export type CollateralClaimedEvent = ContractEvent<{
     loanId: HexString;
     by: Address;
@@ -180,7 +188,29 @@ export namespace LendingMarketplaceTypes {
       result: CallContractResult<bigint>;
     };
     calculateMarketplaceFee: {
-      params: CallContractParams<{ amount: bigint; feeRateValue: bigint }>;
+      params: CallContractParams<{ amount: bigint; feeRate: bigint }>;
+      result: CallContractResult<bigint>;
+    };
+    normalizeAmount: {
+      params: CallContractParams<{ amount: bigint; decimals: bigint }>;
+      result: CallContractResult<bigint>;
+    };
+    calculateLTV: {
+      params: CallContractParams<{
+        collateralTokenAmount: bigint;
+        collateralTokenPrice: TokenPrice;
+        borrowedTokenAmount: bigint;
+        borrowedTokenPrice: TokenPrice;
+      }>;
+      result: CallContractResult<bigint>;
+    };
+    calculateLiquidationAmount: {
+      params: CallContractParams<{
+        collateralValue: bigint;
+        loanValue: bigint;
+        fee: bigint;
+        ltvTarget: bigint;
+      }>;
       result: CallContractResult<bigint>;
     };
     getUpgradeDelay: {
@@ -211,13 +241,41 @@ export namespace LendingMarketplaceTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<HexString>;
     };
+    resetFields: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    assertOnlyOwner: {
+      params: CallContractParams<{ caller: Address }>;
+      result: CallContractResult<null>;
+    };
+    assertUpgradeNotPending: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    assertUpgradeDelayElapsed: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
     getTotalLoans: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
-    getFeeRate: {
+    getBorrowingFee: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
+    };
+    getLiquidationFee: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    isFeeToken: {
+      params: CallContractParams<{ tokenId: HexString }>;
+      result: CallContractResult<boolean>;
+    };
+    getOracleContractId: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
     };
     createLoan: {
       params: CallContractParams<{
@@ -227,6 +285,7 @@ export namespace LendingMarketplaceTypes {
         collateralAmount: bigint;
         interestRate: bigint;
         duration: bigint;
+        canBeLiquidated: boolean;
       }>;
       result: CallContractResult<Address>;
     };
@@ -250,8 +309,8 @@ export namespace LendingMarketplaceTypes {
       params: CallContractParams<{ loanId: HexString }>;
       result: CallContractResult<null>;
     };
-    updateFeeRate: {
-      params: CallContractParams<{ value: bigint }>;
+    updateBorrowingFee: {
+      params: CallContractParams<{ newFee: bigint }>;
       result: CallContractResult<null>;
     };
     pauseLending: {
@@ -282,10 +341,6 @@ export namespace LendingMarketplaceTypes {
       params: CallContractParams<{ tokenId: HexString }>;
       result: CallContractResult<null>;
     };
-    isFeeToken: {
-      params: CallContractParams<{ tokenId: HexString }>;
-      result: CallContractResult<boolean>;
-    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -299,10 +354,9 @@ export namespace LendingMarketplaceTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
-  export type MulticallReturnType<Callss extends MultiCallParams[]> =
-    Callss["length"] extends 1
-      ? MultiCallResults<Callss[0]>
-      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> = {
+    [index in keyof Callss]: MultiCallResults<Callss[index]>;
+  };
 
   export interface SignExecuteMethodTable {
     changeOwner: {
@@ -362,7 +416,32 @@ export namespace LendingMarketplaceTypes {
     calculateMarketplaceFee: {
       params: SignExecuteContractMethodParams<{
         amount: bigint;
-        feeRateValue: bigint;
+        feeRate: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    normalizeAmount: {
+      params: SignExecuteContractMethodParams<{
+        amount: bigint;
+        decimals: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    calculateLTV: {
+      params: SignExecuteContractMethodParams<{
+        collateralTokenAmount: bigint;
+        collateralTokenPrice: TokenPrice;
+        borrowedTokenAmount: bigint;
+        borrowedTokenPrice: TokenPrice;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    calculateLiquidationAmount: {
+      params: SignExecuteContractMethodParams<{
+        collateralValue: bigint;
+        loanValue: bigint;
+        fee: bigint;
+        ltvTarget: bigint;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -394,11 +473,39 @@ export namespace LendingMarketplaceTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
+    resetFields: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    assertOnlyOwner: {
+      params: SignExecuteContractMethodParams<{ caller: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    assertUpgradeNotPending: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    assertUpgradeDelayElapsed: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
     getTotalLoans: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    getFeeRate: {
+    getBorrowingFee: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getLiquidationFee: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    isFeeToken: {
+      params: SignExecuteContractMethodParams<{ tokenId: HexString }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getOracleContractId: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -410,6 +517,7 @@ export namespace LendingMarketplaceTypes {
         collateralAmount: bigint;
         interestRate: bigint;
         duration: bigint;
+        canBeLiquidated: boolean;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -433,8 +541,8 @@ export namespace LendingMarketplaceTypes {
       params: SignExecuteContractMethodParams<{ loanId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
-    updateFeeRate: {
-      params: SignExecuteContractMethodParams<{ value: bigint }>;
+    updateBorrowingFee: {
+      params: SignExecuteContractMethodParams<{ newFee: bigint }>;
       result: SignExecuteScriptTxResult;
     };
     pauseLending: {
@@ -468,15 +576,13 @@ export namespace LendingMarketplaceTypes {
       params: SignExecuteContractMethodParams<{ tokenId: HexString }>;
       result: SignExecuteScriptTxResult;
     };
-    isFeeToken: {
-      params: SignExecuteContractMethodParams<{ tokenId: HexString }>;
-      result: SignExecuteScriptTxResult;
-    };
   }
   export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
     SignExecuteMethodTable[T]["params"];
   export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
     SignExecuteMethodTable[T]["result"];
+
+  export type Maps = { feeTokens?: Map<HexString, boolean> };
 }
 
 class Factory extends ContractFactory<
@@ -487,12 +593,8 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      []
+      AllStructs
     );
-  }
-
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as LendingMarketplaceTypes.Fields;
   }
 
   eventIndex = {
@@ -508,7 +610,8 @@ class Factory extends ContractFactory<
     LoanPaid: 9,
     LoanAccepted: 10,
     LoanLiquidated: 11,
-    CollateralClaimed: 12,
+    LoanPartiallyLiquidated: 12,
+    CollateralClaimed: 13,
   };
   consts = {
     Day: BigInt("86400"),
@@ -532,6 +635,8 @@ class Factory extends ContractFactory<
       InvalidDuration: BigInt("7"),
       LoanNotActive: BigInt("8"),
       LoanNotOverdue: BigInt("9"),
+      LoanIsHealthy: BigInt("10"),
+      LoanCannotBeLiquidated: BigInt("11"),
     },
   };
 
@@ -544,22 +649,18 @@ class Factory extends ContractFactory<
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { changeOwner: Address },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "changeOwner", params, getContractByCodeHash);
     },
     migrate: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { changeCode: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "migrate", params, getContractByCodeHash);
     },
     migrateWithFields: async (
@@ -570,11 +671,9 @@ class Factory extends ContractFactory<
           changeImmFieldsEncoded: HexString;
           changeMutFieldsEncoded: HexString;
         },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "migrateWithFields",
@@ -587,13 +686,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "changeOwnerApply",
@@ -606,13 +703,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "migrateApply", params, getContractByCodeHash);
     },
     migrateWithFieldsApply: async (
@@ -620,13 +715,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "migrateWithFieldsApply",
@@ -639,13 +732,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "resetUpgrade", params, getContractByCodeHash);
     },
     blockTimeStampInSeconds: async (
@@ -653,13 +744,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "blockTimeStampInSeconds",
@@ -677,11 +766,9 @@ class Factory extends ContractFactory<
           interest: bigint;
           days: bigint;
         },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "calculateInterestPayment",
@@ -693,11 +780,9 @@ class Factory extends ContractFactory<
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { amount: bigint; interest: bigint; days: bigint },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "calculateTotalInterestPayment",
@@ -708,15 +793,55 @@ class Factory extends ContractFactory<
     calculateMarketplaceFee: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
-        { amount: bigint; feeRateValue: bigint },
-        { feeTokens?: Map<HexString, boolean> }
+        { amount: bigint; feeRate: bigint },
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "calculateMarketplaceFee",
+        params,
+        getContractByCodeHash
+      );
+    },
+    normalizeAmount: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { amount: bigint; decimals: bigint },
+        LendingMarketplaceTypes.Maps
+      >
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(this, "normalizeAmount", params, getContractByCodeHash);
+    },
+    calculateLTV: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        {
+          collateralTokenAmount: bigint;
+          collateralTokenPrice: TokenPrice;
+          borrowedTokenAmount: bigint;
+          borrowedTokenPrice: TokenPrice;
+        },
+        LendingMarketplaceTypes.Maps
+      >
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(this, "calculateLTV", params, getContractByCodeHash);
+    },
+    calculateLiquidationAmount: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        {
+          collateralValue: bigint;
+          loanValue: bigint;
+          fee: bigint;
+          ltvTarget: bigint;
+        },
+        LendingMarketplaceTypes.Maps
+      >
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(
+        this,
+        "calculateLiquidationAmount",
         params,
         getContractByCodeHash
       );
@@ -726,13 +851,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "getUpgradeDelay", params, getContractByCodeHash);
     },
     getOwner: async (
@@ -740,13 +863,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<Address, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<Address, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "getOwner", params, getContractByCodeHash);
     },
     getNewOwner: async (
@@ -754,13 +875,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<Address, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<Address, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "getNewOwner", params, getContractByCodeHash);
     },
     getUpgradeInitiated: async (
@@ -768,13 +887,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "getUpgradeInitiated",
@@ -787,13 +904,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<HexString, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "getNewCode", params, getContractByCodeHash);
     },
     getNewImmFieldsEncoded: async (
@@ -801,13 +916,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<HexString, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "getNewImmFieldsEncoded",
@@ -820,13 +933,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<HexString, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<HexString, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "getNewMutFieldsEncoded",
@@ -839,24 +950,20 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "resetFields", params, getContractByCodeHash);
     },
     assertOnlyOwner: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { caller: Address },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "assertOnlyOwner", params, getContractByCodeHash);
     },
     assertUpgradeNotPending: async (
@@ -864,13 +971,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "assertUpgradeNotPending",
@@ -883,13 +988,11 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(
         this,
         "assertUpgradeDelayElapsed",
@@ -902,28 +1005,67 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "getTotalLoans", params, getContractByCodeHash);
     },
-    getFeeRate: async (
+    getBorrowingFee: async (
       params: Omit<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<bigint, { feeTokens?: Map<HexString, boolean> }>
-    > => {
-      return testMethod(this, "getFeeRate", params, getContractByCodeHash);
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(this, "getBorrowingFee", params, getContractByCodeHash);
+    },
+    getLiquidationFee: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          LendingMarketplaceTypes.Maps
+        >,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<bigint, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(
+        this,
+        "getLiquidationFee",
+        params,
+        getContractByCodeHash
+      );
+    },
+    isFeeToken: async (
+      params: TestContractParams<
+        LendingMarketplaceTypes.Fields,
+        { tokenId: HexString },
+        LendingMarketplaceTypes.Maps
+      >
+    ): Promise<TestContractResult<boolean, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(this, "isFeeToken", params, getContractByCodeHash);
+    },
+    getOracleContractId: async (
+      params: Omit<
+        TestContractParams<
+          LendingMarketplaceTypes.Fields,
+          never,
+          LendingMarketplaceTypes.Maps
+        >,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<HexString, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(
+        this,
+        "getOracleContractId",
+        params,
+        getContractByCodeHash
+      );
     },
     createLoan: async (
       params: TestContractParams<
@@ -935,92 +1077,82 @@ class Factory extends ContractFactory<
           collateralAmount: bigint;
           interestRate: bigint;
           duration: bigint;
+          canBeLiquidated: boolean;
         },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<Address, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<Address, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "createLoan", params, getContractByCodeHash);
     },
     borrow: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "borrow", params, getContractByCodeHash);
     },
     cancelLoan: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "cancelLoan", params, getContractByCodeHash);
     },
     repayLoan: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "repayLoan", params, getContractByCodeHash);
     },
     claimCollateral: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "claimCollateral", params, getContractByCodeHash);
     },
     liquidateLoan: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { loanId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "liquidateLoan", params, getContractByCodeHash);
     },
-    updateFeeRate: async (
+    updateBorrowingFee: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
-        { value: bigint },
-        { feeTokens?: Map<HexString, boolean> }
+        { newFee: bigint },
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
-      return testMethod(this, "updateFeeRate", params, getContractByCodeHash);
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
+      return testMethod(
+        this,
+        "updateBorrowingFee",
+        params,
+        getContractByCodeHash
+      );
     },
     pauseLending: async (
       params: Omit<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "pauseLending", params, getContractByCodeHash);
     },
     enableLending: async (
@@ -1028,80 +1160,68 @@ class Factory extends ContractFactory<
         TestContractParams<
           LendingMarketplaceTypes.Fields,
           never,
-          { feeTokens?: Map<HexString, boolean> }
+          LendingMarketplaceTypes.Maps
         >,
         "testArgs"
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "enableLending", params, getContractByCodeHash);
     },
     withdraw: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { to: Address; tokenId: HexString; amount: bigint },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "withdraw", params, getContractByCodeHash);
     },
     deposit: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { tokenId: HexString; amount: bigint },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "deposit", params, getContractByCodeHash);
     },
     addFeeToken: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { tokenId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "addFeeToken", params, getContractByCodeHash);
     },
     removeFeeToken: async (
       params: TestContractParams<
         LendingMarketplaceTypes.Fields,
         { tokenId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
+        LendingMarketplaceTypes.Maps
       >
-    ): Promise<
-      TestContractResult<null, { feeTokens?: Map<HexString, boolean> }>
-    > => {
+    ): Promise<TestContractResult<null, LendingMarketplaceTypes.Maps>> => {
       return testMethod(this, "removeFeeToken", params, getContractByCodeHash);
     },
-    isFeeToken: async (
-      params: TestContractParams<
-        LendingMarketplaceTypes.Fields,
-        { tokenId: HexString },
-        { feeTokens?: Map<HexString, boolean> }
-      >
-    ): Promise<
-      TestContractResult<boolean, { feeTokens?: Map<HexString, boolean> }>
-    > => {
-      return testMethod(this, "isFeeToken", params, getContractByCodeHash);
-    },
   };
+
+  stateForTest(
+    initFields: LendingMarketplaceTypes.Fields,
+    asset?: Asset,
+    address?: string,
+    maps?: LendingMarketplaceTypes.Maps
+  ) {
+    return this.stateForTest_(initFields, asset, address, maps);
+  }
 }
 
 // Use this object to test and deploy the contract
 export const LendingMarketplace = new Factory(
   Contract.fromJson(
     LendingMarketplaceContractJson,
-    "=148-4=1-1+0=2-2+1c4539=2383-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=64",
-    "5c99e31b193909398126299251646eae918ef0a5cd76e4db0519c9e6cbcd505f",
-    []
+    "=172-2+1c=2-2+58=3527-1+e=52+7a7e0214696e73657274206174206d617020706174683a2000=21-1+d=52+7a7e021472656d6f7665206174206d617020706174683a2000=6",
+    "614c4be352c774c3ff94cfe0b11787cbe6e208bd4891df85aed8d98d003badea",
+    AllStructs
   )
 );
 
@@ -1283,6 +1403,19 @@ export class LendingMarketplaceInstance extends ContractInstance {
     );
   }
 
+  subscribeLoanPartiallyLiquidatedEvent(
+    options: EventSubscribeOptions<LendingMarketplaceTypes.LoanPartiallyLiquidatedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      LendingMarketplace.contract,
+      this,
+      options,
+      "LoanPartiallyLiquidated",
+      fromCount
+    );
+  }
+
   subscribeCollateralClaimedEvent(
     options: EventSubscribeOptions<LendingMarketplaceTypes.CollateralClaimedEvent>,
     fromCount?: number
@@ -1310,6 +1443,7 @@ export class LendingMarketplaceInstance extends ContractInstance {
       | LendingMarketplaceTypes.LoanPaidEvent
       | LendingMarketplaceTypes.LoanAcceptedEvent
       | LendingMarketplaceTypes.LoanLiquidatedEvent
+      | LendingMarketplaceTypes.LoanPartiallyLiquidatedEvent
       | LendingMarketplaceTypes.CollateralClaimedEvent
     >,
     fromCount?: number
@@ -1458,6 +1592,41 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    normalizeAmount: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"normalizeAmount">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"normalizeAmount">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "normalizeAmount",
+        params,
+        getContractByCodeHash
+      );
+    },
+    calculateLTV: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"calculateLTV">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"calculateLTV">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "calculateLTV",
+        params,
+        getContractByCodeHash
+      );
+    },
+    calculateLiquidationAmount: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"calculateLiquidationAmount">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"calculateLiquidationAmount">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "calculateLiquidationAmount",
+        params,
+        getContractByCodeHash
+      );
+    },
     getUpgradeDelay: async (
       params?: LendingMarketplaceTypes.CallMethodParams<"getUpgradeDelay">
     ): Promise<LendingMarketplaceTypes.CallMethodResult<"getUpgradeDelay">> => {
@@ -1541,6 +1710,54 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    resetFields: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"resetFields">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"resetFields">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "resetFields",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    assertOnlyOwner: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"assertOnlyOwner">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"assertOnlyOwner">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "assertOnlyOwner",
+        params,
+        getContractByCodeHash
+      );
+    },
+    assertUpgradeNotPending: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"assertUpgradeNotPending">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"assertUpgradeNotPending">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "assertUpgradeNotPending",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    assertUpgradeDelayElapsed: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"assertUpgradeDelayElapsed">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"assertUpgradeDelayElapsed">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "assertUpgradeDelayElapsed",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
     getTotalLoans: async (
       params?: LendingMarketplaceTypes.CallMethodParams<"getTotalLoans">
     ): Promise<LendingMarketplaceTypes.CallMethodResult<"getTotalLoans">> => {
@@ -1552,13 +1769,50 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    getFeeRate: async (
-      params?: LendingMarketplaceTypes.CallMethodParams<"getFeeRate">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getFeeRate">> => {
+    getBorrowingFee: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getBorrowingFee">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"getBorrowingFee">> => {
       return callMethod(
         LendingMarketplace,
         this,
-        "getFeeRate",
+        "getBorrowingFee",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getLiquidationFee: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getLiquidationFee">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"getLiquidationFee">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getLiquidationFee",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    isFeeToken: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"isFeeToken">
+    ): Promise<LendingMarketplaceTypes.CallMethodResult<"isFeeToken">> => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "isFeeToken",
+        params,
+        getContractByCodeHash
+      );
+    },
+    getOracleContractId: async (
+      params?: LendingMarketplaceTypes.CallMethodParams<"getOracleContractId">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"getOracleContractId">
+    > => {
+      return callMethod(
+        LendingMarketplace,
+        this,
+        "getOracleContractId",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -1629,13 +1883,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    updateFeeRate: async (
-      params: LendingMarketplaceTypes.CallMethodParams<"updateFeeRate">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"updateFeeRate">> => {
+    updateBorrowingFee: async (
+      params: LendingMarketplaceTypes.CallMethodParams<"updateBorrowingFee">
+    ): Promise<
+      LendingMarketplaceTypes.CallMethodResult<"updateBorrowingFee">
+    > => {
       return callMethod(
         LendingMarketplace,
         this,
-        "updateFeeRate",
+        "updateBorrowingFee",
         params,
         getContractByCodeHash
       );
@@ -1702,17 +1958,6 @@ export class LendingMarketplaceInstance extends ContractInstance {
         LendingMarketplace,
         this,
         "removeFeeToken",
-        params,
-        getContractByCodeHash
-      );
-    },
-    isFeeToken: async (
-      params: LendingMarketplaceTypes.CallMethodParams<"isFeeToken">
-    ): Promise<LendingMarketplaceTypes.CallMethodResult<"isFeeToken">> => {
-      return callMethod(
-        LendingMarketplace,
-        this,
-        "isFeeToken",
         params,
         getContractByCodeHash
       );
@@ -1840,6 +2085,42 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
+    normalizeAmount: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"normalizeAmount">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"normalizeAmount">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "normalizeAmount",
+        params
+      );
+    },
+    calculateLTV: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"calculateLTV">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"calculateLTV">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "calculateLTV",
+        params
+      );
+    },
+    calculateLiquidationAmount: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"calculateLiquidationAmount">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"calculateLiquidationAmount">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "calculateLiquidationAmount",
+        params
+      );
+    },
     getUpgradeDelay: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"getUpgradeDelay">
     ): Promise<
@@ -1907,6 +2188,49 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
+    resetFields: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"resetFields">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"resetFields">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "resetFields", params);
+    },
+    assertOnlyOwner: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"assertOnlyOwner">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"assertOnlyOwner">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "assertOnlyOwner",
+        params
+      );
+    },
+    assertUpgradeNotPending: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"assertUpgradeNotPending">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"assertUpgradeNotPending">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "assertUpgradeNotPending",
+        params
+      );
+    },
+    assertUpgradeDelayElapsed: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"assertUpgradeDelayElapsed">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"assertUpgradeDelayElapsed">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "assertUpgradeDelayElapsed",
+        params
+      );
+    },
     getTotalLoans: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"getTotalLoans">
     ): Promise<
@@ -1919,12 +2243,48 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
-    getFeeRate: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getFeeRate">
+    getBorrowingFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getBorrowingFee">
     ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"getFeeRate">
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getBorrowingFee">
     > => {
-      return signExecuteMethod(LendingMarketplace, this, "getFeeRate", params);
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getBorrowingFee",
+        params
+      );
+    },
+    getLiquidationFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getLiquidationFee">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getLiquidationFee">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getLiquidationFee",
+        params
+      );
+    },
+    isFeeToken: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"isFeeToken">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"isFeeToken">
+    > => {
+      return signExecuteMethod(LendingMarketplace, this, "isFeeToken", params);
+    },
+    getOracleContractId: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"getOracleContractId">
+    ): Promise<
+      LendingMarketplaceTypes.SignExecuteMethodResult<"getOracleContractId">
+    > => {
+      return signExecuteMethod(
+        LendingMarketplace,
+        this,
+        "getOracleContractId",
+        params
+      );
     },
     createLoan: async (
       params: LendingMarketplaceTypes.SignExecuteMethodParams<"createLoan">
@@ -1976,15 +2336,15 @@ export class LendingMarketplaceInstance extends ContractInstance {
         params
       );
     },
-    updateFeeRate: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateFeeRate">
+    updateBorrowingFee: async (
+      params: LendingMarketplaceTypes.SignExecuteMethodParams<"updateBorrowingFee">
     ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"updateFeeRate">
+      LendingMarketplaceTypes.SignExecuteMethodResult<"updateBorrowingFee">
     > => {
       return signExecuteMethod(
         LendingMarketplace,
         this,
-        "updateFeeRate",
+        "updateBorrowingFee",
         params
       );
     },
@@ -2040,13 +2400,6 @@ export class LendingMarketplaceInstance extends ContractInstance {
         "removeFeeToken",
         params
       );
-    },
-    isFeeToken: async (
-      params: LendingMarketplaceTypes.SignExecuteMethodParams<"isFeeToken">
-    ): Promise<
-      LendingMarketplaceTypes.SignExecuteMethodResult<"isFeeToken">
-    > => {
-      return signExecuteMethod(LendingMarketplace, this, "isFeeToken", params);
     },
   };
 

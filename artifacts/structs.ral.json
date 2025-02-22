@@ -1,0 +1,50 @@
+[
+  {
+    "name": "PairInfo",
+    "fieldNames": [
+      "symbol",
+      "decimals"
+    ],
+    "fieldTypes": [
+      "ByteVec",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  },
+  {
+    "name": "TokenPrice",
+    "fieldNames": [
+      "price",
+      "timestamp",
+      "decimals"
+    ],
+    "fieldTypes": [
+      "U256",
+      "U256",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "Value",
+    "fieldNames": [
+      "price",
+      "timestamp"
+    ],
+    "fieldTypes": [
+      "U256",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  }
+]

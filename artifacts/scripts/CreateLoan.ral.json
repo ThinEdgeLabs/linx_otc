@@ -1,7 +1,7 @@
 {
-  "version": "v3.4.0",
+  "version": "v3.6.2",
   "name": "CreateLoan",
-  "bytecodeTemplate": "01010300000012b47ad1a2{0}{2}a3{0}{1}{2}{3}{4}{5}13060d{6}011818",
+  "bytecodeTemplate": "01010300000013b47ad1a2{0}{2}a3{0}{1}{2}{3}{4}{5}{6}13070d{7}011e18",
   "fieldsSig": {
     "names": [
       "lendingTokenId",
@@ -10,6 +10,7 @@
       "collateralAmount",
       "interestRate",
       "duration",
+      "canBeLiquidated",
       "marketplace"
     ],
     "types": [
@@ -19,9 +20,11 @@
       "U256",
       "U256",
       "U256",
+      "Bool",
       "LendingMarketplace"
     ],
     "isMutable": [
+      false,
       false,
       false,
       false,

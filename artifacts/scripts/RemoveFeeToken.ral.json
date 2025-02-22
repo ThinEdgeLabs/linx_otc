@@ -1,7 +1,7 @@
 {
-  "version": "v3.4.0",
+  "version": "v3.6.2",
   "name": "RemoveFeeToken",
-  "bytecodeTemplate": "01010300000005{1}0d0c{0}0124",
+  "bytecodeTemplate": "01010300000005{1}0d0c{0}012a",
   "fieldsSig": {
     "names": [
       "marketplace",
