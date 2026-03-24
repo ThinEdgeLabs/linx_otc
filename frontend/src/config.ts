@@ -9,19 +9,19 @@ export const lendingFee = 0n
 export const feeAddresses = [
   {
     group: 0,
-    address: '1B1yNSA9FwLjUQggGzNvdUGUFq6iBvxyuzk5DGFjaWBfx'
+    address: '1CxVEzDfGp4ZS1NhC4dteJUJQHQ6CxmGSLR5pzjoern7h'
   },
   {
     group: 1,
-    address: '17siH7XPUdLr5PgituLjmn5eZqLVsuAcDoUB122u7bZZ8'
+    address: '1dcJ6yupHufwfhGB7uotHLhiyM1pszjzbzEmEQorjyfz'
   },
   {
     group: 2,
-    address: '15P5NoWK5rbyDa1EjFYcJx3JfVPZ59oX5yTRnKpXmUJqd'
+    address: '12CLg5ovSzNAeY7uvbzYBNaprSVccS5fHQ7iTufFY2EJz'
   },
   {
     group: 3,
-    address: '15zZTAK8idRqxT2HC8HRSC3hCDDKvh4oY6jtxKsJBGGzb'
+    address: '18FCn9z5sxXKugehPqpbYaZ4s9Uur5V5Fs2Ac71JbkNm5'
   }
 ]
 export const useGasPayer = false
